@@ -1,5 +1,11 @@
 import { load } from "cheerio";
-import type { AuStateCode, CompSource, Competition, CompKind } from "./types";
+import type {
+  AuStateCode,
+  CompKind,
+  CompSource,
+  Competition,
+  DanceStyle,
+} from "./types";
 
 export const USER_AGENT =
   "MyDanceCompsBot/1.0 (+https://github.com/mitchtoeroek-tech/My-dance-comps; family dance calendar)";
@@ -33,6 +39,7 @@ const MONTHS: Record<string, string> = {
 
 export interface ScrapeStatus {
   lastRunAt: string;
+  lastFetchedAt: string;
   timezone: "Australia/Adelaide";
   added: number;
   updated: number;
@@ -59,7 +66,7 @@ function isoDate(year: string | number, month?: string, day?: string) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function parseAussieDateRange(
+export function parseAussieDateRange(
   text: string,
   fallbackYear = new Date().getFullYear(),
 ): { startDate: string; endDate: string } | null {
@@ -70,34 +77,65 @@ function parseAussieDateRange(
   if (full) {
     const start = isoDate(full[3], MONTHS[full[2].toLowerCase()], full[1]);
     const end = isoDate(full[6], MONTHS[full[5].toLowerCase()], full[4]);
-    return start && end ? { startDate: start, endDate: end } : null;
+    if (start && end) return { startDate: start, endDate: end };
   }
   const sameMonth = clean.match(
     /(\d{1,2})(?:st|nd|rd|th)?\s*-+\s*(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)(?:\s+(\d{4}))?/i,
   );
-  if (sameMonth) {
+  if (sameMonth && MONTHS[sameMonth[3].toLowerCase()]) {
     const year = sameMonth[4] || fallbackYear;
     const month = MONTHS[sameMonth[3].toLowerCase()];
     const start = isoDate(year, month, sameMonth[1]);
     const end = isoDate(year, month, sameMonth[2]);
-    return start && end ? { startDate: start, endDate: end } : null;
+    if (start && end) return { startDate: start, endDate: end };
   }
   const twoMonth = clean.match(
     /(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s*-+\s*(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)(?:\s+(\d{4}))?/i,
   );
-  if (twoMonth) {
+  if (twoMonth && MONTHS[twoMonth[2].toLowerCase()] && MONTHS[twoMonth[4].toLowerCase()]) {
     const year = twoMonth[5] || fallbackYear;
     const start = isoDate(year, MONTHS[twoMonth[2].toLowerCase()], twoMonth[1]);
     const end = isoDate(year, MONTHS[twoMonth[4].toLowerCase()], twoMonth[3]);
-    return start && end ? { startDate: start, endDate: end } : null;
+    if (start && end) return { startDate: start, endDate: end };
+  }
+  const monthFirstTwo = clean.match(
+    /([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s*-+\s*([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?/i,
+  );
+  if (
+    monthFirstTwo &&
+    MONTHS[monthFirstTwo[1].toLowerCase()] &&
+    MONTHS[monthFirstTwo[3].toLowerCase()]
+  ) {
+    const year = monthFirstTwo[5] || fallbackYear;
+    const start = isoDate(year, MONTHS[monthFirstTwo[1].toLowerCase()], monthFirstTwo[2]);
+    const end = isoDate(year, MONTHS[monthFirstTwo[3].toLowerCase()], monthFirstTwo[4]);
+    if (start && end) return { startDate: start, endDate: end };
+  }
+  const monthFirstSame = clean.match(
+    /([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s*-+\s*(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?/i,
+  );
+  if (monthFirstSame && MONTHS[monthFirstSame[1].toLowerCase()]) {
+    const year = monthFirstSame[4] || fallbackYear;
+    const month = MONTHS[monthFirstSame[1].toLowerCase()];
+    const start = isoDate(year, month, monthFirstSame[2]);
+    const end = isoDate(year, month, monthFirstSame[3]);
+    if (start && end) return { startDate: start, endDate: end };
   }
   const single = clean.match(
     /(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)(?:\s+(\d{4}))?/i,
   );
-  if (single) {
+  if (single && MONTHS[single[2].toLowerCase()]) {
     const year = single[3] || fallbackYear;
     const date = isoDate(year, MONTHS[single[2].toLowerCase()], single[1]);
-    return date ? { startDate: date, endDate: date } : null;
+    if (date) return { startDate: date, endDate: date };
+  }
+  const monthFirstSingle = clean.match(
+    /([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?/i,
+  );
+  if (monthFirstSingle && MONTHS[monthFirstSingle[1].toLowerCase()]) {
+    const year = monthFirstSingle[3] || fallbackYear;
+    const date = isoDate(year, MONTHS[monthFirstSingle[1].toLowerCase()], monthFirstSingle[2]);
+    if (date) return { startDate: date, endDate: date };
   }
   const iso = clean.match(
     /(\d{2})\/(\d{2})\/(\d{4})\s*-+\s*(\d{2})\/(\d{2})\/(\d{4})/,
@@ -125,12 +163,15 @@ async function fetchHtml(url: string): Promise<string> {
 function guessState(text: string): AuStateCode {
   const t = text.toUpperCase();
   if (/\bNSW\b|NEW SOUTH WALES|SYDNEY|NEWCASTLE/.test(t)) return "NSW";
-  if (/\bVIC\b|VICTORIA|MELBOURNE|BALLARAT/.test(t)) return "VIC";
-  if (/\bQLD\b|QUEENSLAND|GOLD COAST|CAIRNS|BRISBANE/.test(t)) return "QLD";
-  if (/\bWA\b|WESTERN AUSTRALIA|PERTH/.test(t)) return "WA";
+  if (/\bVIC\b|VICTORIA|MELBOURNE|BALLARAT|GLADSTONE PARK/.test(t)) return "VIC";
+  if (/\bQLD\b|QUEENSLAND|GOLD COAST|CAIRNS|BRISBANE|BROADBEACH/.test(t)) return "QLD";
+  if (/\bWA\b|WESTERN AUSTRALIA|PERTH|MORLEY/.test(t)) return "WA";
   if (/\bNT\b|DARWIN/.test(t)) return "NT";
   if (/\bTAS\b|TASMANIA|HOBART/.test(t)) return "TAS";
-  if (/\bACT\b|CANBERRA/.test(t)) return "ACT";
+  if (/\bACT\b|CANBERRA|GUNGAHLIN/.test(t)) return "ACT";
+  if (/\bSA\b|SOUTH AUSTRALIA|ADELAIDE|GOLDEN GROVE|REYNELLA|MILLICENT|MARION/.test(t)) {
+    return "SA";
+  }
   return "SA";
 }
 
@@ -258,6 +299,219 @@ async function parseCmidc(source: CompSource): Promise<Competition[]> {
     );
   });
   return uniqueById(found);
+}
+
+const FULL_OUT_STYLES: DanceStyle[] = [
+  "Ballet",
+  "Character",
+  "Lyrical",
+  "Jazz",
+  "Contemporary",
+  "Broadway Jazz",
+  "Musical Theatre",
+  "Hip Hop",
+  "Acro",
+  "Tap",
+  "Song and Tap",
+  "Song and Dance",
+];
+
+const FULL_OUT_PLACES: {
+  test: RegExp;
+  label: string;
+  suburb: string;
+  venue: string;
+  state: AuStateCode;
+  kind?: CompKind;
+}[] = [
+  {
+    test: /state\s*finals|\breynella\b|futures events/i,
+    label: "State Finals",
+    suburb: "Reynella",
+    venue: "Futures Events Centre",
+    state: "SA",
+    kind: "nationals",
+  },
+  {
+    test: /adelaide\s*2/i,
+    label: "Adelaide 2",
+    suburb: "Golden Grove",
+    venue: "Golden Grove Arts Centre",
+    state: "SA",
+  },
+  {
+    test: /adelaide\s*1/i,
+    label: "Adelaide 1",
+    suburb: "Golden Grove",
+    venue: "Golden Grove Arts Centre",
+    state: "SA",
+  },
+  {
+    test: /gold\s*coast|\bbroadbeach\b/i,
+    label: "Gold Coast",
+    suburb: "Broadbeach",
+    venue: "Broadbeach Cultural Centre",
+    state: "QLD",
+  },
+  {
+    test: /\bperth\b|\bmorley\b/i,
+    label: "Perth",
+    suburb: "Morley",
+    venue: "Morley Sport & Recreation",
+    state: "WA",
+  },
+  {
+    test: /\bmillicent\b/i,
+    label: "Millicent",
+    suburb: "Millicent",
+    venue: "Millicent Civic Arts",
+    state: "SA",
+  },
+  {
+    test: /\bdarwin\b/i,
+    label: "Darwin",
+    suburb: "Darwin",
+    venue: "Charles Darwin University",
+    state: "NT",
+  },
+  {
+    test: /\bmelbourne\b|\bgladstone park\b/i,
+    label: "Melbourne",
+    suburb: "Gladstone Park",
+    venue: "Gladstone Park Secondary College",
+    state: "VIC",
+  },
+  {
+    test: /\bcanberra\b|\bgungahlin\b/i,
+    label: "Canberra",
+    suburb: "Gungahlin",
+    venue: "Gungahlin College Performing Arts Centre",
+    state: "ACT",
+  },
+];
+
+function parseEtLinkOptions(html: string): Record<string, string> {
+  const match = html.match(/var et_link_options_data\s*=\s*(\[[\s\S]*?\]);/);
+  if (!match) return {};
+  try {
+    const rows = JSON.parse(match[1]) as { class?: string; url?: string }[];
+    const map: Record<string, string> = {};
+    for (const row of rows) {
+      if (row.class && row.url) map[row.class] = row.url;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+function fullOutDivision(text: string): string {
+  const troupes = /\btroupes\b/i.test(text);
+  const solos = /\bsolos?\b|\bduos?\b/i.test(text);
+  if (troupes && !solos) return "Troupes";
+  if (solos && !troupes) return "Solos/Duos";
+  return "";
+}
+
+function fullOutEntryNote(text: string): string {
+  if (/sold\s*out/i.test(text)) {
+    return "Entries listed as sold out on fullout.com.au/enter/. Email dance@fullout.com.au for the waitlist.";
+  }
+  if (/coming\s*soon/i.test(text)) {
+    return "Entries coming soon on fullout.com.au/enter/.";
+  }
+  if (/entries\s*open/i.test(text)) {
+    return "Entries open on the organiser site — confirm on fullout.com.au/enter/ before you enter.";
+  }
+  return "Dates from fullout.com.au/enter/. Confirm on the organiser site before you enter.";
+}
+
+function visibleCardText($: ReturnType<typeof load>, el: unknown): string {
+  const html = $(el as never).html() ?? "";
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(h\d|p|div|li|span)>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function detectFullOutYear($: ReturnType<typeof load>, fallbackYear: number): number {
+  const cards: string[] = [];
+  $(".et_pb_text_inner").each((_, el) => {
+    cards.push(visibleCardText($, el));
+  });
+  for (const text of cards) {
+    if (/waitlist/i.test(text)) {
+      const year = text.match(/\b(20\d{2})\b/);
+      if (year) return Number(year[1]);
+    }
+    if (/^20\d{2}$/.test(text)) return Number(text);
+  }
+  return fallbackYear;
+}
+
+/** Best-effort parse of Full Out (Australia) enter cards. Source: fullout.com.au only. */
+export function parseFullOutHtml(
+  html: string,
+  source: CompSource,
+  fetchedAt = new Date(),
+): Competition[] {
+  const $ = load(html);
+  const links = parseEtLinkOptions(html);
+  const fallbackYear = detectFullOutYear($, fetchedAt.getFullYear());
+  const lastFetchedAt = fetchedAt.toISOString();
+  const found: Competition[] = [];
+
+  $(".et_pb_text_inner").each((_, el) => {
+    const text = visibleCardText($, el);
+    if (text.length < 12 || text.length > 400) return;
+    if (/waitlist requests|website design/i.test(text)) return;
+    const range = parseAussieDateRange(text, fallbackYear);
+    if (!range) return;
+    const place = FULL_OUT_PLACES.find((row) => row.test.test(text));
+    if (!place) return;
+
+    const division = /state\s*finals/i.test(text) ? "" : fullOutDivision(text);
+    const display = division ? `${place.label} ${division}` : place.label;
+    const parentClass = $(el).closest(".et_pb_text").attr("class") || "";
+    const classKey = parentClass.match(/et_pb_text_\d+/)?.[0];
+    const portal = (classKey && links[classKey]) || "";
+    const registrationUrl = portal || source.scrapeUrl;
+
+    found.push(
+      baseComp({
+        id: `full-out-${slug(display)}-${range.startDate.slice(0, 4)}`,
+        name: `Full Out — ${display}`,
+        kind: place.kind ?? "competition",
+        organiser: "Full Out",
+        organiserUrl: source.url,
+        venue: place.venue,
+        suburb: place.suburb,
+        state: place.state,
+        startDate: range.startDate,
+        endDate: range.endDate,
+        registrationUrl,
+        infoUrl: source.scrapeUrl,
+        styles: FULL_OUT_STYLES,
+        minAge: 5,
+        maxAge: 18,
+        sourceId: source.id,
+        notes: fullOutEntryNote(text),
+        lastFetchedAt,
+      }),
+    );
+  });
+
+  return uniqueById(found);
+}
+
+async function parseFullOut(source: CompSource): Promise<Competition[]> {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const html = await fetchHtml(source.scrapeUrl);
+  return parseFullOutHtml(html, source);
 }
 
 async function parseDanceHubTable(source: CompSource): Promise<Competition[]> {
@@ -408,6 +662,7 @@ const parsers: Record<CompSource["parser"], Parser> = {
   sasds: parseSasds,
   evolution: parseEvolution,
   cmidc: parseCmidc,
+  "full-out": parseFullOut,
   "dance-hub-table": parseDanceHubTable,
   "html-generic": parseGeneric,
   "seed-only": async () => [],
@@ -442,7 +697,12 @@ export async function scrapeAll(
     if (error) report.push(`✗ ${name}: ${error}`);
     else {
       scraped.push(...rows);
-      report.push(`✓ ${name}: ${rows.length} event(s)`);
+      const fetched = rows.find((row) => row.lastFetchedAt)?.lastFetchedAt;
+      report.push(
+        fetched
+          ? `✓ ${name}: ${rows.length} event(s) (lastFetchedAt ${fetched})`
+          : `✓ ${name}: ${rows.length} event(s)`,
+      );
     }
   }
 
@@ -452,10 +712,12 @@ export async function scrapeAll(
   const currentScraped = scraped.filter((row) => row.endDate >= cutoff);
 
   const { comps, added, updated } = mergeComps(seed, currentScraped);
+  const lastFetchedAt = new Date().toISOString();
   return {
     comps,
     status: {
-      lastRunAt: new Date().toISOString(),
+      lastRunAt: lastFetchedAt,
+      lastFetchedAt,
       timezone: "Australia/Adelaide",
       added,
       updated,
