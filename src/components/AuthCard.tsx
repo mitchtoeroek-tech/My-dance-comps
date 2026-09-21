@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSyncExternalStore } from "react";
+import { safeInternalPath } from "@/lib/friends";
 
 const fieldClass =
   "mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground";
@@ -128,6 +130,43 @@ export function AuthTextLink({
       {children}
     </Link>
   );
+}
+
+export function AuthSwitchLink({
+  baseHref,
+  children,
+}: {
+  baseHref: "/login" | "/signup";
+  children: React.ReactNode;
+}) {
+  const search = useSyncExternalStore(
+    subscribeToLocationSearch,
+    getLocationSearch,
+    () => "",
+  );
+  const next = resolveAuthNextPathFromSearch(search);
+  const href =
+    next === "/account"
+      ? baseHref
+      : `${baseHref}?next=${encodeURIComponent(next)}`;
+
+  return <AuthTextLink href={href}>{children}</AuthTextLink>;
+}
+
+function subscribeToLocationSearch(onStoreChange: () => void) {
+  window.addEventListener("popstate", onStoreChange);
+  return () => window.removeEventListener("popstate", onStoreChange);
+}
+
+function getLocationSearch() {
+  return window.location.search;
+}
+
+function resolveAuthNextPathFromSearch(search: string) {
+  const params = new URLSearchParams(
+    search.startsWith("?") ? search.slice(1) : search,
+  );
+  return safeInternalPath(params.get("next")) ?? "/account";
 }
 
 export function AuthUnavailable() {

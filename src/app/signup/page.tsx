@@ -8,10 +8,12 @@ import {
   AuthField,
   AuthLinks,
   AuthSubmit,
+  AuthSwitchLink,
   AuthTextLink,
   AuthUnavailable,
 } from "@/components/AuthCard";
 import { useAuth } from "@/context/AuthContext";
+import { resolveAuthNextPath } from "@/lib/friends";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function SignUpPage() {
         subtitle="We sent a confirmation link. After you tap it, you can log in. Until then, guest mode still works on this device."
       >
         <AuthLinks>
-          Already confirmed? <AuthTextLink href="/login">Log in</AuthTextLink>
+          Already confirmed? <AuthSwitchLink baseHref="/login">Log in</AuthSwitchLink>
         </AuthLinks>
       </AuthCard>
     );
@@ -59,7 +61,7 @@ export default function SignUpPage() {
             setNeedsConfirmation(true);
             return;
           }
-          router.push("/account");
+          router.push(resolveAuthNextPath());
         }}
       >
         <AuthField
@@ -93,7 +95,7 @@ export default function SignUpPage() {
       </form>
       <div className="mt-4 space-y-2">
         <AuthLinks>
-          Already have an account? <AuthTextLink href="/login">Log in</AuthTextLink>
+          Already have an account? <AuthSwitchLink baseHref="/login">Log in</AuthSwitchLink>
         </AuthLinks>
         <AuthLinks>
           <AuthTextLink href="/">Continue as guest</AuthTextLink>

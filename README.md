@@ -46,7 +46,9 @@ The app boots without these keys: auth pages explain that accounts are unavailab
 
 1. Open the [Supabase dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**.
 2. Paste [`supabase/migrations/20260921_family_accounts.sql`](supabase/migrations/20260921_family_accounts.sql) and run it.
-3. That creates `profiles`, `children`, `favourites`, `results`, and `enrolled_comps` with row-level security (users only see their own rows).
+3. Then paste [`supabase/migrations/20260921_kids_friends.sql`](supabase/migrations/20260921_kids_friends.sql) and run it.
+4. Family accounts create `profiles`, `children`, `favourites`, `results`, and `enrolled_comps` with row-level security (users only see their own rows).
+5. Kids friends create `child_friend_settings` and `child_friendships`, plus RPCs so parents can search/invite and see a friend’s **enrolled** comps only (not favourites, not date of birth).
 
 ### Supabase Auth settings
 
@@ -70,8 +72,9 @@ The app boots without these keys: auth pages explain that accounts are unavailab
 4. Account should show counts for kids / saved / entered / results. Sign out: the same data stays on the device (guest mode).
 5. **Forgot password** → use the email link → **Reset password** on the branded page.
 6. On another browser (or after clearing site data), log in: kids, favourites, enrolled comps and results should come back from Supabase.
+7. Open a dancer on **Kids**. Share the invite (one tap), or add a friend by code / parent email + child name. Accept on the other account. **My comps** shows that friend’s entered comps, read-only.
 
-Logged-in writes debounce (~600ms) up to Supabase. Logged-out / guest writes stay local only.
+Logged-in writes debounce (~600ms) up to Supabase. Logged-out / guest writes stay local only. Friends are account-only — guests see “Friends unlock when you sign in”.
 
 ## Deploy on Vercel
 

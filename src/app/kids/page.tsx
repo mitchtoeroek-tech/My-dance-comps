@@ -19,7 +19,8 @@ export default function KidsPage() {
           <h1 className="text-2xl font-bold">Kids</h1>
           <p className="text-sm text-muted-foreground">
             {state.children.length} of {SOFT_MAX_KIDS} dancer profiles. They
-            stay on this device; sign in from Account to sync.
+            stay on this device; sign in from Account to sync. Open a dancer to
+            share a friend invite.
           </p>
         </div>
         {canAddChild ? (
@@ -79,6 +80,9 @@ export default function KidsPage() {
                   {child.styles?.length
                     ? child.styles.join(" · ")
                     : "All styles"}
+                </p>
+                <p className="mt-2 text-xs font-bold text-primary-ink">
+                  Friends and invite →
                 </p>
               </Link>
             </li>
