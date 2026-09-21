@@ -8,7 +8,7 @@ const items = [
   { href: "/my-comps", label: "My Comps", icon: MyCompsIcon },
   { href: "/calendar", label: "Calendar", icon: CalendarIcon },
   { href: "/kids", label: "Kids", icon: KidsIcon },
-  { href: "/saved", label: "Saved", icon: SavedIcon },
+  { href: "/community", label: "Community", icon: CommunityIcon },
   { href: "/reminders", label: "Reminders", icon: BellIcon },
 ] as const;
 
@@ -143,15 +143,21 @@ function KidsIcon({ active }: { active: boolean }) {
   );
 }
 
-function SavedIcon({ active }: { active: boolean }) {
+function CommunityIcon({ active }: { active: boolean }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d="M12 4.8 14.2 9l4.8.6-3.5 3.3.9 4.7L12 15.7 7.6 17.6l.9-4.7L5 9.6 9.8 9 12 4.8Z"
+        d="M5 6.5h9.5A2.5 2.5 0 0 1 17 9v5.2a2.5 2.5 0 0 1-2.5 2.5H10l-3.6 2.4V16.7H5A1.5 1.5 0 0 1 3.5 15.2V8A1.5 1.5 0 0 1 5 6.5Z"
         stroke="currentColor"
         strokeWidth={active ? 2.2 : 1.8}
         strokeLinejoin="round"
         fill={active ? "currentColor" : "none"}
+      />
+      <path
+        d="M17.2 8.4H19a1.6 1.6 0 0 1 1.6 1.6v5.2a1.6 1.6 0 0 1-1.6 1.6h-1.1v1.8L16 16.8"
+        stroke="currentColor"
+        strokeWidth={active ? 2 : 1.6}
+        strokeLinejoin="round"
       />
     </svg>
   );

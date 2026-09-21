@@ -78,18 +78,26 @@ export default function AccountPage() {
           Sign out
         </button>
       </section>
-      <Link
-        href="/kids"
-        className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
-      >
-        Kids and friends
-      </Link>
-      <Link
-        href="/"
-        className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
-      >
-        Back to comps
-      </Link>
+      <div className="flex flex-col items-start gap-1">
+        <Link
+          href="/kids"
+          className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+        >
+          Kids and friends
+        </Link>
+        <Link
+          href="/community"
+          className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+        >
+          Community chat
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+        >
+          Back to comps
+        </Link>
+      </div>
     </div>
   );
 }
