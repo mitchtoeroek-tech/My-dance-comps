@@ -69,6 +69,10 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
 
   return (
     <div className="space-y-4">
+      <p className="text-sm font-medium text-muted-foreground">
+        Find dates, venues, and entry windows for Australian youth dance
+        competitions.
+      </p>
       <ChildPicker />
       {!child ? (
         <HomeStateChips value={homeState} onChange={setPreferredState} />

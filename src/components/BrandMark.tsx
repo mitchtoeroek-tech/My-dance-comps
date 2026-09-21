@@ -13,12 +13,12 @@ export function BrandMark({
   return (
     <Image
       src="/logo.png"
-      alt="My Dance Comps"
+      alt=""
       width={width}
       height={height}
-      className="h-[6.5rem] w-auto shrink-0 object-contain object-left"
+      className="h-[6.5rem] w-auto max-w-[min(100%,11rem)] shrink-0 object-contain object-left"
       sizes={`${width}px`}
-      priority
+      preload
     />
   );
 }
