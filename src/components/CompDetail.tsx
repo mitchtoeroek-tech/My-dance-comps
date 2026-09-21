@@ -129,10 +129,11 @@ export function CompDetail({ comp }: { comp: Competition }) {
           </button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Tap Enrolled to store a confirmed entry on this device (same
-          localStorage family list as favourites). That date then shows a star
-          on the Calendar tab. Saving a comp adds it to Reminders. Always
-          confirm dates on the organiser website.
+          Tap Enrolled to store a confirmed entry on this device. If a dancer
+          is selected, it is stored for that child; otherwise it is stored for
+          the whole family. Enrolled comps appear on My Comps and get a star on
+          the Calendar tab. Saving a comp adds it to Reminders. Always confirm
+          dates on the organiser website.
         </p>
       </div>
       {completed ? (

@@ -95,6 +95,7 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
     selectedChildId: "ghost",
     favourites: ["a", 1, "b"],
     enrolled: ["entered", 9, "also"],
+    enrolledByChild: { ok: ["entered", 4], ghost: ["nope"] },
     reminderPrefs: { onOpen: false, weekBeforeClose: "nope" },
     results: [{ id: "r1", childId: "ok", compName: "Nationals" }, { id: "bad" }],
   });
@@ -108,6 +109,7 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
   assert.equal(normalized.selectedChildId, null);
   assert.deepEqual(normalized.favourites, ["a", "b"]);
   assert.deepEqual(normalized.enrolled, ["entered", "also"]);
+  assert.deepEqual(normalized.enrolledByChild, { ok: ["entered"] });
   assert.equal(normalized.reminderPrefs.onOpen, false);
   assert.equal(normalized.reminderPrefs.weekBeforeClose, true);
   assert.equal(normalized.results.length, 1);
@@ -137,12 +139,38 @@ test("saveFamilyState round-trips a valid family without throwing in private mod
     selectedChildId: "c1",
     favourites: ["test-comp"],
     enrolled: ["test-comp"],
+    enrolledByChild: { c1: ["test-comp", "other"] },
   });
   const loaded = loadFamilyState();
   assert.equal(loaded.includeInterstate, true);
   assert.equal(loaded.children[0]?.name, "Mia");
   assert.equal(loaded.selectedChildId, "c1");
   assert.deepEqual(loaded.enrolled, ["test-comp"]);
+  assert.deepEqual(loaded.enrolledByChild, { c1: ["test-comp", "other"] });
+});
+
+test("legacy family JSON without enrolledByChild still loads enrolled ids", () => {
+  memory.set(
+    STORAGE_KEY,
+    JSON.stringify({
+      version: 1,
+      children: [
+        {
+          id: "c1",
+          name: "Mia",
+          dob: "2018-06-15",
+          styles: ["Jazz"],
+          homeState: "SA",
+        },
+      ],
+      selectedChildId: "c1",
+      favourites: [],
+      enrolled: ["old-comp"],
+    }),
+  );
+  const loaded = loadFamilyState();
+  assert.deepEqual(loaded.enrolled, ["old-comp"]);
+  assert.deepEqual(loaded.enrolledByChild, {});
 });
 
 test("null and invalid registration dates never throw", () => {

@@ -15,6 +15,12 @@ import {
   upcomingReminders,
 } from "@/lib/reminders";
 import {
+  dropChildEnrollment,
+  enrolledIdsForChild,
+  isCompEnrolled,
+  toggleEnrollment,
+} from "@/lib/enrolled";
+import {
   defaultFamilyState,
   loadFamilyState,
   newId,
@@ -80,8 +86,13 @@ interface FamilyContextValue {
   removeChild: (id: string) => void;
   toggleFavourite: (compId: string) => void;
   isFavourite: (compId: string) => boolean;
-  toggleEnrolled: (compId: string) => void;
-  isEnrolled: (compId: string) => boolean;
+  /**
+   * Toggle Enrolled. Omit `childId` to use the selected dancer.
+   * Pass `null` for Everyone / All children (family-wide).
+   */
+  toggleEnrolled: (compId: string, childId?: string | null) => void;
+  isEnrolled: (compId: string, childId?: string | null) => boolean;
+  enrolledIdsFor: (childId?: string | null) => string[];
   setReminderPrefs: (prefs: ReminderPrefs) => void;
   addResult: (result: Omit<CompResult, "id">) => void;
   removeResult: (id: string) => void;
@@ -177,6 +188,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         preferredState:
           selected?.homeState ?? children[0]?.homeState ?? prev.preferredState,
         results: prev.results.filter((r) => r.childId !== id),
+        enrolledByChild: dropChildEnrollment(prev.enrolledByChild, id),
       };
     });
   }, []);
@@ -198,23 +210,45 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     [state.favourites],
   );
 
-  const toggleEnrolled = useCallback((compId: string) => {
-    patch((prev) => {
-      const enrolled = Array.isArray(prev.enrolled) ? prev.enrolled : [];
-      const has = enrolled.includes(compId);
-      return {
-        ...prev,
-        enrolled: has
-          ? enrolled.filter((id) => id !== compId)
-          : [...enrolled, compId],
-      };
-    });
-  }, []);
+  const toggleEnrolled = useCallback(
+    (compId: string, childId?: string | null) => {
+      patch((prev) => {
+        const target = childId === undefined ? prev.selectedChildId : childId;
+        const next = toggleEnrollment(
+          prev.enrolled,
+          prev.enrolledByChild,
+          compId,
+          target,
+        );
+        return { ...prev, ...next };
+      });
+    },
+    [],
+  );
 
   const isEnrolled = useCallback(
-    (compId: string) =>
-      Array.isArray(state.enrolled) && state.enrolled.includes(compId),
-    [state.enrolled],
+    (compId: string, childId?: string | null) => {
+      const target = childId === undefined ? state.selectedChildId : childId;
+      return isCompEnrolled(
+        state.enrolled,
+        state.enrolledByChild,
+        compId,
+        target,
+      );
+    },
+    [state.enrolled, state.enrolledByChild, state.selectedChildId],
+  );
+
+  const enrolledIdsFor = useCallback(
+    (childId?: string | null) => {
+      const target = childId === undefined ? state.selectedChildId : childId;
+      return enrolledIdsForChild(
+        state.enrolled,
+        state.enrolledByChild,
+        target,
+      );
+    },
+    [state.enrolled, state.enrolledByChild, state.selectedChildId],
   );
 
   const setReminderPrefs = useCallback((prefs: ReminderPrefs) => {
@@ -303,6 +337,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     isFavourite,
     toggleEnrolled,
     isEnrolled,
+    enrolledIdsFor,
     setReminderPrefs,
     addResult,
     removeResult,

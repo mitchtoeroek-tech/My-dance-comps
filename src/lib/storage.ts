@@ -1,5 +1,6 @@
 import type { DateSortDir } from "./filter";
 import { isRegistrationStatus } from "./comps";
+import { normalizeEnrolledByChild } from "./enrolled";
 import { isAuStateCode, AU_STATES } from "./types";
 import type {
   AuStateCode,
@@ -33,6 +34,7 @@ export const defaultFamilyState: FamilyState = {
   selectedChildId: null,
   favourites: [],
   enrolled: [],
+  enrolledByChild: {},
   includeInterstate: false,
   preferredState: null,
   reminderPrefs: defaultReminderPrefs,
@@ -131,6 +133,10 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     selectedChildId,
     favourites: asStringArray(raw.favourites),
     enrolled: asStringArray(raw.enrolled),
+    enrolledByChild: normalizeEnrolledByChild(
+      raw.enrolledByChild,
+      children.map((child) => child.id),
+    ),
     includeInterstate: asBoolean(raw.includeInterstate, false),
     preferredState: derivePreferredState({
       preferredState: isAuStateCode(raw.preferredState)
