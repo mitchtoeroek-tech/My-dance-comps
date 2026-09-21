@@ -1,17 +1,23 @@
 import Image from "next/image";
 
-const MARK_WIDTH = 761;
-const MARK_HEIGHT = 496;
+const LOGO_WIDTH = 644;
+const LOGO_HEIGHT = 801;
+const DISPLAY_HEIGHT = 104;
 
-export function BrandMark({ size = 44 }: { size?: number }) {
-  const width = Math.round((size * MARK_WIDTH) / MARK_HEIGHT);
+export function BrandMark({
+  height = DISPLAY_HEIGHT,
+}: {
+  height?: number;
+}) {
+  const width = Math.round((height * LOGO_WIDTH) / LOGO_HEIGHT);
   return (
     <Image
-      src="/logo-mark.png"
-      alt=""
+      src="/logo.png"
+      alt="My Dance Comps"
       width={width}
-      height={size}
-      className="h-11 w-auto shrink-0 object-contain"
+      height={height}
+      className="h-[6.5rem] w-auto shrink-0 object-contain object-left"
+      sizes={`${width}px`}
       priority
     />
   );
