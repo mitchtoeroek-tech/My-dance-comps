@@ -164,7 +164,7 @@ test("guest copy and missing-SQL errors are plain English", () => {
   assert.match(GUEST_FRIENDS_BODY, /not their favourites/);
   assert.match(
     friendlyFriendsError("Could not find the function public.list_friends_for_child"),
-    /kids friends SQL/,
+    /friends SQL/,
   );
   assert.equal(friendlyFriendsError("Already friends"), "Those dancers are already friends.");
 });

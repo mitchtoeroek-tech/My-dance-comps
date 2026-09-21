@@ -137,7 +137,7 @@ export function friendlyFriendsError(
     lower.includes("schema cache") ||
     lower.includes("does not exist")
   ) {
-    return "Friends is not set up on this project yet. Run the kids friends SQL in Supabase, then try again.";
+    return "Friends is not set up on this project yet. Run the friends SQL in Supabase, then try again.";
   }
   if (lower.includes("not authenticated")) {
     return "Sign in to use Friends.";

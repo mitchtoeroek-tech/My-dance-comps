@@ -6,6 +6,7 @@ import { ChildForm } from "@/components/ChildForm";
 import { FriendsPanel } from "@/components/FriendsPanel";
 import { ResultLog } from "@/components/ResultLog";
 import { useFamily } from "@/context/FamilyContext";
+import { myDancersLabel } from "@/lib/copy";
 
 export default function KidDetailPage({
   params,
@@ -16,13 +17,14 @@ export default function KidDetailPage({
   const { state, upsertChild, removeChild } = useFamily();
   const child = state.children.find((c) => c.id === id);
   const [editing, setEditing] = useState(false);
+  const backLabel = myDancersLabel(state.children.length);
 
   if (!child) {
     return (
       <div className="space-y-3">
         <p className="font-bold">We could not find that dancer on this device.</p>
         <Link href="/kids" className="text-primary-ink underline">
-          Back to Kids
+          Back to {backLabel}
         </Link>
       </div>
     );
@@ -34,7 +36,7 @@ export default function KidDetailPage({
         href="/kids"
         className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink"
       >
-        ← Kids
+        ← {backLabel}
       </Link>
       {editing ? (
         <ChildForm

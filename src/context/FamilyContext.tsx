@@ -116,7 +116,7 @@ interface FamilyContextValue {
   isFavourite: (compId: string) => boolean;
   /**
    * Toggle Enrolled. Omit `childId` to use the selected dancer.
-   * Pass `null` for Everyone / All children (family-wide).
+   * Pass `null` for Everyone / All dancers (family-wide).
    */
   toggleEnrolled: (compId: string, childId?: string | null) => void;
   isEnrolled: (compId: string, childId?: string | null) => boolean;

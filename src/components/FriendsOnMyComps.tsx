@@ -77,7 +77,7 @@ export function FriendsOnMyComps({
 
       {view === "ready" && children.length === 0 ? (
         <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-          Add a dancer on Kids, then you can add friends by email.
+          Add a dancer on My Dancers, then you can add friends by email.
         </p>
       ) : null}
 

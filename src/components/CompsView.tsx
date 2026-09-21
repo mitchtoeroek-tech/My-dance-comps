@@ -120,7 +120,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         <>
           {state.children.length === 0 ? (
             <p className="rounded-card bg-accent-soft px-3 py-2 text-xs font-semibold text-foreground">
-              Add a dancer on the Kids tab to also filter this list by age (as
+              Add a dancer on the My Dancers tab to also filter this list by age (as
               at 1 January) and preferred styles.
             </p>
           ) : null}

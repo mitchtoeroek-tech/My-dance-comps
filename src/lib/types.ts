@@ -149,7 +149,7 @@ export interface FamilyState {
   selectedChildId: string | null;
   favourites: string[];
   /**
-   * Family-wide confirmed entries (legacy + Everyone / All children).
+   * Family-wide confirmed entries (legacy + Everyone / All dancers).
    * Stored like favourites in localStorage and synced when signed in.
    */
   enrolled: string[];

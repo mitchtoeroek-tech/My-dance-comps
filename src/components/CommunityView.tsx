@@ -9,6 +9,7 @@ import {
   communityThreadPath,
   formatCommunityTime,
 } from "@/lib/community";
+import { myDancersLabel } from "@/lib/copy";
 
 export function CommunityView() {
   const inbox = useCommunityInbox();
@@ -48,7 +49,7 @@ export function CommunityView() {
             : `${incomingCount} friend requests are waiting.`}{" "}
           Accept on{" "}
           <Link href={`/kids/${firstChildId}`} className="underline">
-            Kids
+            {myDancersLabel(childrenCount)}
           </Link>{" "}
           before you can chat.
         </p>
@@ -57,7 +58,7 @@ export function CommunityView() {
       {view === "ready" && childrenCount === 0 ? (
         <EmptyState
           title="Add a dancer first"
-          body="Community chat is for accepted friends of your dancers. Add a profile, then add a friend from My Comps or Kids."
+          body="Community chat is for accepted friends of your dancers. Add a profile, then add a friend from My Comps or My Dancers."
           action={
             <Link
               href="/kids"
@@ -72,7 +73,7 @@ export function CommunityView() {
       {view === "ready" && childrenCount > 0 && conversations.length === 0 ? (
         <EmptyState
           title="No friend chats yet"
-          body="Add a friend from My Comps or Kids. Once they accept, the conversation shows up here."
+          body="Add a friend from My Comps or My Dancers. Once they accept, the conversation shows up here."
           action={
             <Link
               href="/my-comps"
