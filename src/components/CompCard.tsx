@@ -6,6 +6,7 @@ import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
+import { CompReviewSummary } from "./CompReviewSummary";
 
 export function CompCard({
   comp,
@@ -66,6 +67,7 @@ export function CompCard({
           <p className="mt-0.5 text-sm text-muted-foreground">
             {comp.organiser}
           </p>
+          {past ? <CompReviewSummary competitionId={comp.id} /> : null}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <StarButton saved={saved} onClick={onToggleSave} />

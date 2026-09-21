@@ -87,6 +87,35 @@ export interface CompResult {
   notes: string;
 }
 
+/** One review per user (or guest device) per competition. */
+export const REVIEW_STARS = [1, 2, 3, 4, 5] as const;
+export type ReviewStars = (typeof REVIEW_STARS)[number];
+
+/**
+ * Public review row. Guests store this in localStorage keyed by competitionId.
+ * Once accounts ship, the same shape maps to Supabase `reviews`
+ * (see supabase/migrations/20260921_reviews.sql).
+ */
+export interface CompReview {
+  id: string;
+  competitionId: string;
+  /** Auth user id when logged in; null for the current guest device. */
+  userId: string | null;
+  /** Public name once accounts exist. Guests are shown as “You”. */
+  displayName: string | null;
+  stars: ReviewStars;
+  /** Optional; empty string when the parent left no comment. */
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewsState {
+  version: 1;
+  /** Guest MVP: at most one review per competition on this device. */
+  byCompetitionId: Record<string, CompReview>;
+}
+
 export interface ReminderPrefs {
   onOpen: boolean;
   weekBeforeClose: boolean;

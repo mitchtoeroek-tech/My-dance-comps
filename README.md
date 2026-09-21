@@ -2,7 +2,7 @@
 
 Mobile-first web app for Australian youth dance competitions. Built for parents and dancers aged about 2–18.
 
-Family data (kids, saved comps, confirmed entries, reminders, results) stays in **this browser** via `localStorage`. Competition listings ship as seed data so the UI works even when a scrape cannot reach organiser sites.
+Family data (kids, saved comps, confirmed entries, reminders, results) stays in **this browser** via `localStorage`. Guest reviews of finished competitions are stored the same way (`mydancecomps.reviews.v1`, keyed by competition id). Competition listings ship as seed data so the UI works even when a scrape cannot reach organiser sites.
 
 Times that matter (entry open/close, reminders, calendar files) use **Australia/Adelaide**. Copy is **en-AU**.
 
@@ -20,7 +20,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build (what Vercel runs) |
 | `npm start` | Serve the production build |
-| `npm run test` | Home-state / interstate filter, calendar, datetime, and client-state unit tests |
+| `npm run test` | Home-state / interstate filter, calendar, datetime, reviews, and client-state unit tests |
 | `npm run scrape` | Fetch organiser calendars and merge into `src/data/comps.json` |
 
 ## Deploy on Vercel
@@ -57,7 +57,7 @@ Query params for `/api/comps`:
 
 ## What the app does
 
-- **Comps** — dates, venue (name, suburb, state), registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child. Filter by entry status (open / closing soon / closed / opening / dates TBC). Sort by event date relative to **today in Australia/Adelaide** (soonest first by default: nearest upcoming start, then past by most recent; or latest first: farthest upcoming start, then past by most recent). Past comps stay in the list after upcoming ones — they are not treated as “soonest”. Finished events (end date, or start if no end, before Adelaide today) are shown with a muted mint-grey card so they read as “already been” without changing entry-status colours. Sort and status choices are stored in `localStorage`. Each card has an **Enrolled** toggle next to the favourite star. It stores a confirmed entry in the same `localStorage` family blob (`enrolled: string[]`, next to `favourites`); tap again to un-enrol.
+- **Comps** — dates, venue (name, suburb, state), registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child. Filter by entry status (open / closing soon / closed / opening / dates TBC). Sort by event date relative to **today in Australia/Adelaide** (soonest first by default: nearest upcoming start, then past by most recent; or latest first: farthest upcoming start, then past by most recent). Past comps stay in the list after upcoming ones — they are not treated as “soonest”. Finished events (end date, or start if no end, before Adelaide today) are shown with a muted mint-grey card so they read as “already been” without changing entry-status colours. Sort and status choices are stored in `localStorage`. Each card has an **Enrolled** toggle next to the favourite star. It stores a confirmed entry in the same `localStorage` family blob (`enrolled: string[]`, next to `favourites`); tap again to un-enrol. **Reviews:** finished comps (end date before today in Australia/Adelaide) show an average star rating and review count, plus a 1–5 star control and optional comment on the detail page. Guests store one review per competition in `localStorage`. Aggregates on main are this device only — they do not pretend other families have reviewed. A public reviews list is stubbed with “Public reviews unlock when accounts go live”. The `reviews` table SQL and persist stub live in [`supabase/migrations/20260921_reviews.sql`](supabase/migrations/20260921_reviews.sql) and [`src/lib/reviews-backend.ts`](src/lib/reviews-backend.ts); they stay unused until accounts (held-off PR #8) ship. Do not set `NEXT_PUBLIC_REVIEWS_PUBLIC=1` on main.
 - **Calendar** — month view of the same state filter as Comps (swipe or previous/next). State chips (SA, Vic, NSW, All, …) and the interstate toggle sit on the Calendar page; changing them updates the month marks immediately. A selected state shows that state’s events plus National finals; **All** / interstate-on shows every state. Dots use the same registration-status colours as the Comps chips (open / closing soon / closed / dates TBC). A star on a day means you tapped **Enrolled** for a competition in the current filter. Tap a day for the comps, status, and the same Enrolled control.
 - **Kids** — multiple child profiles (no hard cap of two; soft max 20): name, date of birth, preferred styles, dance studio, home state. Per-child results log (manual).
 - **Saved** — favourite comps, persisted in `localStorage`.
@@ -114,4 +114,4 @@ Competition age is **as at 1 January** of the competition year. A dancer born 15
 
 ## Privacy
 
-No accounts, no backend database, no secrets. Kids, saved comps, confirmed entries (`enrolled`), and results never leave the device unless you export a calendar or email the reminder list yourself. Confirmed entries live in the same `localStorage` key as the rest of the family state (`mydancecomps.family.v1`, field `enrolled`: competition ids).
+No accounts, no backend database, no secrets. Kids, saved comps, confirmed entries (`enrolled`), results, and guest reviews never leave the device unless you export a calendar or email the reminder list yourself. Confirmed entries live in the same `localStorage` key as the rest of the family state (`mydancecomps.family.v1`, field `enrolled`: competition ids). Reviews use a separate key (`mydancecomps.reviews.v1`) so they can later map to a public `reviews` table without merging login early.

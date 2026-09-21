@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useFamily } from "@/context/FamilyContext";
 import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import { formatDateRange, formatDateTime } from "@/lib/datetime";
+import { canReviewCompetition } from "@/lib/reviews";
 import { competitionToIcs, downloadIcs } from "@/lib/ics";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
+import { CompReviewSection } from "./CompReviewSection";
+import { CompReviewSummary } from "./CompReviewSummary";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 export function CompDetail({ comp }: { comp: Competition }) {
   const { isFavourite, toggleFavourite, isEnrolled, toggleEnrolled } =
@@ -16,6 +20,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
   const saved = isFavourite(comp.id);
   const enrolled = isEnrolled(comp.id);
   const status = registrationStatus(comp);
+  const completed = canReviewCompetition(comp);
 
   return (
     <article className="space-y-4">
@@ -43,6 +48,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
             <p className="mt-1 text-sm font-medium text-muted-foreground">
               {formatDateRange(comp.startDate, comp.endDate)}
             </p>
+            {completed ? <CompReviewSummary competitionId={comp.id} /> : null}
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1.5">
             <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
@@ -129,6 +135,11 @@ export function CompDetail({ comp }: { comp: Competition }) {
           confirm dates on the organiser website.
         </p>
       </div>
+      {completed ? (
+        <ErrorBoundary>
+          <CompReviewSection comp={comp} />
+        </ErrorBoundary>
+      ) : null}
     </article>
   );
 }
