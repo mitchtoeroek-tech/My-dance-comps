@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatDateRange } from "@/lib/datetime";
-import { registrationStatus } from "@/lib/comps";
+import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
@@ -36,8 +36,11 @@ export function CompCard({
           <p className="mt-1 text-sm font-medium text-muted-foreground">
             {formatDateRange(comp.startDate, comp.endDate)}
           </p>
+          <p className="mt-0.5 text-sm font-semibold text-foreground">
+            {formatCompLocation(comp)}
+          </p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {comp.suburb}, {comp.state} · {comp.organiser}
+            {comp.organiser}
           </p>
         </div>
         <StarButton saved={saved} onClick={onToggleSave} />

@@ -1,5 +1,11 @@
 import { ageAsAtCompYear } from "./age";
-import type { AuStateCode, ChildProfile, Competition } from "./types";
+import { registrationStatus } from "./comps";
+import type {
+  AuStateCode,
+  ChildProfile,
+  Competition,
+  RegistrationStatus,
+} from "./types";
 
 /** Soonest first (default) or latest first by event date. */
 export type DateSortDir = "asc" | "desc";
@@ -16,6 +22,9 @@ export interface CompFilters {
   onlyFavourites?: boolean;
   favouriteIds?: string[];
   sortDir?: DateSortDir;
+  /** Empty / omitted = all statuses. */
+  statuses?: RegistrationStatus[];
+  now?: Date;
 }
 
 /**
@@ -134,6 +143,10 @@ export function filterComps(
         if (!filters.favouriteIds?.includes(comp.id)) return false;
       }
       if (!searchMatches(comp, filters.query)) return false;
+      if (filters.statuses && filters.statuses.length > 0) {
+        const status = registrationStatus(comp, filters.now);
+        if (!filters.statuses.includes(status)) return false;
+      }
       if (filters.child) {
         return matchesChild(comp, filters.child, filters.includeInterstate);
       }

@@ -1,3 +1,4 @@
+import { formatCompLocation } from "./comps";
 import { ADELAIDE_TZ, toIcsDay, toIcsUtc } from "./datetime";
 import type { Competition, ReminderItem } from "./types";
 
@@ -81,7 +82,7 @@ export function competitionToIcs(comp: Competition): string {
     summary: comp.name,
     description: `${comp.organiser}. Entries: ${comp.registrationUrl}`,
     url: comp.infoUrl,
-    location: `${comp.venue}, ${comp.suburb} ${comp.state}`,
+    location: formatCompLocation(comp),
   });
   return [
     "BEGIN:VCALENDAR",

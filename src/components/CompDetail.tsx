@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useFamily } from "@/context/FamilyContext";
-import { registrationStatus } from "@/lib/comps";
+import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import { formatDateRange, formatDateTime } from "@/lib/datetime";
 import { competitionToIcs, downloadIcs } from "@/lib/ics";
 import type { Competition } from "@/lib/types";
@@ -44,7 +44,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
           <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
         </div>
         <dl className="mt-4 space-y-2 text-sm">
-          <Row label="Venue" value={`${comp.venue}, ${comp.suburb} ${comp.state}`} />
+          <Row label="Venue" value={formatCompLocation(comp)} />
           <Row
             label="Organiser"
             value={

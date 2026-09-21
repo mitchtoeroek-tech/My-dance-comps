@@ -9,6 +9,7 @@ import {
   resolveHomeState,
 } from "./filter";
 import { derivePreferredState } from "./storage";
+import { formatCompLocation } from "./comps";
 import type { ChildProfile, Competition } from "./types";
 
 function makeComp(partial: Partial<Competition> & Pick<Competition, "id">): Competition {
@@ -303,6 +304,128 @@ describe("filterComps sort", () => {
     assert.deepEqual(
       result.map((c) => c.id),
       ["late", "mid"],
+    );
+  });
+});
+
+describe("filterComps registration status", () => {
+  const now = new Date("2026-06-01T12:00:00+09:30");
+  const comps = [
+    makeComp({
+      id: "open",
+      startDate: "2026-08-01",
+      name: "Open Jazz SA",
+      styles: ["Jazz"],
+      registrationOpens: "2026-05-01T09:00:00",
+      registrationCloses: "2026-07-15T17:00:00",
+    }),
+    makeComp({
+      id: "closing",
+      startDate: "2026-09-01",
+      name: "Closing Jazz SA",
+      styles: ["Jazz"],
+      registrationOpens: "2026-05-01T09:00:00",
+      registrationCloses: "2026-06-05T17:00:00",
+    }),
+    makeComp({
+      id: "closed",
+      startDate: "2026-04-01",
+      name: "Closed Jazz SA",
+      styles: ["Jazz"],
+      registrationOpens: "2026-01-01T09:00:00",
+      registrationCloses: "2026-05-15T17:00:00",
+    }),
+    makeComp({
+      id: "unknown",
+      startDate: "2026-10-01",
+      name: "TBC Jazz SA",
+      styles: ["Jazz"],
+    }),
+    makeComp({
+      id: "vic-open",
+      startDate: "2026-11-01",
+      name: "Open Jazz VIC",
+      styles: ["Jazz"],
+      state: "VIC",
+      registrationOpens: "2026-05-01T09:00:00",
+      registrationCloses: "2026-07-15T17:00:00",
+    }),
+  ];
+
+  it("filters to selected statuses and keeps date sort", () => {
+    const result = filterComps(comps, {
+      query: "",
+      includeInterstate: true,
+      child: null,
+      statuses: ["open", "closing-soon"],
+      sortDir: "desc",
+      now,
+    });
+    assert.deepEqual(
+      result.map((c) => c.id),
+      ["vic-open", "closing", "open"],
+    );
+  });
+
+  it("treats unknown as Dates TBC and works with home-state filter", () => {
+    const child = {
+      id: "kid",
+      name: "Ava",
+      dob: "2018-06-15",
+      styles: ["Jazz" as const],
+      studio: "",
+      homeState: "SA" as const,
+    };
+    const tbcHome = filterComps(comps, {
+      query: "",
+      includeInterstate: false,
+      child,
+      statuses: ["unknown"],
+      now,
+    });
+    assert.deepEqual(
+      tbcHome.map((c) => c.id),
+      ["unknown"],
+    );
+  });
+
+  it("shows all statuses when the list is empty", () => {
+    const result = filterComps(comps, {
+      query: "",
+      includeInterstate: true,
+      child: null,
+      statuses: [],
+      now,
+    });
+    assert.equal(result.length, comps.length);
+  });
+});
+
+describe("formatCompLocation", () => {
+  it("joins venue, suburb and state, skipping a duplicate suburb", () => {
+    assert.equal(
+      formatCompLocation({
+        venue: "Golden Grove Recreation & Arts Centre",
+        suburb: "Golden Grove",
+        state: "SA",
+      }),
+      "Golden Grove Recreation & Arts Centre, Golden Grove, SA",
+    );
+    assert.equal(
+      formatCompLocation({
+        venue: "Golden Grove",
+        suburb: "Golden Grove",
+        state: "SA",
+      }),
+      "Golden Grove, SA",
+    );
+    assert.equal(
+      formatCompLocation({
+        venue: "Adelaide (venue confirmed closer to the event)",
+        suburb: "Adelaide",
+        state: "SA",
+      }),
+      "Adelaide (venue confirmed closer to the event), Adelaide, SA",
     );
   });
 });

@@ -16,6 +16,10 @@ import {
 import { DateSortControl, useCompsDateSort } from "./DateSortControl";
 import { EmptyState } from "./EmptyState";
 import { ErrorBoundary } from "./ErrorBoundary";
+import {
+  StatusFilterControl,
+  useCompsStatusFilter,
+} from "./StatusFilterControl";
 import { useLiveComps } from "@/hooks/useLiveComps";
 import { formatDateTime } from "@/lib/datetime";
 
@@ -30,6 +34,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
   } = useFamily();
   const [query, setQuery] = useState("");
   const { sortDir, setSortDir } = useCompsDateSort();
+  const { statuses, setStatuses } = useCompsStatusFilter();
   const { comps: liveComps, refreshedAt, live } = useLiveComps(initialComps);
 
   const homeState = ready
@@ -47,8 +52,17 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         child,
         homeState,
         sortDir,
+        statuses,
       }),
-    [liveComps, query, includeInterstate, child, homeState, sortDir],
+    [
+      liveComps,
+      query,
+      includeInterstate,
+      child,
+      homeState,
+      sortDir,
+      statuses,
+    ],
   );
 
   return (
@@ -68,6 +82,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         />
       </label>
       <DateSortControl value={sortDir} onChange={setSortDir} />
+      <StatusFilterControl value={statuses} onChange={setStatuses} />
       <ChildFilterNote
         child={child}
         homeState={homeState}
@@ -101,7 +116,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
           {comps.length === 0 ? (
             <EmptyState
               title="No matching comps"
-              body="Try including interstate events, clearing the search, or adding more preferred styles."
+              body="Try another entry status, including interstate events, or clearing the search."
             />
           ) : (
             <ul className="space-y-3">
