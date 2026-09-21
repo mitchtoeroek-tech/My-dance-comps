@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["cheerio"],
   async redirects() {
     return [
+      { source: "/saved", destination: "/", permanent: false },
       { source: "/dancers", destination: "/kids", permanent: false },
       { source: "/dancers/:id", destination: "/kids/:id", permanent: false },
     ];

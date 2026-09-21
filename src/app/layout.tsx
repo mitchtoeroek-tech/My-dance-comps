@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: "%s · My Dance Comps",
   },
   description:
-    "Australian youth dance competitions for families — dates, entries, saved comps and reminders.",
+    "Australian youth dance competitions for families — dates, entries, friends chat and reminders.",
   applicationName: "My Dance Comps",
   appleWebApp: {
     capable: true,

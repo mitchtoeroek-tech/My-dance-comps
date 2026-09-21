@@ -137,7 +137,7 @@ export function RemindersView() {
       {state.favourites.length === 0 ? (
         <EmptyState
           title="Save a comp first"
-          body="Star a competition on the Comps or Saved tab. Reminders are built from those favourites."
+          body="Star a competition on the Comps tab. Reminders are built from those favourites."
           action={
             <Link
               href="/"

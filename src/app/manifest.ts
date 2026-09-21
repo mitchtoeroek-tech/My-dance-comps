@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "My Dance Comps",
     short_name: "Dance Comps",
     description:
-      "Australian youth dance competitions for families — dates, entries, saved comps and reminders.",
+      "Australian youth dance competitions for families — dates, entries, friends chat and reminders.",
     start_url: "/",
     display: "standalone",
     background_color: "#F4FBF8",

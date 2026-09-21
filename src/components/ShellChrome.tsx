@@ -28,6 +28,10 @@ function NavFallback() {
 export function ShellChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthFlow = AUTH_FLOW.has(pathname);
+  const hideFooter =
+    isAuthFlow ||
+    pathname === "/community" ||
+    pathname.startsWith("/community/");
 
   return (
     <>
@@ -36,7 +40,7 @@ export function ShellChrome({ children }: { children: React.ReactNode }) {
       >
         {children}
       </main>
-      {isAuthFlow ? null : <SiteFooter />}
+      {hideFooter ? null : <SiteFooter />}
       {isAuthFlow ? null : (
         <Suspense fallback={<NavFallback />}>
           <BottomNav />
