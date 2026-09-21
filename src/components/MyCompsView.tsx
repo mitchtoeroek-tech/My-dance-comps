@@ -179,7 +179,7 @@ function MyCompsEmpty({
     return (
       <EmptyState
         title="No enrolled comps yet"
-        body="Add a dancer on the Kids tab if you like, then mark Enrolled on a competition to see it here."
+        body="Add a dancer on the Kids tab if you like, then Mark Enrolled on a competition to see it here."
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Link
