@@ -84,41 +84,12 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
         <p className="text-sm text-muted-foreground">Loading your family…</p>
       ) : (
         <>
-          <div>
-            <h2 className="text-lg font-bold">Calendar</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Same month layout as the Calendar tab, showing only enrolled
-              comps
-              {filterChild
-                ? ` for ${filterChild.name}`
-                : children.length > 0
-                  ? " for every dancer on this device"
-                  : ""}
-              . Interstate entries stay visible, matching this list.
-            </p>
-          </div>
-          <MonthCalendar
-            comps={calendarComps}
-            enrolledIds={enrolledIds}
-            isEnrolled={isEnrolledForFilter}
-            toggleEnrolled={toggleEnrolledForFilter}
-            isFavourite={isFavourite}
-            emptyMonth={({ monthTitle, hasAnyComps }) =>
-              hasAnyComps ? (
-                <EmptyState
-                  title="Nothing enrolled this month"
-                  body={`No enrolled dates in ${monthTitle}. Swipe or tap next to look at another month.`}
-                />
-              ) : (
-                <MyCompsEmpty
-                  childrenCount={children.length}
-                  filterChild={filterChild}
-                />
-              )
-            }
-          />
-
-          {comps.length === 0 ? null : (
+          {comps.length === 0 ? (
+            <MyCompsEmpty
+              childrenCount={children.length}
+              filterChild={filterChild}
+            />
+          ) : (
             <>
               <DateSortControl value={sortDir} onChange={setSortDir} />
               <ul className="space-y-3">
@@ -145,6 +116,35 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
               </ul>
             </>
           )}
+
+          <div>
+            <h2 className="text-lg font-bold">Calendar</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Same month layout as the Calendar tab, showing only enrolled
+              comps
+              {filterChild
+                ? ` for ${filterChild.name}`
+                : children.length > 0
+                  ? " for every dancer on this device"
+                  : ""}
+              . Interstate entries stay visible, matching this list.
+            </p>
+          </div>
+          <MonthCalendar
+            comps={calendarComps}
+            enrolledIds={enrolledIds}
+            isEnrolled={isEnrolledForFilter}
+            toggleEnrolled={toggleEnrolledForFilter}
+            isFavourite={isFavourite}
+            emptyMonth={({ monthTitle, hasAnyComps }) =>
+              hasAnyComps ? (
+                <EmptyState
+                  title="Nothing enrolled this month"
+                  body={`No enrolled dates in ${monthTitle}. Swipe or tap next to look at another month.`}
+                />
+              ) : null
+            }
+          />
         </>
       )}
     </div>
