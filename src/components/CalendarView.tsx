@@ -62,6 +62,7 @@ export function CalendarView({
     isEnrolled,
     toggleEnrolled,
     isFavourite,
+    enrolledIdsFor,
   } = useFamily();
   const { comps: liveComps } = useLiveComps(initialComps);
   const todayIso = useMemo(() => adelaideTodayIso(), []);
@@ -75,6 +76,10 @@ export function CalendarView({
     : null;
   const includeInterstate = ready ? state.includeInterstate : false;
   const child = ready ? selectedChild : null;
+  const enrolledIds = useMemo(
+    () => (ready ? enrolledIdsFor() : []),
+    [ready, enrolledIdsFor],
+  );
 
   const calendarComps = useMemo(
     () =>
@@ -119,19 +124,19 @@ export function CalendarView({
     for (const cell of cells) {
       map.set(
         cell.iso,
-        marksForDay(calendarComps, cell.iso, state.enrolled ?? []),
+        marksForDay(calendarComps, cell.iso, enrolledIds),
       );
     }
     return map;
-  }, [cells, calendarComps, state.enrolled]);
+  }, [cells, calendarComps, enrolledIds]);
 
   const selectedComps = useMemo(() => {
     if (!selectedIso) return [];
     return sortDayComps(
       compsOnDate(calendarComps, selectedIso),
-      state.enrolled ?? [],
+      enrolledIds,
     );
-  }, [selectedIso, calendarComps, state.enrolled]);
+  }, [selectedIso, calendarComps, enrolledIds]);
 
   useEffect(() => {
     if (selectedIso && selectedComps.length === 0) {

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/", label: "Comps", icon: CompIcon },
+  { href: "/my-comps", label: "My Comps", icon: MyCompsIcon },
   { href: "/calendar", label: "Calendar", icon: CalendarIcon },
   { href: "/kids", label: "Kids", icon: KidsIcon },
   { href: "/saved", label: "Saved", icon: SavedIcon },
@@ -20,7 +21,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Main"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-5">
+      <ul className="mx-auto grid max-w-lg grid-cols-6">
         {items.map((item) => {
           const active =
             item.href === "/"
@@ -31,7 +32,7 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 text-[10px] font-bold tracking-wide ${
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 text-[10px] font-bold tracking-wide whitespace-nowrap ${
                   active ? "text-primary-ink" : "text-muted-foreground"
                 }`}
               >
@@ -43,6 +44,32 @@ export function BottomNav() {
         })}
       </ul>
     </nav>
+  );
+}
+
+function MyCompsIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 5h10v14H7z"
+        stroke="currentColor"
+        strokeWidth={active ? 2.2 : 1.8}
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 10h4M10 14h4"
+        stroke="currentColor"
+        strokeWidth={active ? 2.2 : 1.8}
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 4.6 13 6.7l2.3.3-1.7 1.6.4 2.3L12 9.8l-2 1.1.4-2.3-1.7-1.6 2.3-.3L12 4.6Z"
+        stroke="currentColor"
+        strokeWidth={active ? 1.8 : 1.5}
+        strokeLinejoin="round"
+        fill={active ? "currentColor" : "none"}
+      />
+    </svg>
   );
 }
 

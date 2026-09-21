@@ -148,8 +148,16 @@ export interface FamilyState {
   children: ChildProfile[];
   selectedChildId: string | null;
   favourites: string[];
-  /** Family-wide confirmed entries, stored like favourites in localStorage. */
+  /**
+   * Family-wide confirmed entries (legacy + Everyone / All children).
+   * Stored like favourites in localStorage.
+   */
   enrolled: string[];
+  /**
+   * Per-child confirmed entries. A missing key means that child still
+   * uses `enrolled` until they toggle Enrolled for the first time.
+   */
+  enrolledByChild: Record<string, string[]>;
   includeInterstate: boolean;
   /** Last-used / preferred home state for the main Comps list. */
   preferredState: AuStateCode | null;
