@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   const favouriteIds = (searchParams.get("saved") ?? "")
     .split(",")
     .filter(Boolean);
+  const sortDir = searchParams.get("sort") === "desc" ? "desc" : "asc";
 
   const child: ChildProfile | null =
     dob && state
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
     homeState: state,
     onlyFavourites: favouriteIds.length > 0,
     favouriteIds,
+    sortDir,
   });
 
   return Response.json({

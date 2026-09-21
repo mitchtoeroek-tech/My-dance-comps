@@ -13,6 +13,7 @@ import {
   HomeStateChips,
   InterstateToggle,
 } from "./ChildPicker";
+import { DateSortControl, useCompsDateSort } from "./DateSortControl";
 import { EmptyState } from "./EmptyState";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { useLiveComps } from "@/hooks/useLiveComps";
@@ -28,6 +29,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
     setPreferredState,
   } = useFamily();
   const [query, setQuery] = useState("");
+  const { sortDir, setSortDir } = useCompsDateSort();
   const { comps: liveComps, refreshedAt, live } = useLiveComps(initialComps);
 
   const homeState = ready
@@ -44,8 +46,9 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         includeInterstate,
         child,
         homeState,
+        sortDir,
       }),
-    [liveComps, query, includeInterstate, child, homeState],
+    [liveComps, query, includeInterstate, child, homeState, sortDir],
   );
 
   return (
@@ -64,6 +67,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
           className="min-h-11 w-full rounded-control border border-border bg-surface px-4 py-3 text-sm font-medium"
         />
       </label>
+      <DateSortControl value={sortDir} onChange={setSortDir} />
       <ChildFilterNote
         child={child}
         homeState={homeState}

@@ -1,6 +1,9 @@
 import { ageAsAtCompYear } from "./age";
 import type { AuStateCode, ChildProfile, Competition } from "./types";
 
+/** Soonest first (default) or latest first by event date. */
+export type DateSortDir = "asc" | "desc";
+
 export interface CompFilters {
   query: string;
   includeInterstate: boolean;
@@ -12,6 +15,42 @@ export interface CompFilters {
   homeState?: AuStateCode | null;
   onlyFavourites?: boolean;
   favouriteIds?: string[];
+  sortDir?: DateSortDir;
+}
+
+/**
+ * Comparable date for list sorting.
+ * Uses event start date; if missing, falls back to end date, then
+ * registration open, then registration close. Empty string means undated
+ * (those comps sort last in both directions).
+ */
+export function compDateSortKey(comp: Competition): string {
+  const candidates = [
+    comp.startDate,
+    comp.endDate,
+    comp.registrationOpens,
+    comp.registrationCloses,
+  ];
+  for (const value of candidates) {
+    const trimmed = value?.trim();
+    if (trimmed) return trimmed;
+  }
+  return "";
+}
+
+export function compareCompsByDate(
+  a: Competition,
+  b: Competition,
+  dir: DateSortDir = "asc",
+): number {
+  const ka = compDateSortKey(a);
+  const kb = compDateSortKey(b);
+  if (!ka && !kb) return a.id.localeCompare(b.id);
+  if (!ka) return 1;
+  if (!kb) return -1;
+  const cmp = ka.localeCompare(kb);
+  if (cmp !== 0) return dir === "desc" ? -cmp : cmp;
+  return a.id.localeCompare(b.id);
 }
 
 export function stylesOverlap(
@@ -100,5 +139,5 @@ export function filterComps(
       }
       return matchesHomeState(comp, homeState, filters.includeInterstate);
     })
-    .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""));
+    .sort((a, b) => compareCompsByDate(a, b, filters.sortDir ?? "asc"));
 }

@@ -52,10 +52,11 @@ Query params for `/api/comps`:
 | `styles` | `Jazz,Tap` | Preferred styles (overlap) |
 | `interstate` | `1` | Include other states when a home `state` (or child `dob`+`state`) is applied |
 | `saved` | `id,id` | Limit to favourite ids |
+| `sort` | `desc` | Date order (`asc` default = soonest first; `desc` = latest first). Sorts by start date, then end date, then registration dates. |
 
 ## What the app does
 
-- **Comps** — dates, registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child.
+- **Comps** — dates, registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child. Sort by event date (soonest first by default, or latest first); the choice is stored in `localStorage`.
 - **Kids** — multiple child profiles (no hard cap of two; soft max 20): name, date of birth, preferred styles, dance studio, home state. Per-child results log (manual).
 - **Saved** — favourite comps, persisted in `localStorage`.
 - **Reminders** — prefs for entries open, 1 week before close, and 1 day before close. In-app list for saved comps, `.ics` download, `mailto` list, and browser notifications when the browser allows them (no paid API keys).

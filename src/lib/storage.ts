@@ -1,3 +1,4 @@
+import type { DateSortDir } from "./filter";
 import { isAuStateCode, AU_STATES } from "./types";
 import type {
   AuStateCode,
@@ -14,6 +15,7 @@ export const LEGACY_STORAGE_KEYS = [
   "mydancecomps.family.v0",
   "my-dance-comps.family",
 ];
+export const COMPS_DATE_SORT_KEY = "mydancecomps.compsDateSort";
 export const SOFT_MAX_KIDS = 20;
 
 export const defaultReminderPrefs: ReminderPrefs = {
@@ -197,4 +199,27 @@ export function newId(): string {
     return crypto.randomUUID();
   }
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+export function isDateSortDir(value: unknown): value is DateSortDir {
+  return value === "asc" || value === "desc";
+}
+
+export function loadCompsDateSort(): DateSortDir {
+  if (typeof window === "undefined") return "asc";
+  try {
+    const raw = window.localStorage.getItem(COMPS_DATE_SORT_KEY);
+    return isDateSortDir(raw) ? raw : "asc";
+  } catch {
+    return "asc";
+  }
+}
+
+export function saveCompsDateSort(dir: DateSortDir) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(COMPS_DATE_SORT_KEY, dir);
+  } catch {
+    /* private mode / quota */
+  }
 }
