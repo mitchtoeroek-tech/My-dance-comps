@@ -18,7 +18,7 @@ export function FriendsOnSaved() {
   const { sortDir } = useCompsDateSort();
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-3 pb-8">
       <div className="flex items-end justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Friends’ comps</h2>
