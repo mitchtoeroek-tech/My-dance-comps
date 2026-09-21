@@ -28,12 +28,16 @@ import type {
   ReminderPrefs,
 } from "@/lib/types";
 
-let memory: FamilyState | null = null;
+let memory: FamilyState = defaultFamilyState;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 function snapshot(): FamilyState {
-  if (!memory) memory = loadFamilyState();
   return memory;
+}
+
+function getServerSnapshot(): FamilyState {
+  return defaultFamilyState;
 }
 
 function emit() {
@@ -42,7 +46,15 @@ function emit() {
 
 function write(next: FamilyState) {
   memory = next;
+  hydrated = true;
   saveFamilyState(next);
+  emit();
+}
+
+function hydrateFromStorage() {
+  if (hydrated) return;
+  hydrated = true;
+  memory = loadFamilyState();
   emit();
 }
 
@@ -75,17 +87,25 @@ interface FamilyContextValue {
 const FamilyContext = createContext<FamilyContextValue | null>(null);
 
 export function FamilyProvider({ children }: { children: React.ReactNode }) {
-  const state = useSyncExternalStore(subscribe, snapshot, () => defaultFamilyState);
+  const state = useSyncExternalStore(
+    subscribe,
+    snapshot,
+    getServerSnapshot,
+  );
   const ready = useSyncExternalStore(
     subscribe,
-    () => true,
+    () => hydrated,
     () => false,
   );
 
-  const selectedChild = useMemo(
-    () => state.children.find((c) => c.id === state.selectedChildId) ?? null,
-    [state.children, state.selectedChildId],
-  );
+  useEffect(() => {
+    hydrateFromStorage();
+  }, []);
+
+  const selectedChild = useMemo(() => {
+    if (!Array.isArray(state.children)) return null;
+    return state.children.find((c) => c.id === state.selectedChildId) ?? null;
+  }, [state.children, state.selectedChildId]);
 
   const setSelectedChildId = useCallback((id: string | null) => {
     patch((prev) => ({ ...prev, selectedChildId: id }));
@@ -186,23 +206,27 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     if (Notification.permission !== "granted") return;
 
     const tick = () => {
-      const comps = getComps();
-      const items = upcomingReminders(
-        buildReminders(comps, state.reminderPrefs, state.favourites),
-      );
-      const due = dueReminders(items, state.notifiedReminderIds);
-      if (due.length === 0) return;
-      due.forEach((item) => {
-        try {
-          new Notification("My Dance Comps", {
-            body: item.label,
-            tag: item.id,
-          });
-        } catch {
-          /* ignore */
-        }
-      });
-      markNotified(due.map((d) => d.id));
+      try {
+        const comps = getComps();
+        const items = upcomingReminders(
+          buildReminders(comps, state.reminderPrefs, state.favourites),
+        );
+        const due = dueReminders(items, state.notifiedReminderIds);
+        if (due.length === 0) return;
+        due.forEach((item) => {
+          try {
+            new Notification("My Dance Comps", {
+              body: item.label,
+              tag: item.id,
+            });
+          } catch {
+            /* ignore */
+          }
+        });
+        markNotified(due.map((d) => d.id));
+      } catch {
+        /* never let reminder ticks crash the tree */
+      }
     };
 
     tick();
@@ -216,11 +240,15 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     markNotified,
   ]);
 
+  const childrenCount = Array.isArray(state.children)
+    ? state.children.length
+    : 0;
+
   const value: FamilyContextValue = {
     ready,
     state,
     selectedChild,
-    canAddChild: state.children.length < SOFT_MAX_KIDS,
+    canAddChild: childrenCount < SOFT_MAX_KIDS,
     setSelectedChildId,
     setIncludeInterstate,
     upsertChild,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CompCard } from "@/components/CompCard";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useFamily } from "@/context/FamilyContext";
 import { useLiveComps } from "@/hooks/useLiveComps";
 import { getComps } from "@/lib/comps";
@@ -38,11 +39,13 @@ export default function SavedPage() {
         <ul className="space-y-3">
           {comps.map((comp) => (
             <li key={comp.id}>
-              <CompCard
-                comp={comp}
-                saved={isFavourite(comp.id)}
-                onToggleSave={() => toggleFavourite(comp.id)}
-              />
+              <ErrorBoundary>
+                <CompCard
+                  comp={comp}
+                  saved={isFavourite(comp.id)}
+                  onToggleSave={() => toggleFavourite(comp.id)}
+                />
+              </ErrorBoundary>
             </li>
           ))}
         </ul>

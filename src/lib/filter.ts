@@ -10,12 +10,14 @@ export interface CompFilters {
 }
 
 export function stylesOverlap(
-  childStyles: string[],
-  compStyles: string[],
+  childStyles: string[] | null | undefined,
+  compStyles: string[] | null | undefined,
 ): boolean {
-  if (childStyles.length === 0) return true;
-  const set = new Set(compStyles.map((s) => s.toLowerCase()));
-  return childStyles.some((s) => set.has(s.toLowerCase()));
+  const child = Array.isArray(childStyles) ? childStyles : [];
+  const comp = Array.isArray(compStyles) ? compStyles : [];
+  if (child.length === 0) return true;
+  const set = new Set(comp.map((s) => s.toLowerCase()));
+  return child.some((s) => set.has(s.toLowerCase()));
 }
 
 export function matchesChild(
@@ -23,6 +25,7 @@ export function matchesChild(
   child: ChildProfile,
   includeInterstate: boolean,
 ): boolean {
+  if (!comp.startDate) return false;
   const age = ageAsAtCompYear(child.dob, comp.startDate);
   const minOk = comp.minAge == null || age >= comp.minAge;
   const maxOk = comp.maxAge == null || age <= comp.maxAge;
@@ -35,6 +38,7 @@ export function matchesChild(
 export function searchMatches(comp: Competition, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
+  const styles = Array.isArray(comp.styles) ? comp.styles : [];
   const hay = [
     comp.name,
     comp.organiser,
@@ -42,7 +46,7 @@ export function searchMatches(comp: Competition, query: string): boolean {
     comp.venue,
     comp.state,
     comp.notes,
-    ...comp.styles,
+    ...styles,
   ]
     .join(" ")
     .toLowerCase();
@@ -53,8 +57,10 @@ export function filterComps(
   comps: Competition[],
   filters: CompFilters,
 ): Competition[] {
-  return comps
+  const list = Array.isArray(comps) ? comps : [];
+  return list
     .filter((comp) => {
+      if (!comp?.id || !comp.startDate) return false;
       if (filters.onlyFavourites) {
         if (!filters.favouriteIds?.includes(comp.id)) return false;
       }
@@ -64,5 +70,5 @@ export function filterComps(
       }
       return true;
     })
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+    .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""));
 }

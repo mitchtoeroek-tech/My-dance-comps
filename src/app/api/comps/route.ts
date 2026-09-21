@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       ...comp,
       registrationStatus: registrationStatus(comp),
       ageAsAt1January: dob
-        ? ageAsAt1January(dob, Number(comp.startDate.slice(0, 4)))
+        ? ageAsAt1January(dob, Number(comp.startDate?.slice(0, 4)))
         : null,
     })),
   });

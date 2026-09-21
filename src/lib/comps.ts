@@ -1,10 +1,75 @@
 import compsJson from "@/data/comps.json";
 import sourcesJson from "@/data/sources.json";
 import { parseAdelaide } from "./datetime";
-import type { CompSource, Competition, RegistrationStatus } from "./types";
+import type {
+  AuStateCode,
+  CompKind,
+  CompSource,
+  Competition,
+  DanceStyle,
+  RegistrationStatus,
+} from "./types";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function asNullableNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export function normalizeCompetition(raw: unknown): Competition | null {
+  if (!isRecord(raw)) return null;
+  const id = asString(raw.id).trim();
+  const name = asString(raw.name).trim();
+  const startDate = asString(raw.startDate).trim();
+  if (!id || !name || !startDate) return null;
+  const endDate = asString(raw.endDate).trim() || startDate;
+  const styles = Array.isArray(raw.styles)
+    ? raw.styles.filter((style): style is string => typeof style === "string")
+    : [];
+  return {
+    id,
+    name,
+    kind: (asString(raw.kind, "competition") as CompKind) || "competition",
+    organiser: asString(raw.organiser, "See source"),
+    organiserUrl: asString(raw.organiserUrl),
+    venue: asString(raw.venue, "TBC"),
+    suburb: asString(raw.suburb, "TBC"),
+    state: (asString(raw.state, "SA") as AuStateCode) || "SA",
+    startDate,
+    endDate,
+    registrationOpens: asNullableString(raw.registrationOpens),
+    registrationCloses: asNullableString(raw.registrationCloses),
+    registrationUrl: asString(raw.registrationUrl),
+    infoUrl: asString(raw.infoUrl),
+    styles: styles as DanceStyle[],
+    minAge: asNullableNumber(raw.minAge),
+    maxAge: asNullableNumber(raw.maxAge),
+    isNational: Boolean(raw.isNational),
+    notes: asString(raw.notes),
+    sourceId: asString(raw.sourceId),
+    lastUpdated: asString(raw.lastUpdated),
+  };
+}
+
+export function normalizeCompetitions(raw: unknown): Competition[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(normalizeCompetition)
+    .filter((comp): comp is Competition => comp !== null);
+}
 
 export function getComps(): Competition[] {
-  return compsJson as Competition[];
+  return normalizeCompetitions(compsJson);
 }
 
 export function getComp(id: string): Competition | undefined {
@@ -19,13 +84,9 @@ export function registrationStatus(
   comp: Competition,
   now = new Date(),
 ): RegistrationStatus {
-  if (!comp.registrationOpens && !comp.registrationCloses) return "unknown";
-  const opens = comp.registrationOpens
-    ? parseAdelaide(comp.registrationOpens)
-    : null;
-  const closes = comp.registrationCloses
-    ? parseAdelaide(comp.registrationCloses)
-    : null;
+  const opens = parseAdelaide(comp.registrationOpens);
+  const closes = parseAdelaide(comp.registrationCloses);
+  if (!opens && !closes) return "unknown";
   if (opens && now < opens) return "opens-soon";
   if (closes && now > closes) return "closed";
   if (opens && now >= opens && !closes) return "open";

@@ -10,11 +10,12 @@ const styles: Record<RegistrationStatus, string> = {
 };
 
 export function StatusPill({ status }: { status: RegistrationStatus }) {
+  const tone = styles[status] ?? styles.unknown;
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${styles[status]}`}
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${tone}`}
     >
-      {statusLabel(status)}
+      {statusLabel(status ?? "unknown")}
     </span>
   );
 }

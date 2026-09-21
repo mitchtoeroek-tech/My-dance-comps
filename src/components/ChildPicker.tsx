@@ -7,7 +7,7 @@ import { useFamily } from "@/context/FamilyContext";
 
 export function ChildPicker() {
   const { state, selectedChild, setSelectedChildId } = useFamily();
-  if (state.children.length === 0) return null;
+  if (!Array.isArray(state.children) || state.children.length === 0) return null;
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
@@ -33,7 +33,7 @@ export function ChildPicker() {
               : "bg-white text-[var(--ink)] ring-1 ring-[var(--line)]"
           }`}
         >
-          {child.name.split(" ")[0]}
+          {(child.name || "Dancer").split(" ")[0]}
         </button>
       ))}
     </div>
@@ -53,7 +53,7 @@ export function ChildFilterNote({ child }: { child: ChildProfile | null }) {
     <p className="text-sm text-[var(--ink-soft)]">
       Showing comps that fit {child.name}, {displayAge(child.dob)},{" "}
       {child.homeState} home state
-      {child.styles.length ? ` · ${child.styles.join(", ")}` : ""}.
+      {child.styles?.length ? ` · ${child.styles.join(", ")}` : ""}.
     </p>
   );
 }
@@ -68,6 +68,8 @@ export function InterstateToggle() {
         className="h-5 w-5 accent-[var(--teal)]"
         checked={state.includeInterstate}
         onChange={(e) => setIncludeInterstate(e.target.checked)}
+        autoComplete="off"
+        name="mdc-include-interstate"
       />
     </label>
   );

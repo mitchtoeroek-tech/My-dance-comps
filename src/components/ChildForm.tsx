@@ -28,7 +28,7 @@ export function ChildForm({
       ? {
           name: initial.name,
           dob: initial.dob,
-          styles: initial.styles,
+          styles: initial.styles ?? [],
           studio: initial.studio,
           homeState: initial.homeState,
         }
