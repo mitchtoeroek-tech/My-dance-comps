@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-09-21T10:05:05.163Z",
-  "lastFetchedAt": "2026-09-21T10:05:05.163Z",
+  "lastRunAt": "2026-09-21T20:38:13.523Z",
+  "lastFetchedAt": "2026-09-21T20:38:13.523Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
-  "updated": 0,
+  "updated": 3,
   "kept": 60,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -13,9 +13,9 @@
     "✓ Dance Hub Australia — NSW: 52 event(s)",
     "✓ Dance Hub Australia — Queensland: 39 event(s)",
     "✓ Dance Hub Australia — Victoria: 2 event(s)",
-    "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
+    "✗ Follow Your Dreams: fetch failed (1 seed event(s) retained)",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✗ Full Out: Blocked by bot challenge (202) for https://fullout.com.au/enter/ (11 seed event(s) retained)"
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-09-21T20:38:12.507Z)"
   ]
 }
