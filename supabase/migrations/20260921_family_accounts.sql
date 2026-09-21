@@ -57,7 +57,8 @@ create table if not exists public.results (
   comp_name text not null default 'Competition',
   date text not null default '',
   section text not null default '',
-  placing text not null default '',
+  -- Quoted: PLACING is a PostgreSQL reserved word (OVERLAY ... PLACING ...).
+  "placing" text not null default '',
   score text not null default '',
   notes text not null default '',
   created_at timestamptz not null default now()
