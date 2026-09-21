@@ -111,9 +111,15 @@ export interface FamilyState {
   selectedChildId: string | null;
   favourites: string[];
   includeInterstate: boolean;
+  /** Last-used / preferred home state for the main Comps list. */
+  preferredState: AuStateCode | null;
   reminderPrefs: ReminderPrefs;
   notifiedReminderIds: string[];
   results: CompResult[];
+}
+
+export function isAuStateCode(value: unknown): value is AuStateCode {
+  return AU_STATES.some((state) => state.code === value);
 }
 
 export type RegistrationStatus =

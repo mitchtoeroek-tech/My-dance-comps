@@ -20,6 +20,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build (what Vercel runs) |
 | `npm start` | Serve the production build |
+| `npm run test` | Home-state / interstate filter and client-state unit tests |
 | `npm run scrape` | Fetch organiser calendars and merge into `src/data/comps.json` |
 
 ## Deploy on Vercel
@@ -47,14 +48,14 @@ Query params for `/api/comps`:
 | --- | --- | --- |
 | `q` | `jazz` | Search name, suburb, style, organiser |
 | `dob` | `2018-06-15` | Child date of birth (age as at 1 January of the comp year) |
-| `state` | `SA` | Home state (with `dob`, filters to home state + nationals) |
+| `state` | `SA` | Home state. Filters to that state + nationals (even without `dob`). |
 | `styles` | `Jazz,Tap` | Preferred styles (overlap) |
-| `interstate` | `1` | Include interstate when a child filter is applied |
+| `interstate` | `1` | Include other states when a home `state` (or child `dob`+`state`) is applied |
 | `saved` | `id,id` | Limit to favourite ids |
 
 ## What the app does
 
-- **Comps** — dates, registration open/close, styles, organiser, registration links. Filter by the selected child’s age (as at 1 January) and overlapping styles. Home-state comps and nationals by default; optional “include interstate”.
+- **Comps** — dates, registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child.
 - **Kids** — multiple child profiles (no hard cap of two; soft max 20): name, date of birth, preferred styles, dance studio, home state. Per-child results log (manual).
 - **Saved** — favourite comps, persisted in `localStorage`.
 - **Reminders** — prefs for entries open, 1 week before close, and 1 day before close. In-app list for saved comps, `.ics` download, `mailto` list, and browser notifications when the browser allows them (no paid API keys).

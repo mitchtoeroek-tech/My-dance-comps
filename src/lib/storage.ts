@@ -1,4 +1,4 @@
-import { AU_STATES } from "./types";
+import { isAuStateCode, AU_STATES } from "./types";
 import type {
   AuStateCode,
   ChildProfile,
@@ -28,6 +28,7 @@ export const defaultFamilyState: FamilyState = {
   selectedChildId: null,
   favourites: [],
   includeInterstate: false,
+  preferredState: null,
   reminderPrefs: defaultReminderPrefs,
   notifiedReminderIds: [],
   results: [],
@@ -91,6 +92,18 @@ export function normalizeResult(raw: unknown): CompResult | null {
   };
 }
 
+export function derivePreferredState(
+  parsed: Partial<FamilyState>,
+): AuStateCode | null {
+  if (isAuStateCode(parsed.preferredState)) return parsed.preferredState;
+  const children = parsed.children ?? [];
+  const selected = children.find((c) => c.id === parsed.selectedChildId);
+  if (selected && isAuStateCode(selected.homeState)) return selected.homeState;
+  const first = children[0];
+  if (first && isAuStateCode(first.homeState)) return first.homeState;
+  return null;
+}
+
 export function normalizeFamilyState(raw: unknown): FamilyState {
   if (!isRecord(raw)) return defaultFamilyState;
   const children = Array.isArray(raw.children)
@@ -112,6 +125,13 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     selectedChildId,
     favourites: asStringArray(raw.favourites),
     includeInterstate: asBoolean(raw.includeInterstate, false),
+    preferredState: derivePreferredState({
+      preferredState: isAuStateCode(raw.preferredState)
+        ? raw.preferredState
+        : null,
+      children,
+      selectedChildId,
+    }),
     reminderPrefs: {
       onOpen: asBoolean(reminderRaw.onOpen, defaultReminderPrefs.onOpen),
       weekBeforeClose: asBoolean(

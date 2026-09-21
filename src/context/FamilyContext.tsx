@@ -22,6 +22,7 @@ import {
   SOFT_MAX_KIDS,
 } from "@/lib/storage";
 import type {
+  AuStateCode,
   ChildProfile,
   CompResult,
   FamilyState,
@@ -74,6 +75,7 @@ interface FamilyContextValue {
   canAddChild: boolean;
   setSelectedChildId: (id: string | null) => void;
   setIncludeInterstate: (value: boolean) => void;
+  setPreferredState: (value: AuStateCode) => void;
   upsertChild: (child: Omit<ChildProfile, "id"> & { id?: string }) => string;
   removeChild: (id: string) => void;
   toggleFavourite: (compId: string) => void;
@@ -108,11 +110,24 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   }, [state.children, state.selectedChildId]);
 
   const setSelectedChildId = useCallback((id: string | null) => {
-    patch((prev) => ({ ...prev, selectedChildId: id }));
+    patch((prev) => {
+      const child = Array.isArray(prev.children)
+        ? prev.children.find((c) => c.id === id)
+        : undefined;
+      return {
+        ...prev,
+        selectedChildId: id,
+        preferredState: child?.homeState ?? prev.preferredState,
+      };
+    });
   }, []);
 
   const setIncludeInterstate = useCallback((value: boolean) => {
     patch((prev) => ({ ...prev, includeInterstate: value }));
+  }, []);
+
+  const setPreferredState = useCallback((value: AuStateCode) => {
+    patch((prev) => ({ ...prev, preferredState: value }));
   }, []);
 
   const upsertChild = useCallback(
@@ -123,6 +138,10 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
           children: prev.children.map((c) =>
             c.id === child.id ? { ...c, ...child, id: child.id } : c,
           ),
+          preferredState:
+            prev.selectedChildId === child.id || !prev.preferredState
+              ? child.homeState
+              : prev.preferredState,
         }));
         return child.id;
       }
@@ -133,6 +152,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           children: [...prev.children, { ...child, id }],
           selectedChildId: prev.selectedChildId ?? id,
+          preferredState: prev.preferredState ?? child.homeState,
         };
       });
       return id;
@@ -143,13 +163,17 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   const removeChild = useCallback((id: string) => {
     patch((prev) => {
       const children = prev.children.filter((c) => c.id !== id);
+      const selectedChildId =
+        prev.selectedChildId === id
+          ? (children[0]?.id ?? null)
+          : prev.selectedChildId;
+      const selected = children.find((c) => c.id === selectedChildId);
       return {
         ...prev,
         children,
-        selectedChildId:
-          prev.selectedChildId === id
-            ? (children[0]?.id ?? null)
-            : prev.selectedChildId,
+        selectedChildId,
+        preferredState:
+          selected?.homeState ?? children[0]?.homeState ?? prev.preferredState,
         results: prev.results.filter((r) => r.childId !== id),
       };
     });
@@ -251,6 +275,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     canAddChild: childrenCount < SOFT_MAX_KIDS,
     setSelectedChildId,
     setIncludeInterstate,
+    setPreferredState,
     upsertChild,
     removeChild,
     toggleFavourite,

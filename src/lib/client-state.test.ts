@@ -90,6 +90,7 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
   assert.equal(normalized.version, 1);
   assert.equal("extra" in normalized, false);
   assert.equal(normalized.includeInterstate, false);
+  assert.equal(normalized.preferredState, "SA");
   assert.equal(normalized.children.length, 2);
   assert.deepEqual(normalized.children[1]?.styles, []);
   assert.equal(normalized.selectedChildId, null);

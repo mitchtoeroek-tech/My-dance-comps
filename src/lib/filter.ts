@@ -1,10 +1,15 @@
 import { ageAsAtCompYear } from "./age";
-import type { ChildProfile, Competition } from "./types";
+import type { AuStateCode, ChildProfile, Competition } from "./types";
 
 export interface CompFilters {
   query: string;
   includeInterstate: boolean;
   child: ChildProfile | null;
+  /**
+   * Home state for the main list when no child is selected.
+   * Ignored for the state check when a child is selected (child.homeState wins).
+   */
+  homeState?: AuStateCode | null;
   onlyFavourites?: boolean;
   favouriteIds?: string[];
 }
@@ -20,6 +25,31 @@ export function stylesOverlap(
   return child.some((s) => set.has(s.toLowerCase()));
 }
 
+export function resolveHomeState(
+  child: ChildProfile | null,
+  preferredState?: AuStateCode | null,
+): AuStateCode | null {
+  return child?.homeState ?? preferredState ?? null;
+}
+
+/**
+ * Home-state comps plus events tagged National. Other states only when
+ * “Include interstate comps” is on.
+ *
+ * When interstate is off and no home state is known, nothing matches — the
+ * UI should prompt for a state rather than listing Australia-wide.
+ */
+export function matchesHomeState(
+  comp: Competition,
+  homeState: AuStateCode | null,
+  includeInterstate: boolean,
+): boolean {
+  if (includeInterstate) return true;
+  if (!homeState) return false;
+  if (comp.isNational) return true;
+  return comp.state === homeState;
+}
+
 export function matchesChild(
   comp: Competition,
   child: ChildProfile,
@@ -31,8 +61,7 @@ export function matchesChild(
   const maxOk = comp.maxAge == null || age <= comp.maxAge;
   if (!minOk || !maxOk) return false;
   if (!stylesOverlap(child.styles, comp.styles)) return false;
-  if (includeInterstate || comp.isNational) return true;
-  return comp.state === child.homeState;
+  return matchesHomeState(comp, child.homeState, includeInterstate);
 }
 
 export function searchMatches(comp: Competition, query: string): boolean {
@@ -58,6 +87,7 @@ export function filterComps(
   filters: CompFilters,
 ): Competition[] {
   const list = Array.isArray(comps) ? comps : [];
+  const homeState = resolveHomeState(filters.child, filters.homeState);
   return list
     .filter((comp) => {
       if (!comp?.id || !comp.startDate) return false;
@@ -68,7 +98,7 @@ export function filterComps(
       if (filters.child) {
         return matchesChild(comp, filters.child, filters.includeInterstate);
       }
-      return true;
+      return matchesHomeState(comp, homeState, filters.includeInterstate);
     })
     .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""));
 }
