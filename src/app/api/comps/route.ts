@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { registrationStatus } from "@/lib/comps";
+import { isRegistrationStatus, registrationStatus } from "@/lib/comps";
 import { loadComps } from "@/lib/live-comps";
 import { ADELAIDE_TZ, formatDateTime } from "@/lib/datetime";
 import { filterComps } from "@/lib/filter";
@@ -23,6 +23,11 @@ export async function GET(request: NextRequest) {
   const favouriteIds = (searchParams.get("saved") ?? "")
     .split(",")
     .filter(Boolean);
+  const sortDir = searchParams.get("sort") === "desc" ? "desc" : "asc";
+  const statuses = (searchParams.get("status") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(isRegistrationStatus);
 
   const child: ChildProfile | null =
     dob && state
@@ -46,6 +51,8 @@ export async function GET(request: NextRequest) {
     homeState: state,
     onlyFavourites: favouriteIds.length > 0,
     favouriteIds,
+    sortDir,
+    statuses,
   });
 
   return Response.json({

@@ -113,6 +113,41 @@ export function statusLabel(status: RegistrationStatus): string {
   }
 }
 
+export const STATUS_FILTER_OPTIONS: {
+  value: RegistrationStatus;
+  label: string;
+}[] = [
+  { value: "open", label: statusLabel("open") },
+  { value: "closing-soon", label: statusLabel("closing-soon") },
+  { value: "closed", label: statusLabel("closed") },
+  { value: "opens-soon", label: statusLabel("opens-soon") },
+  { value: "unknown", label: statusLabel("unknown") },
+];
+
+const STATUS_VALUES = new Set<RegistrationStatus>(
+  STATUS_FILTER_OPTIONS.map((option) => option.value),
+);
+
+export function isRegistrationStatus(value: unknown): value is RegistrationStatus {
+  return typeof value === "string" && STATUS_VALUES.has(value as RegistrationStatus);
+}
+
+/** Venue name, suburb/city, and state — skips a suburb that duplicates the venue. */
+export function formatCompLocation(
+  comp: Pick<Competition, "venue" | "suburb" | "state">,
+): string {
+  const venue = comp.venue?.trim() ?? "";
+  const suburb = comp.suburb?.trim() ?? "";
+  const state = comp.state?.trim() ?? "";
+  const parts: string[] = [];
+  if (venue) parts.push(venue);
+  if (suburb && suburb.toLowerCase() !== venue.toLowerCase()) {
+    parts.push(suburb);
+  }
+  if (state) parts.push(state);
+  return parts.join(", ");
+}
+
 export function stateLabel(code: string): string {
   if (code === "NATIONAL") return "National";
   return code;

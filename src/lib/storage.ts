@@ -1,3 +1,5 @@
+import type { DateSortDir } from "./filter";
+import { isRegistrationStatus } from "./comps";
 import { isAuStateCode, AU_STATES } from "./types";
 import type {
   AuStateCode,
@@ -5,6 +7,7 @@ import type {
   CompResult,
   DanceStyle,
   FamilyState,
+  RegistrationStatus,
   ReminderPrefs,
 } from "./types";
 
@@ -14,6 +17,8 @@ export const LEGACY_STORAGE_KEYS = [
   "mydancecomps.family.v0",
   "my-dance-comps.family",
 ];
+export const COMPS_DATE_SORT_KEY = "mydancecomps.compsDateSort";
+export const COMPS_STATUS_FILTER_KEY = "mydancecomps.compsStatusFilter";
 export const SOFT_MAX_KIDS = 20;
 
 export const defaultReminderPrefs: ReminderPrefs = {
@@ -197,4 +202,67 @@ export function newId(): string {
     return crypto.randomUUID();
   }
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+export function isDateSortDir(value: unknown): value is DateSortDir {
+  return value === "asc" || value === "desc";
+}
+
+export function loadCompsDateSort(): DateSortDir {
+  if (typeof window === "undefined") return "asc";
+  try {
+    const raw = window.localStorage.getItem(COMPS_DATE_SORT_KEY);
+    return isDateSortDir(raw) ? raw : "asc";
+  } catch {
+    return "asc";
+  }
+}
+
+export function saveCompsDateSort(dir: DateSortDir) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(COMPS_DATE_SORT_KEY, dir);
+  } catch {
+    /* private mode / quota */
+  }
+}
+
+const EMPTY_STATUSES: RegistrationStatus[] = [];
+let cachedStatuses: RegistrationStatus[] | null = null;
+
+export function loadCompsStatusFilter(): RegistrationStatus[] {
+  if (cachedStatuses) return cachedStatuses;
+  if (typeof window === "undefined") return EMPTY_STATUSES;
+  try {
+    const raw = window.localStorage.getItem(COMPS_STATUS_FILTER_KEY);
+    if (!raw) {
+      cachedStatuses = EMPTY_STATUSES;
+      return cachedStatuses;
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      cachedStatuses = EMPTY_STATUSES;
+      return cachedStatuses;
+    }
+    const next = parsed.filter(isRegistrationStatus);
+    cachedStatuses = next.length === 0 ? EMPTY_STATUSES : next;
+    return cachedStatuses;
+  } catch {
+    cachedStatuses = EMPTY_STATUSES;
+    return cachedStatuses;
+  }
+}
+
+export function saveCompsStatusFilter(statuses: RegistrationStatus[]) {
+  const next = statuses.filter(isRegistrationStatus);
+  cachedStatuses = next.length === 0 ? EMPTY_STATUSES : next;
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      COMPS_STATUS_FILTER_KEY,
+      JSON.stringify(cachedStatuses),
+    );
+  } catch {
+    /* private mode / quota */
+  }
 }
