@@ -2,11 +2,11 @@ import type { RegistrationStatus } from "@/lib/types";
 import { statusLabel } from "@/lib/comps";
 
 const styles: Record<RegistrationStatus, string> = {
-  "opens-soon": "bg-accent-soft text-foreground",
-  open: "bg-primary-soft text-primary-ink",
-  "closing-soon": "bg-accent text-foreground",
-  closed: "bg-muted text-muted-foreground",
-  unknown: "bg-muted text-muted-foreground",
+  open: "bg-status-open text-status-open-ink",
+  "opens-soon": "bg-status-opening text-status-opening-ink",
+  "closing-soon": "bg-status-closing text-status-closing-ink",
+  closed: "bg-status-closed text-status-closed-ink",
+  unknown: "bg-status-unknown text-status-unknown-ink",
 };
 
 export function StatusPill({ status }: { status: RegistrationStatus }) {
