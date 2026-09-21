@@ -2,7 +2,9 @@
 
 Mobile-first web app for Australian youth dance competitions. Built for parents and dancers aged about 2–18.
 
-Family data (kids, saved comps, confirmed entries, reminders, results) stays in **this browser** via `localStorage`. Guest reviews of finished competitions are stored the same way (`mydancecomps.reviews.v1`, keyed by competition id). Competition listings ship as seed data so the UI works even when a scrape cannot reach organiser sites.
+Family data (kids, saved comps, confirmed entries, reminders, results) stays in **this browser** via `localStorage` for guests. Signing in is optional — home never requires an account. When you are logged in, that same family data also syncs to Supabase. Guest reviews of finished competitions stay on the device (`mydancecomps.reviews.v1`, keyed by competition id).
+
+Competition listings ship as seed data so the UI works even when a scrape cannot reach organiser sites.
 
 Times that matter (entry open/close, reminders, calendar files) use **Australia/Adelaide**. Copy is **en-AU**.
 
@@ -20,12 +22,65 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build (what Vercel runs) |
 | `npm start` | Serve the production build |
-| `npm run test` | Home-state / interstate filter, calendar, datetime, enrolled, scrape, reviews, and client-state unit tests |
+| `npm run test` | Filter, calendar, datetime, enrolled, scrape, reviews, client-state, and account-sync unit tests |
 | `npm run scrape` | Fetch organiser calendars and merge into `src/data/comps.json` |
+
+## Accounts (optional)
+
+Guest mode is the default. Parents can use the live app tonight without creating an account. **Account** in the header is optional.
+
+Email/password auth uses `@supabase/supabase-js` and the official My Dance Comps / Mint Studio branding (not the generic Supabase widget).
+
+### Environment variables
+
+Already connected via the Vercel ↔ Supabase integration. For local `.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+The app boots without these keys: auth pages explain that accounts are unavailable, and guest `localStorage` keeps working. `npm run build` does not require the keys.
+
+### Run the SQL migration
+
+1. Open the [Supabase dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**.
+2. Paste [`supabase/migrations/20260921_family_accounts.sql`](supabase/migrations/20260921_family_accounts.sql) and run it.
+3. That creates `profiles`, `children`, `favourites`, `results`, and `enrolled_comps` with row-level security (users only see their own rows).
+
+### Supabase Auth settings
+
+1. **Authentication → Providers → Email** — enable Email.
+2. **Authentication → URL Configuration**
+   - Site URL: production origin, e.g. `https://my-dance-comps.vercel.app`
+   - Redirect URLs (add each):
+     - `http://localhost:3000/reset-password`
+     - `http://localhost:3000/account`
+     - `https://my-dance-comps.vercel.app/reset-password`
+     - `https://my-dance-comps.vercel.app/account`
+     - `https://*-my-dance-comps.vercel.app/reset-password`
+     - `https://*-my-dance-comps.vercel.app/account`
+3. Optional: turn off **Confirm email** while testing so sign-up logs in immediately. Leave it on for production if you want confirmation emails.
+
+### How to test auth
+
+1. Open the app as a guest (home must load with no login wall). Add a kid, star a comp, tap **Mark as entered**, log a result.
+2. Header → **Account** → **Sign up** with a real inbox you can open.
+3. Confirm the email if required, then **Log in**.
+4. Account should show counts for kids / saved / entered / results. Sign out: the same data stays on the device (guest mode).
+5. **Forgot password** → use the email link → **Reset password** on the branded page.
+6. On another browser (or after clearing site data), log in: kids, favourites, enrolled comps and results should come back from Supabase.
+
+Logged-in writes debounce (~600ms) up to Supabase. Logged-out / guest writes stay local only.
 
 ## Deploy on Vercel
 
-Import this GitHub repo (`main`). No environment variables or secrets are required.
+Import this GitHub repo (`main`). Guest mode needs **no** environment variables. Accounts need:
+
+| Variable | Source |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Vercel ↔ Supabase integration |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel ↔ Supabase integration |
 
 Listings refresh themselves every day:
 
@@ -61,7 +116,8 @@ Query params for `/api/comps`:
 - **My Comps** — enrolled competitions only, with an **All children** filter plus a chip per dancer. Cards match the main Comps list (date order, venue/address, status chips, Enrolled tagged so you can un-enrol here too) and sit first under the child filter. A **month calendar** below the list (same layout as the Calendar tab: status dots, enrolled stars, muted past dates) plots only those enrolled comps for the active child filter. Interstate enrolled comps stay visible, matching the list — there is no extra home-state hide. Months with no enrolled dates show a friendly empty state. Guest data stays in `localStorage`.
 - **Calendar** — month view of the same state filter as Comps (swipe or previous/next). State chips (SA, Vic, NSW, All, …) and the interstate toggle sit on the Calendar page; changing them updates the month marks immediately. A selected state shows that state’s events plus National finals; **All** / interstate-on shows every state. Dots use the same registration-status colours as the Comps chips (open / closing soon / closed / dates TBC). Dates before **today in Australia/Adelaide** use the same muted mint-grey (`past-surface`) as finished Comp cards; status dots stay. A star on a day means you tapped **Enrolled** for a competition in the current filter (for the selected dancer, or any dancer when Everyone is selected). Tap a day for the comps, status, and the same Enrolled control — finished events in that sheet are muted like the main list. Finished comps in the day sheet also show the this-device review summary.
 - **Kids** — multiple child profiles (no hard cap of two; soft max 20): name, date of birth, preferred styles, dance studio, home state. Per-child results log (manual).
-- **Saved** — favourite comps, persisted in `localStorage`.
+- **Saved** — favourite comps, persisted in `localStorage` (and synced when signed in). **Mark as entered** stores a family-wide enrolled list the same way.
+- **Account** — optional email/password. Guest remains the default.
 - **Reminders** — prefs for entries open, 1 week before close, and 1 day before close. In-app list for saved comps, `.ics` download, `mailto` list, and browser notifications when the browser allows them (no paid API keys).
 
 ## Seed data and daily scrape
@@ -118,4 +174,6 @@ Competition age is **as at 1 January** of the competition year. A dancer born 15
 
 ## Privacy
 
-No accounts, no backend database, no secrets. Kids, saved comps, confirmed entries (`enrolled` / `enrolledByChild`), results, and guest reviews never leave the device unless you export a calendar or email the reminder list yourself. Confirmed entries live in the same `localStorage` key as the rest of the family state (`mydancecomps.family.v1`): family-wide `enrolled` competition ids, plus optional per-child `enrolledByChild`. Reviews use a separate key (`mydancecomps.reviews.v1`) so they can later map to a public `reviews` table without merging login early.
+Guests: kids, saved comps, confirmed entries (`enrolled` / `enrolledByChild`), results, and reviews stay on the device in `localStorage`. They never leave the browser unless you export a calendar, email a reminder list, or **choose** to create an account. Confirmed entries live in `mydancecomps.family.v1`. Reviews use `mydancecomps.reviews.v1`.
+
+Signed-in families: kids, saved comps, enrolled comps (family-wide and per-child) and results sync to your Supabase project under row-level security. Friends only see a dancer’s **name** and the comps that dancer is enrolled in. Passwords are handled by Supabase Auth, not stored in this app.

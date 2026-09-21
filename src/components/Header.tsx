@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountLink } from "./AccountLink";
 import { BrandLockup } from "./BrandMark";
 
 export function Header() {
@@ -11,6 +12,7 @@ export function Header() {
         >
           <BrandLockup variant="header" />
         </Link>
+        <AccountLink />
       </div>
     </header>
   );

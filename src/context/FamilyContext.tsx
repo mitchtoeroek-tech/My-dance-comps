@@ -14,6 +14,12 @@ import {
   dueReminders,
   upcomingReminders,
 } from "@/lib/reminders";
+import { useAuth } from "@/context/AuthContext";
+import {
+  pullFamilyState,
+  pushFamilyState,
+  reconcileFamilyState,
+} from "@/lib/family-sync";
 import {
   dropChildEnrollment,
   enrolledIdsForChild,
@@ -23,8 +29,10 @@ import {
 import {
   defaultFamilyState,
   loadFamilyState,
+  loadLastOwnerId,
   newId,
   saveFamilyState,
+  saveLastOwnerId,
   SOFT_MAX_KIDS,
 } from "@/lib/storage";
 import type {
@@ -37,6 +45,10 @@ import type {
 
 let memory: FamilyState = defaultFamilyState;
 let hydrated = false;
+let cloudUserId: string | null = null;
+let acceptCloudPushes = false;
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+let lastPushedJson = "";
 const listeners = new Set<() => void>();
 
 function snapshot(): FamilyState {
@@ -51,11 +63,27 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
+function scheduleCloudPush(state: FamilyState) {
+  if (!cloudUserId || !acceptCloudPushes) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    const userId = cloudUserId;
+    if (!userId) return;
+    const json = JSON.stringify(state);
+    if (json === lastPushedJson) return;
+    lastPushedJson = json;
+    void pushFamilyState(userId, state).catch(() => {
+      lastPushedJson = "";
+    });
+  }, 600);
+}
+
 function write(next: FamilyState) {
   memory = next;
   hydrated = true;
   saveFamilyState(next);
   emit();
+  scheduleCloudPush(next);
 }
 
 function hydrateFromStorage() {
@@ -102,6 +130,8 @@ interface FamilyContextValue {
 const FamilyContext = createContext<FamilyContextValue | null>(null);
 
 export function FamilyProvider({ children }: { children: React.ReactNode }) {
+  const { user, ready: authReady } = useAuth();
+  const userId = user?.id ?? null;
   const state = useSyncExternalStore(
     subscribe,
     snapshot,
@@ -116,6 +146,45 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     hydrateFromStorage();
   }, []);
+
+  useEffect(() => {
+    if (!authReady || !hydrated) return;
+    if (!userId) {
+      cloudUserId = null;
+      acceptCloudPushes = false;
+      lastPushedJson = "";
+      return;
+    }
+
+    let cancelled = false;
+    cloudUserId = userId;
+    acceptCloudPushes = false;
+
+    void (async () => {
+      try {
+        const remote = await pullFamilyState(userId);
+        if (cancelled) return;
+        const next = reconcileFamilyState(
+          snapshot(),
+          remote,
+          loadLastOwnerId(),
+          userId,
+        );
+        saveLastOwnerId(userId);
+        acceptCloudPushes = true;
+        write(next);
+      } catch {
+        if (cancelled) return;
+        saveLastOwnerId(userId);
+        acceptCloudPushes = true;
+        scheduleCloudPush(snapshot());
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, userId, ready]);
 
   const selectedChild = useMemo(() => {
     if (!Array.isArray(state.children)) return null;

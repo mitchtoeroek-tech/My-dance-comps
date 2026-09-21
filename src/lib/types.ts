@@ -150,7 +150,7 @@ export interface FamilyState {
   favourites: string[];
   /**
    * Family-wide confirmed entries (legacy + Everyone / All children).
-   * Stored like favourites in localStorage.
+   * Stored like favourites in localStorage and synced when signed in.
    */
   enrolled: string[];
   /**

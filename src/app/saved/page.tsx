@@ -18,8 +18,8 @@ export default function SavedPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Saved</h1>
       <p className="text-sm text-muted-foreground">
-        Favourites stay on this device in local storage. Star a comp to include
-        it in registration reminders.
+        Favourites stay on this device. Sign in from Account if you want them
+        synced. Star a comp to include it in registration reminders.
       </p>
       {comps.length === 0 ? (
         <EmptyState

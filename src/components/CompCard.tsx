@@ -15,17 +15,21 @@ export function CompCard({
   enrolled,
   onToggleEnrolled,
   ageHint,
+  eyebrow,
 }: {
   comp: Competition;
-  saved: boolean;
-  onToggleSave: () => void;
-  enrolled: boolean;
-  onToggleEnrolled: () => void;
+  saved?: boolean;
+  onToggleSave?: () => void;
+  enrolled?: boolean;
+  onToggleEnrolled?: () => void;
   ageHint?: string;
+  eyebrow?: string;
 }) {
   const status = registrationStatus(comp);
   const styles = Array.isArray(comp.styles) ? comp.styles : [];
   const past = compHasEnded(comp, adelaideToday());
+  const showSave = typeof onToggleSave === "function";
+  const showEnrolled = enrolled !== undefined;
   return (
     <article
       className={`relative overflow-hidden rounded-card p-4 shadow-card ring-1 ring-border ${
@@ -41,6 +45,11 @@ export function CompCard({
               {comp.isNational ? "National" : comp.state}
             </span>
           </div>
+          {eyebrow ? (
+            <p className="mb-1 text-xs font-bold uppercase tracking-wide text-primary-ink">
+              {eyebrow}
+            </p>
+          ) : null}
           <h2
             className={`text-lg font-bold leading-snug ${
               past ? "text-foreground/70" : "text-foreground"
@@ -69,10 +78,19 @@ export function CompCard({
           </p>
           {past ? <CompReviewSummary competitionId={comp.id} /> : null}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <StarButton saved={saved} onClick={onToggleSave} />
-          <EnrolledButton enrolled={enrolled} onClick={onToggleEnrolled} />
-        </div>
+        {showSave || showEnrolled ? (
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            {showSave ? (
+              <StarButton saved={Boolean(saved)} onClick={onToggleSave} />
+            ) : null}
+            {showEnrolled ? (
+              <EnrolledButton
+                enrolled={Boolean(enrolled)}
+                onClick={onToggleEnrolled}
+              />
+            ) : null}
+          </div>
+        ) : null}
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {styles.slice(0, 5).map((style) => (
