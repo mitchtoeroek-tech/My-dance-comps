@@ -10,20 +10,19 @@ export function Header({
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
-        <Link href="/" className="flex min-h-11 items-center gap-2.5">
-          <BrandMark size={44} />
+      <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-2.5">
+        <Link
+          href="/"
+          className="flex min-h-11 min-w-0 items-center gap-3"
+          aria-label={title ? `${title} — My Dance Comps home` : "My Dance Comps home"}
+        >
+          <BrandMark />
           <div className="min-w-0 leading-tight">
-            <p className="text-lg font-bold tracking-tight text-foreground">
-              {title ?? (
-                <>
-                  My Dance{" "}
-                  <span className="font-semibold italic text-primary">
-                    Comps
-                  </span>
-                </>
-              )}
-            </p>
+            {title ? (
+              <p className="text-lg font-bold tracking-tight text-foreground">
+                {title}
+              </p>
+            ) : null}
             <p className="text-xs font-medium text-muted-foreground">
               {subtitle ?? "Australian youth dance competitions"}
             </p>
