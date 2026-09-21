@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   compareCompsByDate,
   compDateSortKey,
+  compHasEnded,
   compIsUpcoming,
   filterComps,
   matchesChild,
@@ -299,6 +300,33 @@ describe("compareCompsByDate", () => {
     });
     assert.equal(compIsUpcoming(ongoing, "2026-09-21"), false);
     assert.ok(compareCompsByDate(soon, ongoing, "asc", now) < 0);
+  });
+
+  it("treats a finished event as ended using end date, not start", () => {
+    const finished = makeComp({
+      id: "finished",
+      startDate: "2026-09-10",
+      endDate: "2026-09-12",
+    });
+    const ongoing = makeComp({
+      id: "ongoing",
+      startDate: "2026-09-19",
+      endDate: "2026-09-22",
+    });
+    const todayOnly = makeComp({
+      id: "today-only",
+      startDate: "2026-09-21",
+      endDate: "2026-09-21",
+    });
+    const startOnlyPast = makeComp({
+      id: "start-only-past",
+      startDate: "2026-09-20",
+      endDate: "",
+    });
+    assert.equal(compHasEnded(finished, "2026-09-21"), true);
+    assert.equal(compHasEnded(ongoing, "2026-09-21"), false);
+    assert.equal(compHasEnded(todayOnly, "2026-09-21"), false);
+    assert.equal(compHasEnded(startOnlyPast, "2026-09-21"), true);
   });
 
   it("soonest first: nearest upcoming start, then past by most recent", () => {

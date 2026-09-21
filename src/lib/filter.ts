@@ -60,6 +60,19 @@ export function compIsUpcoming(comp: Competition, today: string): boolean {
 }
 
 /**
+ * True when the event has already finished: end date (or start if there is
+ * no end) is before Adelaide today. Used for muted “already been” styling.
+ * Distinct from sort: a multi-day event that started yesterday but has not
+ * ended yet is not treated as visually past.
+ */
+export function compHasEnded(comp: Competition, today: string): boolean {
+  const end =
+    calendarDate(comp.endDate) ?? calendarDate(compDateSortKey(comp));
+  if (!end) return false;
+  return end < today;
+}
+
+/**
  * Date sort relative to Adelaide today — not a raw chronological dump.
  *
  * Choice (documented): keep past comps in the list, but always after
