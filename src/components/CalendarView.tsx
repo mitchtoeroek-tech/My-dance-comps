@@ -189,7 +189,7 @@ export function CalendarView({
           ))}
           <li className="flex items-center gap-1.5">
             <span
-              className="text-[12px] leading-none text-primary-ink"
+              className="text-[14px] leading-none text-primary-ink"
               aria-hidden
             >
               ★
@@ -271,7 +271,7 @@ export function CalendarView({
               >
                 {marks?.enrolled ? (
                   <span
-                    className="absolute top-0 right-0 text-[11px] leading-none text-primary-ink"
+                    className="absolute top-px right-px text-[14px] leading-none text-primary-ink"
                     aria-hidden
                   >
                     ★
