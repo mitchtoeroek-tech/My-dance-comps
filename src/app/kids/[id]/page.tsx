@@ -53,7 +53,7 @@ export default function KidDetailPage({
             <p className="text-sm font-semibold">{child.studio}</p>
           ) : null}
           <p className="mt-2 text-sm">
-            {child.styles.length ? child.styles.join(" · ") : "All styles"}
+            {child.styles?.length ? child.styles.join(" · ") : "All styles"}
           </p>
           <div className="mt-3 flex gap-2">
             <button

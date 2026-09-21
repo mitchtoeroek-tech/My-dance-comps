@@ -35,41 +35,45 @@ export function remindersForComp(
   const items: ReminderItem[] = [];
   if (prefs.onOpen && comp.registrationOpens) {
     const fireAt = parseAdelaide(comp.registrationOpens);
-    items.push({
-      id: `${comp.id}:open`,
-      kind: "open",
-      compId: comp.id,
-      compName: comp.name,
-      fireAt: fireAt.toISOString(),
-      label: kindLabel("open", comp.name),
-      detail: kindDetail("open", comp),
-    });
+    if (fireAt) {
+      items.push({
+        id: `${comp.id}:open`,
+        kind: "open",
+        compId: comp.id,
+        compName: comp.name,
+        fireAt: fireAt.toISOString(),
+        label: kindLabel("open", comp.name),
+        detail: kindDetail("open", comp),
+      });
+    }
   }
   if (comp.registrationCloses) {
     const close = parseAdelaide(comp.registrationCloses);
-    if (prefs.weekBeforeClose) {
-      const fireAt = addDays(close, -7);
-      items.push({
-        id: `${comp.id}:week-before-close`,
-        kind: "week-before-close",
-        compId: comp.id,
-        compName: comp.name,
-        fireAt: fireAt.toISOString(),
-        label: kindLabel("week-before-close", comp.name),
-        detail: kindDetail("week-before-close", comp),
-      });
-    }
-    if (prefs.dayBeforeClose) {
-      const fireAt = addDays(close, -1);
-      items.push({
-        id: `${comp.id}:day-before-close`,
-        kind: "day-before-close",
-        compId: comp.id,
-        compName: comp.name,
-        fireAt: fireAt.toISOString(),
-        label: kindLabel("day-before-close", comp.name),
-        detail: kindDetail("day-before-close", comp),
-      });
+    if (close) {
+      if (prefs.weekBeforeClose) {
+        const fireAt = addDays(close, -7);
+        items.push({
+          id: `${comp.id}:week-before-close`,
+          kind: "week-before-close",
+          compId: comp.id,
+          compName: comp.name,
+          fireAt: fireAt.toISOString(),
+          label: kindLabel("week-before-close", comp.name),
+          detail: kindDetail("week-before-close", comp),
+        });
+      }
+      if (prefs.dayBeforeClose) {
+        const fireAt = addDays(close, -1);
+        items.push({
+          id: `${comp.id}:day-before-close`,
+          kind: "day-before-close",
+          compId: comp.id,
+          compName: comp.name,
+          fireAt: fireAt.toISOString(),
+          label: kindLabel("day-before-close", comp.name),
+          detail: kindDetail("day-before-close", comp),
+        });
+      }
     }
   }
   return items;

@@ -1,6 +1,19 @@
-import type { FamilyState, ReminderPrefs } from "./types";
+import { AU_STATES } from "./types";
+import type {
+  AuStateCode,
+  ChildProfile,
+  CompResult,
+  DanceStyle,
+  FamilyState,
+  ReminderPrefs,
+} from "./types";
 
 export const STORAGE_KEY = "mydancecomps.family.v1";
+export const LEGACY_STORAGE_KEYS = [
+  "mydancecomps.family",
+  "mydancecomps.family.v0",
+  "my-dance-comps.family",
+];
 export const SOFT_MAX_KIDS = 20;
 
 export const defaultReminderPrefs: ReminderPrefs = {
@@ -20,33 +33,143 @@ export const defaultFamilyState: FamilyState = {
   results: [],
 };
 
+const AU_STATE_CODES = new Set<string>(AU_STATES.map((s) => s.code));
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+function normalizeHomeState(value: unknown): AuStateCode {
+  const code = asString(value, "SA").toUpperCase();
+  return (AU_STATE_CODES.has(code) ? code : "SA") as AuStateCode;
+}
+
+export function normalizeChild(raw: unknown): ChildProfile | null {
+  if (!isRecord(raw)) return null;
+  const id = asString(raw.id).trim();
+  const name = asString(raw.name).trim();
+  if (!id || !name) return null;
+  return {
+    id,
+    name,
+    dob: asString(raw.dob),
+    styles: asStringArray(raw.styles) as DanceStyle[],
+    studio: asString(raw.studio),
+    homeState: normalizeHomeState(raw.homeState),
+  };
+}
+
+export function normalizeResult(raw: unknown): CompResult | null {
+  if (!isRecord(raw)) return null;
+  const id = asString(raw.id).trim();
+  const childId = asString(raw.childId).trim();
+  if (!id || !childId) return null;
+  const compIdRaw = raw.compId;
+  return {
+    id,
+    childId,
+    compId: typeof compIdRaw === "string" && compIdRaw ? compIdRaw : null,
+    compName: asString(raw.compName, "Competition"),
+    date: asString(raw.date),
+    section: asString(raw.section),
+    placing: asString(raw.placing),
+    score: asString(raw.score),
+    notes: asString(raw.notes),
+  };
+}
+
+export function normalizeFamilyState(raw: unknown): FamilyState {
+  if (!isRecord(raw)) return defaultFamilyState;
+  const children = Array.isArray(raw.children)
+    ? raw.children
+        .map(normalizeChild)
+        .filter((child): child is ChildProfile => child !== null)
+        .slice(0, SOFT_MAX_KIDS)
+    : [];
+  const selectedRaw = raw.selectedChildId;
+  const selectedChildId =
+    typeof selectedRaw === "string" &&
+    children.some((child) => child.id === selectedRaw)
+      ? selectedRaw
+      : null;
+  const reminderRaw = isRecord(raw.reminderPrefs) ? raw.reminderPrefs : {};
+  return {
+    version: 1,
+    children,
+    selectedChildId,
+    favourites: asStringArray(raw.favourites),
+    includeInterstate: asBoolean(raw.includeInterstate, false),
+    reminderPrefs: {
+      onOpen: asBoolean(reminderRaw.onOpen, defaultReminderPrefs.onOpen),
+      weekBeforeClose: asBoolean(
+        reminderRaw.weekBeforeClose,
+        defaultReminderPrefs.weekBeforeClose,
+      ),
+      dayBeforeClose: asBoolean(
+        reminderRaw.dayBeforeClose,
+        defaultReminderPrefs.dayBeforeClose,
+      ),
+    },
+    notifiedReminderIds: asStringArray(raw.notifiedReminderIds),
+    results: Array.isArray(raw.results)
+      ? raw.results
+          .map(normalizeResult)
+          .filter((result): result is CompResult => result !== null)
+      : [],
+  };
+}
+
+function wipeStorageKey(key: string) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    /* private mode / quota */
+  }
+}
+
 export function loadFamilyState(): FamilyState {
   if (typeof window === "undefined") return defaultFamilyState;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultFamilyState;
-    const parsed = JSON.parse(raw) as Partial<FamilyState>;
-    return {
-      ...defaultFamilyState,
-      ...parsed,
-      version: 1,
-      reminderPrefs: {
-        ...defaultReminderPrefs,
-        ...(parsed.reminderPrefs ?? {}),
-      },
-      children: parsed.children ?? [],
-      favourites: parsed.favourites ?? [],
-      results: parsed.results ?? [],
-      notifiedReminderIds: parsed.notifiedReminderIds ?? [],
-    };
+    if (!raw) {
+      for (const legacy of LEGACY_STORAGE_KEYS) {
+        try {
+          window.localStorage.removeItem(legacy);
+        } catch {
+          /* ignore */
+        }
+      }
+      return defaultFamilyState;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    return normalizeFamilyState(parsed);
   } catch {
+    wipeStorageKey(STORAGE_KEY);
     return defaultFamilyState;
   }
 }
 
 export function saveFamilyState(state: FamilyState) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    const normalized = normalizeFamilyState(state);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+  } catch {
+    /* Safari private mode and quota errors must not crash the UI */
+  }
 }
 
 export function newId(): string {

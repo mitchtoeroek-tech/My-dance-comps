@@ -162,7 +162,7 @@ export function RemindersView() {
               className="rounded-3xl bg-white p-4 ring-1 ring-[var(--line)]"
             >
               <p className="text-xs font-bold uppercase tracking-wide text-[var(--raspberry)]">
-                {item.kind.replaceAll("-", " ")}
+                {item.kind.replace(/-/g, " ")}
               </p>
               <p className="font-extrabold text-[var(--ink)]">{item.label}</p>
               <p className="text-sm text-[var(--ink-soft)]">

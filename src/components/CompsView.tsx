@@ -13,7 +13,9 @@ import {
   InterstateToggle,
 } from "./ChildPicker";
 import { EmptyState } from "./EmptyState";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { useLiveComps } from "@/hooks/useLiveComps";
+import { formatDateTime } from "@/lib/datetime";
 
 export function CompsView({ initialComps }: { initialComps: Competition[] }) {
   const { ready, selectedChild, state, toggleFavourite, isFavourite } =
@@ -25,10 +27,10 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
     () =>
       filterComps(liveComps, {
         query,
-        includeInterstate: state.includeInterstate,
-        child: selectedChild,
+        includeInterstate: ready ? state.includeInterstate : false,
+        child: ready ? selectedChild : null,
       }),
-    [liveComps, query, selectedChild, state.includeInterstate],
+    [liveComps, query, selectedChild, state.includeInterstate, ready],
   );
 
   return (
@@ -71,29 +73,25 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         <ul className="space-y-3">
           {comps.map((comp) => (
             <li key={comp.id}>
-              <CompCard
-                comp={comp}
-                saved={isFavourite(comp.id)}
-                onToggleSave={() => toggleFavourite(comp.id)}
-                ageHint={
-                  selectedChild
-                    ? `Age ${ageAsAtCompYear(selectedChild.dob, comp.startDate)} as at 1 Jan ${comp.startDate.slice(0, 4)}`
-                    : undefined
-                }
-              />
+              <ErrorBoundary>
+                <CompCard
+                  comp={comp}
+                  saved={isFavourite(comp.id)}
+                  onToggleSave={() => toggleFavourite(comp.id)}
+                  ageHint={
+                    ready && selectedChild && comp.startDate
+                      ? `Age ${ageAsAtCompYear(selectedChild.dob, comp.startDate)} as at 1 Jan ${comp.startDate.slice(0, 4)}`
+                      : undefined
+                  }
+                />
+              </ErrorBoundary>
             </li>
           ))}
         </ul>
       )}
       {refreshedAt ? (
         <p className="text-center text-xs text-[var(--ink-soft)]">
-          Listings last checked{" "}
-          {new Date(refreshedAt).toLocaleString("en-AU", {
-            timeZone: "Australia/Adelaide",
-            dateStyle: "medium",
-            timeStyle: "short",
-            timeZoneName: "short",
-          })}
+          Listings last checked {formatDateTime(refreshedAt)}
           {live ? " from organiser websites." : " from saved seed data."}
         </p>
       ) : null}

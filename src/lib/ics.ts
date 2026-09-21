@@ -62,10 +62,16 @@ export function remindersToIcs(items: ReminderItem[]): string {
 
 export function competitionToIcs(comp: Competition): string {
   const stamp = toIcsUtc(new Date());
-  const start = toIcsDay(comp.startDate);
-  const endDate = new Date(`${comp.endDate}T00:00:00Z`);
-  endDate.setUTCDate(endDate.getUTCDate() + 1);
-  const end = endDate.toISOString().slice(0, 10).replace(/-/g, "");
+  const startDate = comp.startDate || "19700101";
+  const start = toIcsDay(startDate);
+  const endSource = comp.endDate || comp.startDate || startDate;
+  const endDate = new Date(`${endSource}T00:00:00Z`);
+  if (!Number.isNaN(endDate.getTime())) {
+    endDate.setUTCDate(endDate.getUTCDate() + 1);
+  }
+  const end = Number.isNaN(endDate.getTime())
+    ? start
+    : endDate.toISOString().slice(0, 10).replace(/-/g, "");
   const event = eventBlock({
     uid: `${comp.id}@mydancecomps.app`,
     stamp,

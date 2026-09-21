@@ -17,6 +17,7 @@ export function CompCard({
   ageHint?: string;
 }) {
   const status = registrationStatus(comp);
+  const styles = Array.isArray(comp.styles) ? comp.styles : [];
   return (
     <article className="relative overflow-hidden rounded-3xl bg-[var(--cream-raised)] p-4 shadow-[0_10px_30px_-18px_rgba(90,30,50,0.45)] ring-1 ring-[var(--line)]">
       <div className="flex items-start justify-between gap-3">
@@ -42,7 +43,7 @@ export function CompCard({
         <StarButton saved={saved} onClick={onToggleSave} />
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {comp.styles.slice(0, 5).map((style) => (
+        {styles.slice(0, 5).map((style) => (
           <span
             key={style}
             className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-semibold text-[var(--ink)]"
@@ -50,9 +51,9 @@ export function CompCard({
             {style}
           </span>
         ))}
-        {comp.styles.length > 5 ? (
+        {styles.length > 5 ? (
           <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-semibold text-[var(--ink-soft)]">
-            +{comp.styles.length - 5}
+            +{styles.length - 5}
           </span>
         ) : null}
       </div>

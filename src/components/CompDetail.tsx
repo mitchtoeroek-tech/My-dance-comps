@@ -76,7 +76,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
           />
         </dl>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {comp.styles.map((style) => (
+          {(Array.isArray(comp.styles) ? comp.styles : []).map((style) => (
             <span
               key={style}
               className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-semibold"

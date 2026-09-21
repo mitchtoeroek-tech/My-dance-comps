@@ -79,7 +79,7 @@ export default function KidsPage() {
                   {child.studio ? ` · ${child.studio}` : ""}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-[var(--teal)]">
-                  {child.styles.length
+                  {child.styles?.length
                     ? child.styles.join(" · ")
                     : "All styles"}
                 </p>
