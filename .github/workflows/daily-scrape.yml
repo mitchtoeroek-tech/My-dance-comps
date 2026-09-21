@@ -1,0 +1,47 @@
+name: Daily competition scrape
+
+on:
+  schedule:
+    # ~6:00 am Australia/Adelaide (ACST). During daylight saving this is 6:30 am.
+    - cron: "30 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-comp-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Scrape organiser websites
+        run: npm run scrape
+
+      - name: Commit listing updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/comps.json src/data/scrape-status.json
+          if git diff --cached --quiet; then
+            echo "No listing changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: refresh competition listings"
+          git push origin HEAD:main

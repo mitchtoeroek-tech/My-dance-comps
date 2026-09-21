@@ -4,11 +4,13 @@ import Link from "next/link";
 import { CompCard } from "@/components/CompCard";
 import { EmptyState } from "@/components/EmptyState";
 import { useFamily } from "@/context/FamilyContext";
+import { useLiveComps } from "@/hooks/useLiveComps";
 import { getComps } from "@/lib/comps";
 
 export default function SavedPage() {
   const { state, toggleFavourite, isFavourite } = useFamily();
-  const comps = getComps().filter((comp) => state.favourites.includes(comp.id));
+  const { comps: allComps } = useLiveComps(getComps());
+  const comps = allComps.filter((comp) => state.favourites.includes(comp.id));
 
   return (
     <div className="space-y-4">

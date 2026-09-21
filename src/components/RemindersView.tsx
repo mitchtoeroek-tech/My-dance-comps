@@ -15,6 +15,7 @@ import {
   upcomingReminders,
 } from "@/lib/reminders";
 import { EmptyState } from "./EmptyState";
+import { useLiveComps } from "@/hooks/useLiveComps";
 
 function readNotificationPermission(): NotificationPermission | "unsupported" {
   if (typeof Notification === "undefined") return "unsupported";
@@ -38,7 +39,7 @@ export function RemindersView() {
   );
   const permission = requested ?? browserPermission;
 
-  const comps = useMemo(() => getComps(), []);
+  const { comps } = useLiveComps(getComps());
   const items = useMemo(
     () =>
       upcomingReminders(

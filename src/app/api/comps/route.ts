@@ -1,9 +1,13 @@
 import { NextRequest } from "next/server";
-import { getComps, registrationStatus } from "@/lib/comps";
-import { ADELAIDE_TZ } from "@/lib/datetime";
+import { registrationStatus } from "@/lib/comps";
+import { loadComps } from "@/lib/live-comps";
+import { ADELAIDE_TZ, formatDateTime } from "@/lib/datetime";
 import { filterComps } from "@/lib/filter";
 import { ageAsAt1January } from "@/lib/age";
 import type { AuStateCode, ChildProfile, DanceStyle } from "@/lib/types";
+
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -31,7 +35,8 @@ export async function GET(request: NextRequest) {
         }
       : null;
 
-  const comps = filterComps(getComps(), {
+  const { comps: allComps, status, live } = await loadComps();
+  const comps = filterComps(allComps, {
     query,
     includeInterstate: child ? includeInterstate : true,
     child,
@@ -43,6 +48,10 @@ export async function GET(request: NextRequest) {
     timezone: ADELAIDE_TZ,
     count: comps.length,
     generatedAt: new Date().toISOString(),
+    refreshedAt: status.lastRunAt,
+    lastChecked: formatDateTime(status.lastRunAt),
+    live,
+    scrape: status.sources,
     comps: comps.map((comp) => ({
       ...comp,
       registrationStatus: registrationStatus(comp),

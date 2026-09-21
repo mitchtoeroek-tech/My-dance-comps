@@ -13,20 +13,22 @@ import {
   InterstateToggle,
 } from "./ChildPicker";
 import { EmptyState } from "./EmptyState";
+import { useLiveComps } from "@/hooks/useLiveComps";
 
 export function CompsView({ initialComps }: { initialComps: Competition[] }) {
   const { ready, selectedChild, state, toggleFavourite, isFavourite } =
     useFamily();
   const [query, setQuery] = useState("");
+  const { comps: liveComps, refreshedAt, live } = useLiveComps(initialComps);
 
   const comps = useMemo(
     () =>
-      filterComps(initialComps, {
+      filterComps(liveComps, {
         query,
         includeInterstate: state.includeInterstate,
         child: selectedChild,
       }),
-    [initialComps, query, selectedChild, state.includeInterstate],
+    [liveComps, query, selectedChild, state.includeInterstate],
   );
 
   return (
@@ -83,6 +85,18 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
           ))}
         </ul>
       )}
+      {refreshedAt ? (
+        <p className="text-center text-xs text-[var(--ink-soft)]">
+          Listings last checked{" "}
+          {new Date(refreshedAt).toLocaleString("en-AU", {
+            timeZone: "Australia/Adelaide",
+            dateStyle: "medium",
+            timeStyle: "short",
+            timeZoneName: "short",
+          })}
+          {live ? " from organiser websites." : " from saved seed data."}
+        </p>
+      ) : null}
     </div>
   );
 }

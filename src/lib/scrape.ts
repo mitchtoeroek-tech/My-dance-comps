@@ -1,36 +1,10 @@
-#!/usr/bin/env node
-/**
- * Daily scrape for My Dance Comps.
- *
- * Usage:
- *   npm run scrape
- *
- * Merges freshly fetched events into src/data/comps.json.
- * If a source is down or the HTML has changed, existing seed rows are kept.
- *
- * Add a source:
- *   1. Append an entry to src/data/sources.json
- *   2. Add a parser below (or reuse html-generic / dance-hub-table)
- *   3. Re-run npm run scrape and eyeball the diff
- *
- * Cron example (Australia/Adelaide 6am):
- *   0 6 * * * cd /path/to/My-dance-comps && npm run scrape
- */
-
 import { load } from "cheerio";
-import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import type { AuStateCode, CompSource, Competition, CompKind } from "./types";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = join(__dirname, "..");
-const compsPath = join(root, "src/data/comps.json");
-const sourcesPath = join(root, "src/data/sources.json");
-
-const USER_AGENT =
+export const USER_AGENT =
   "MyDanceCompsBot/1.0 (+https://github.com/mitchtoeroek-tech/My-dance-comps; family dance calendar)";
 
-const MONTHS = {
+const MONTHS: Record<string, string> = {
   jan: "01",
   january: "01",
   feb: "02",
@@ -57,7 +31,21 @@ const MONTHS = {
   december: "12",
 };
 
-function slug(value) {
+export interface ScrapeStatus {
+  lastRunAt: string;
+  timezone: "Australia/Adelaide";
+  added: number;
+  updated: number;
+  kept: number;
+  sources: string[];
+}
+
+export interface ScrapeResult {
+  comps: Competition[];
+  status: ScrapeStatus;
+}
+
+function slug(value: string): string {
   return value
     .toLowerCase()
     .replace(/&/g, " and ")
@@ -66,12 +54,15 @@ function slug(value) {
     .slice(0, 80);
 }
 
-function isoDate(year, month, day) {
+function isoDate(year: string | number, month?: string, day?: string) {
   if (!year || !month || !day) return null;
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function parseAussieDateRange(text, fallbackYear = new Date().getFullYear()) {
+function parseAussieDateRange(
+  text: string,
+  fallbackYear = new Date().getFullYear(),
+): { startDate: string; endDate: string } | null {
   const clean = text.replace(/\u2013|\u2014|–|—/g, "-").replace(/\s+/g, " ").trim();
   const full = clean.match(
     /(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})\s*-\s*(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})/i,
@@ -108,7 +99,9 @@ function parseAussieDateRange(text, fallbackYear = new Date().getFullYear()) {
     const date = isoDate(year, MONTHS[single[2].toLowerCase()], single[1]);
     return date ? { startDate: date, endDate: date } : null;
   }
-  const iso = clean.match(/(\d{2})\/(\d{2})\/(\d{4})\s*-+\s*(\d{2})\/(\d{2})\/(\d{4})/);
+  const iso = clean.match(
+    /(\d{2})\/(\d{2})\/(\d{4})\s*-+\s*(\d{2})\/(\d{2})\/(\d{4})/,
+  );
   if (iso) {
     return {
       startDate: `${iso[3]}-${iso[2]}-${iso[1]}`,
@@ -118,16 +111,18 @@ function parseAussieDateRange(text, fallbackYear = new Date().getFullYear()) {
   return null;
 }
 
-async function fetchHtml(url) {
+async function fetchHtml(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: { "user-agent": USER_AGENT, accept: "text/html" },
     redirect: "follow",
+    signal: AbortSignal.timeout(15_000),
+    cache: "no-store",
   });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
   return res.text();
 }
 
-function guessState(text) {
+function guessState(text: string): AuStateCode {
   const t = text.toUpperCase();
   if (/\bNSW\b|NEW SOUTH WALES|SYDNEY|NEWCASTLE/.test(t)) return "NSW";
   if (/\bVIC\b|VICTORIA|MELBOURNE|BALLARAT/.test(t)) return "VIC";
@@ -136,42 +131,33 @@ function guessState(text) {
   if (/\bNT\b|DARWIN/.test(t)) return "NT";
   if (/\bTAS\b|TASMANIA|HOBART/.test(t)) return "TAS";
   if (/\bACT\b|CANBERRA/.test(t)) return "ACT";
-  if (/\bSA\b|SOUTH AUSTRALIA|ADELAIDE|GOOLWA|GOLDEN GROVE|MARION/.test(t))
-    return "SA";
   return "SA";
 }
 
-function baseComp(partial) {
+function baseComp(partial: Partial<Competition> & Pick<Competition, "id" | "name" | "sourceId" | "startDate" | "endDate">): Competition {
+  const today = new Date().toISOString().slice(0, 10);
   return {
     kind: "competition",
-    organiser: partial.organiser || "See source",
-    organiserUrl: partial.organiserUrl || partial.infoUrl || "",
-    venue: partial.venue || partial.suburb || "TBC",
-    suburb: partial.suburb || "TBC",
-    state: partial.state || "SA",
+    organiser: "See source",
+    organiserUrl: "",
+    venue: partial.suburb || "TBC",
+    suburb: "TBC",
+    state: "SA",
     registrationOpens: null,
     registrationCloses: null,
-    registrationUrl: partial.registrationUrl || partial.infoUrl || "",
-    infoUrl: partial.infoUrl || "",
-    styles: partial.styles || [
-      "Ballet",
-      "Jazz",
-      "Tap",
-      "Contemporary",
-      "Lyrical",
-      "Hip Hop",
-    ],
+    registrationUrl: "",
+    infoUrl: "",
+    styles: ["Ballet", "Jazz", "Tap", "Contemporary", "Lyrical", "Hip Hop"],
     minAge: 5,
     maxAge: 18,
-    isNational: Boolean(partial.isNational),
-    notes: partial.notes || "Dates scraped automatically — confirm on the organiser site.",
-    sourceId: partial.sourceId,
-    lastUpdated: new Date().toISOString().slice(0, 10),
+    isNational: false,
+    notes: "Dates scraped automatically — confirm on the organiser site.",
+    lastUpdated: today,
     ...partial,
   };
 }
 
-async function parseSasds(source) {
+async function parseSasds(source: CompSource): Promise<Competition[]> {
   const html = await fetchHtml(source.scrapeUrl);
   const $ = load(html);
   const text = $("body").text();
@@ -187,7 +173,7 @@ async function parseSasds(source) {
     baseComp({
       id: `sasds-eisteddfod-${range.startDate.slice(0, 4)}`,
       name: `SASDS Eisteddfod ${range.startDate.slice(0, 4)}`,
-      kind: "eisteddfod",
+      kind: "eisteddfod" as CompKind,
       organiser: source.name,
       organiserUrl: source.url,
       venue: "Westminster School",
@@ -203,10 +189,10 @@ async function parseSasds(source) {
   ];
 }
 
-async function parseEvolution(source) {
+async function parseEvolution(source: CompSource): Promise<Competition[]> {
   const html = await fetchHtml(source.scrapeUrl);
   const $ = load(html);
-  const found = [];
+  const found: Competition[] = [];
   $("td, li, p, h1, h2, h3").each((_, el) => {
     const text = $(el).text().replace(/\s+/g, " ").trim();
     if (text.length < 8 || text.length > 180) return;
@@ -230,17 +216,17 @@ async function parseEvolution(source) {
         infoUrl: source.scrapeUrl,
         registrationUrl: source.url,
         sourceId: source.id,
-        isNational: /gold coast|final/i.test(city) === false && /final/i.test(text),
+        isNational: /final/i.test(text),
       }),
     );
   });
   return uniqueById(found);
 }
 
-async function parseCmidc(source) {
+async function parseCmidc(source: CompSource): Promise<Competition[]> {
   const html = await fetchHtml(source.scrapeUrl);
   const $ = load(html);
-  const found = [];
+  const found: Competition[] = [];
   $("h1, h2, h3, h4, p, li, div").each((_, el) => {
     const text = $(el).text().replace(/\s+/g, " ").trim();
     if (!/COMPETITION/i.test(text) && !/\d{2}\/\d{2}\/\d{4}/.test(text)) return;
@@ -274,10 +260,10 @@ async function parseCmidc(source) {
   return uniqueById(found);
 }
 
-async function parseDanceHubTable(source) {
+async function parseDanceHubTable(source: CompSource): Promise<Competition[]> {
   const html = await fetchHtml(source.scrapeUrl);
   const $ = load(html);
-  const found = [];
+  const found: Competition[] = [];
   $("table tr").each((_, row) => {
     const cells = $(row)
       .find("td, th")
@@ -301,23 +287,26 @@ async function parseDanceHubTable(source) {
         infoUrl: source.scrapeUrl,
         registrationUrl: source.scrapeUrl,
         sourceId: source.id,
-        notes: `Listed by Dance Hub Australia. Confirm dates and entries with the organiser.`,
+        notes:
+          "Listed by Dance Hub Australia. Confirm dates and entries with the organiser.",
       }),
     );
   });
   return uniqueById(found);
 }
 
-async function parseGeneric(source) {
+async function parseGeneric(source: CompSource): Promise<Competition[]> {
   const html = await fetchHtml(source.scrapeUrl);
   const $ = load(html);
-  const found = [];
+  const found: Competition[] = [];
   $("li, p, td, h2, h3").each((_, el) => {
     const text = $(el).text().replace(/\s+/g, " ").trim();
     if (text.length < 16 || text.length > 220) return;
     const range = parseAussieDateRange(text, 2026);
     if (!range) return;
-    if (!/dance|eisteddfod|comp/i.test(text)) return;
+    if (!/dance|eisteddfod|comp|challenge|festival|championship/i.test(text))
+      return;
+    if (/intensive|syllabus/i.test(text)) return;
     found.push(
       baseComp({
         id: `${source.id}-${range.startDate}-${slug(text).slice(0, 40)}`,
@@ -337,33 +326,75 @@ async function parseGeneric(source) {
   return uniqueById(found).slice(0, 25);
 }
 
-function uniqueById(rows) {
-  const map = new Map();
+function uniqueById(rows: Competition[]): Competition[] {
+  const map = new Map<string, Competition>();
   for (const row of rows) map.set(row.id, row);
   return [...map.values()];
 }
 
-function mergeComps(seed, scraped) {
+function normaliseName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/—|-|–/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function findExisting(
+  byId: Map<string, Competition>,
+  row: Competition,
+): Competition | undefined {
+  const exact = byId.get(row.id);
+  if (exact) return exact;
+  const needle = normaliseName(row.name);
+  for (const existing of byId.values()) {
+    if (existing.startDate !== row.startDate) continue;
+    if (existing.state !== row.state) continue;
+    const hay = normaliseName(existing.name);
+    if (hay === needle || hay.includes(needle) || needle.includes(hay)) {
+      return existing;
+    }
+  }
+  return undefined;
+}
+
+export function mergeComps(
+  seed: Competition[],
+  scraped: Competition[],
+): { comps: Competition[]; added: number; updated: number } {
   const byId = new Map(seed.map((row) => [row.id, row]));
   let added = 0;
   let updated = 0;
   for (const row of scraped) {
-    const existing = byId.get(row.id);
+    const existing = findExisting(byId, row);
     if (!existing) {
       byId.set(row.id, row);
       added += 1;
       continue;
     }
-    const next = {
-      ...existing,
-      startDate: row.startDate || existing.startDate,
-      endDate: row.endDate || existing.endDate,
-      venue: row.venue || existing.venue,
-      suburb: row.suburb || existing.suburb,
-      lastUpdated: row.lastUpdated,
-    };
-    byId.set(row.id, next);
-    updated += 1;
+    const next = { ...existing };
+    let changed = false;
+    if (row.startDate && row.startDate !== existing.startDate) {
+      next.startDate = row.startDate;
+      changed = true;
+    }
+    if (row.endDate && row.endDate !== existing.endDate) {
+      next.endDate = row.endDate;
+      changed = true;
+    }
+    if (row.venue && row.venue !== existing.venue && row.venue !== "TBC") {
+      next.venue = row.venue;
+      changed = true;
+    }
+    if (row.suburb && row.suburb !== existing.suburb && row.suburb !== "TBC") {
+      next.suburb = row.suburb;
+      changed = true;
+    }
+    if (changed) {
+      next.lastUpdated = row.lastUpdated;
+      byId.set(existing.id, next);
+      updated += 1;
+    }
   }
   const comps = [...byId.values()].sort((a, b) =>
     a.startDate.localeCompare(b.startDate),
@@ -371,7 +402,9 @@ function mergeComps(seed, scraped) {
   return { comps, added, updated };
 }
 
-const parsers = {
+type Parser = (source: CompSource) => Promise<Competition[]>;
+
+const parsers: Record<CompSource["parser"], Parser> = {
   sasds: parseSasds,
   evolution: parseEvolution,
   cmidc: parseCmidc,
@@ -380,32 +413,54 @@ const parsers = {
   "seed-only": async () => [],
 };
 
-async function main() {
-  const sources = JSON.parse(readFileSync(sourcesPath, "utf8"));
-  const seed = JSON.parse(readFileSync(compsPath, "utf8"));
-  const scraped = [];
-  const report = [];
+export async function scrapeAll(
+  seed: Competition[],
+  sources: CompSource[],
+): Promise<ScrapeResult> {
+  const scraped: Competition[] = [];
+  const report: string[] = [];
 
-  for (const source of sources) {
-    const parser = parsers[source.parser] || parseGeneric;
-    try {
-      const rows = await parser(source);
+  const results = await Promise.allSettled(
+    sources.map(async (source) => {
+      try {
+        const parser = parsers[source.parser] ?? parseGeneric;
+        const rows = await parser(source);
+        return { name: source.name, rows, error: null as string | null };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { name: source.name, rows: [] as Competition[], error: message };
+      }
+    }),
+  );
+
+  for (const result of results) {
+    if (result.status !== "fulfilled") {
+      report.push(`✗ ${String(result.reason)}`);
+      continue;
+    }
+    const { name, rows, error } = result.value;
+    if (error) report.push(`✗ ${name}: ${error}`);
+    else {
       scraped.push(...rows);
-      report.push(`✓ ${source.name}: ${rows.length} event(s)`);
-    } catch (error) {
-      report.push(`✗ ${source.name}: ${error.message}`);
+      report.push(`✓ ${name}: ${rows.length} event(s)`);
     }
   }
 
-  const { comps, added, updated } = mergeComps(seed, scraped);
-  writeFileSync(compsPath, `${JSON.stringify(comps, null, 2)}\n`);
-  console.log(report.join("\n"));
-  console.log(
-    `\nWrote ${comps.length} comps to src/data/comps.json (${added} added, ${updated} matched/updated). Seed rows are never deleted.`,
-  );
-}
+  const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const currentScraped = scraped.filter((row) => row.endDate >= cutoff);
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+  const { comps, added, updated } = mergeComps(seed, currentScraped);
+  return {
+    comps,
+    status: {
+      lastRunAt: new Date().toISOString(),
+      timezone: "Australia/Adelaide",
+      added,
+      updated,
+      kept: comps.length - added,
+      sources: report,
+    },
+  };
+}

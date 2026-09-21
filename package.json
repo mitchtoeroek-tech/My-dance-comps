@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "scrape": "node scripts/scrape.mjs"
+    "scrape": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/scrape.ts"
   },
   "dependencies": {
     "cheerio": "^1.1.2",

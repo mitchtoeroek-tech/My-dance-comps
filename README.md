@@ -26,6 +26,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Import this GitHub repo (`main`). No environment variables or secrets are required.
 
+Listings refresh themselves every day:
+
+1. **GitHub Action** (`.github/workflows/daily-scrape.yml`) runs about 6am Adelaide time, rechecks the organiser websites, and commits any changes to `src/data/comps.json`. Vercel then redeploys `main`.
+2. **Vercel Cron** (`/api/cron/refresh` at 20:30 UTC) scrapes the same sources into the app cache so the live API can pick up updates even between deploys.
+
+You can also run **Actions → Daily competition scrape → Run workflow** to refresh immediately. GitHub Actions must be enabled on the repo (the default).
+
 ## API
 
 - `GET /api/comps` — full competition list (optional filters below)
@@ -54,21 +61,17 @@ Query params for `/api/comps`:
 
 ## Seed data and daily scrape
 
-Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if the network scrape fails.
+Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if a live scrape cannot reach organiser sites.
 
-Sources live in [`src/data/sources.json`](src/data/sources.json).
+Sources live in [`src/data/sources.json`](src/data/sources.json). Last automated run is recorded in [`src/data/scrape-status.json`](src/data/scrape-status.json).
+
+Daily refresh is automatic after you import the repo on Vercel **and** leave GitHub Actions on. Manual run:
 
 ```bash
 npm run scrape
 ```
 
-The scraper (`scripts/scrape.mjs`) fetches each source, parses what it can, and **merges** into `comps.json`. Existing seed rows are never deleted. Commit the updated JSON if the dates look right.
-
-Suggested daily job (6am Adelaide time):
-
-```cron
-0 6 * * * cd /path/to/My-dance-comps && npm run scrape
-```
+The scraper (`src/lib/scrape.ts`, CLI in `scripts/scrape.ts`) fetches each source, parses what it can, and **merges** into `comps.json`. Existing seed rows are never deleted.
 
 Organiser websites change layout without notice. Treat scrape output as a hint and confirm on the official registration page before you enter.
 
@@ -88,7 +91,7 @@ Organiser websites change layout without notice. Treat scrape output as a hint a
 }
 ```
 
-2. Parsers already in `scripts/scrape.mjs`:
+2. Parsers already in `src/lib/scrape.ts`:
 
    - `sasds` — SASDS information page
    - `evolution` — Evolution regionals table

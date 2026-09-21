@@ -1,14 +1,19 @@
 import { NextRequest } from "next/server";
 import { getComp, getComps } from "@/lib/comps";
+import { loadComps } from "@/lib/live-comps";
 import { competitionToIcs, remindersToIcs } from "@/lib/ics";
 import { buildReminders, upcomingReminders } from "@/lib/reminders";
 import { defaultReminderPrefs } from "@/lib/storage";
 
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
+  const { comps } = await loadComps();
   const compId = searchParams.get("compId");
   if (compId) {
-    const comp = getComp(compId);
+    const comp = comps.find((item) => item.id === compId) ?? getComp(compId);
     if (!comp) {
       return Response.json({ error: "Competition not found" }, { status: 404 });
     }
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   const saved = (searchParams.get("saved") ?? "").split(",").filter(Boolean);
   const items = upcomingReminders(
-    buildReminders(getComps(), defaultReminderPrefs, saved),
+    buildReminders(comps.length ? comps : getComps(), defaultReminderPrefs, saved),
   );
   return new Response(remindersToIcs(items), {
     headers: {
