@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { formatDateRange } from "@/lib/datetime";
+import { adelaideToday, formatDateRange } from "@/lib/datetime";
 import { formatCompLocation, registrationStatus } from "@/lib/comps";
+import { compHasEnded } from "@/lib/filter";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
@@ -18,8 +19,14 @@ export function CompCard({
 }) {
   const status = registrationStatus(comp);
   const styles = Array.isArray(comp.styles) ? comp.styles : [];
+  const past = compHasEnded(comp, adelaideToday());
   return (
-    <article className="relative overflow-hidden rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
+    <article
+      className={`relative overflow-hidden rounded-card p-4 shadow-card ring-1 ring-border ${
+        past ? "bg-past-surface" : "bg-surface"
+      }`}
+      data-ended={past ? "true" : "false"}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -28,15 +35,27 @@ export function CompCard({
               {comp.isNational ? "National" : comp.state}
             </span>
           </div>
-          <h2 className="text-lg font-bold leading-snug text-foreground">
+          <h2
+            className={`text-lg font-bold leading-snug ${
+              past ? "text-foreground/70" : "text-foreground"
+            }`}
+          >
             <Link href={`/comps/${comp.id}`} className="hover:underline">
               {comp.name}
             </Link>
           </h2>
-          <p className="mt-1 text-sm font-medium text-muted-foreground">
+          <p
+            className={`mt-1 text-sm font-medium ${
+              past ? "text-muted-foreground/90" : "text-muted-foreground"
+            }`}
+          >
             {formatDateRange(comp.startDate, comp.endDate)}
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-foreground">
+          <p
+            className={`mt-0.5 text-sm font-semibold ${
+              past ? "text-foreground/65" : "text-foreground"
+            }`}
+          >
             {formatCompLocation(comp)}
           </p>
           <p className="mt-0.5 text-sm text-muted-foreground">

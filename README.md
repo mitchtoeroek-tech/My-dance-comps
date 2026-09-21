@@ -52,12 +52,12 @@ Query params for `/api/comps`:
 | `styles` | `Jazz,Tap` | Preferred styles (overlap) |
 | `interstate` | `1` | Include other states when a home `state` (or child `dob`+`state`) is applied |
 | `saved` | `id,id` | Limit to favourite ids |
-| `sort` | `desc` | Date order (`asc` default = soonest first; `desc` = latest first). Sorts by start date, then end date, then registration dates. |
+| `sort` | `desc` | Date order relative to today in Australia/Adelaide (`asc` default = soonest first; `desc` = latest first). Upcoming (start today or later) first, then past by most recent start. Undated last. |
 | `status` | `open,closing-soon` | Registration status filter (`open`, `closing-soon`, `closed`, `opens-soon`, `unknown`). Omit for all. |
 
 ## What the app does
 
-- **Comps** — dates, venue (name, suburb, state), registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child. Filter by entry status (open / closing soon / closed / opening / dates TBC). Sort by event date (soonest first by default, or latest first). Sort and status choices are stored in `localStorage`.
+- **Comps** — dates, venue (name, suburb, state), registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child. Filter by entry status (open / closing soon / closed / opening / dates TBC). Sort by event date relative to **today in Australia/Adelaide** (soonest first by default: nearest upcoming start, then past by most recent; or latest first: farthest upcoming start, then past by most recent). Past comps stay in the list after upcoming ones — they are not treated as “soonest”. Finished events (end date, or start if no end, before Adelaide today) are shown with a muted mint-grey card so they read as “already been” without changing entry-status colours. Sort and status choices are stored in `localStorage`.
 - **Kids** — multiple child profiles (no hard cap of two; soft max 20): name, date of birth, preferred styles, dance studio, home state. Per-child results log (manual).
 - **Saved** — favourite comps, persisted in `localStorage`.
 - **Reminders** — prefs for entries open, 1 week before close, and 1 day before close. In-app list for saved comps, `.ics` download, `mailto` list, and browser notifications when the browser allows them (no paid API keys).

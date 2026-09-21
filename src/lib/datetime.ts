@@ -26,6 +26,38 @@ export function parseAdelaide(
   }
 }
 
+/**
+ * Calendar date (YYYY-MM-DD) for an instant in Australia/Adelaide.
+ * Used as “today” when sorting comps soonest/latest relative to the present.
+ */
+export function adelaideToday(now: Date = new Date()): string {
+  const instant = isValidDate(now) ? now : new Date();
+  try {
+    const parts = new Intl.DateTimeFormat("en-AU", {
+      timeZone: ADELAIDE_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(instant);
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+    if (year && month && day) {
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+  } catch {
+    /* fall through */
+  }
+  return instant.toISOString().slice(0, 10);
+}
+
+/** First YYYY-MM-DD in an ISO date or datetime string, or null if undated. */
+export function calendarDate(iso: string | null | undefined): string | null {
+  if (typeof iso !== "string") return null;
+  const match = iso.trim().match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
+}
+
 export function adelaideOffset(date: Date): string {
   if (!isValidDate(date)) return "+09:30";
   try {

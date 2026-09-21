@@ -12,6 +12,7 @@
   --primary-ink: color-mix(in srgb, var(--text) 58%, var(--primary));
   --accent-soft: color-mix(in srgb, var(--accent) 42%, white);
   --muted: color-mix(in srgb, var(--primary) 12%, white);
+  --past-surface: #e8f2ee;
   --status-open: #7bc4a8;
   --status-open-ink: #1f3a34;
   --status-opening: color-mix(in srgb, var(--primary) 22%, white);
@@ -36,6 +37,7 @@
   --color-foreground: var(--text);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--text-muted);
+  --color-past-surface: var(--past-surface);
   --color-border: var(--border);
   --color-primary-soft: var(--primary-soft);
   --color-primary-ink: var(--primary-ink);

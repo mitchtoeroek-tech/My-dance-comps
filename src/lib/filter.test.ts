@@ -3,11 +3,14 @@ import { describe, it } from "node:test";
 import {
   compareCompsByDate,
   compDateSortKey,
+  compHasEnded,
+  compIsUpcoming,
   filterComps,
   matchesChild,
   matchesHomeState,
   resolveHomeState,
 } from "./filter";
+import { adelaideToday } from "./datetime";
 import { derivePreferredState } from "./storage";
 import { formatCompLocation } from "./comps";
 import type { ChildProfile, Competition } from "./types";
@@ -240,70 +243,208 @@ describe("compDateSortKey", () => {
 });
 
 describe("compareCompsByDate", () => {
-  const early = makeComp({ id: "early", startDate: "2026-02-12", name: "Early" });
-  const late = makeComp({ id: "late", startDate: "2026-11-07", name: "Late" });
-  const undated = makeComp({ id: "undated", startDate: "", endDate: "", name: "TBC" });
-
-  it("sorts ascending by start date (soonest first)", () => {
-    assert.ok(compareCompsByDate(early, late, "asc") < 0);
-    assert.ok(compareCompsByDate(late, early, "asc") > 0);
+  const now = new Date("2026-09-21T12:00:00+09:30");
+  const early = makeComp({
+    id: "early",
+    startDate: "2026-02-12",
+    endDate: "2026-02-12",
+    name: "Early",
+  });
+  const soon = makeComp({
+    id: "soon",
+    startDate: "2026-09-25",
+    endDate: "2026-09-26",
+    name: "Soon",
+  });
+  const late = makeComp({
+    id: "late",
+    startDate: "2026-11-07",
+    endDate: "2026-11-08",
+    name: "Late",
+  });
+  const yesterday = makeComp({
+    id: "yesterday",
+    startDate: "2026-09-20",
+    endDate: "2026-09-20",
+    name: "Yesterday",
+  });
+  const undated = makeComp({
+    id: "undated",
+    startDate: "",
+    endDate: "",
+    name: "TBC",
   });
 
-  it("sorts descending by start date (latest first)", () => {
-    assert.ok(compareCompsByDate(early, late, "desc") > 0);
-    assert.ok(compareCompsByDate(late, early, "desc") < 0);
+  it("treats today in Australia/Adelaide as the upcoming cutoff", () => {
+    assert.equal(adelaideToday(now), "2026-09-21");
+    assert.equal(compIsUpcoming(soon, "2026-09-21"), true);
+    assert.equal(compIsUpcoming(early, "2026-09-21"), false);
+    assert.equal(
+      compIsUpcoming(
+        makeComp({
+          id: "today",
+          startDate: "2026-09-21",
+          endDate: "2026-09-21",
+        }),
+        "2026-09-21",
+      ),
+      true,
+    );
+  });
+
+  it("does not treat an already-started multi-day comp as upcoming", () => {
+    const ongoing = makeComp({
+      id: "ongoing",
+      startDate: "2026-09-19",
+      endDate: "2026-09-22",
+    });
+    assert.equal(compIsUpcoming(ongoing, "2026-09-21"), false);
+    assert.ok(compareCompsByDate(soon, ongoing, "asc", now) < 0);
+  });
+
+  it("treats a finished event as ended using end date, not start", () => {
+    const finished = makeComp({
+      id: "finished",
+      startDate: "2026-09-10",
+      endDate: "2026-09-12",
+    });
+    const ongoing = makeComp({
+      id: "ongoing",
+      startDate: "2026-09-19",
+      endDate: "2026-09-22",
+    });
+    const todayOnly = makeComp({
+      id: "today-only",
+      startDate: "2026-09-21",
+      endDate: "2026-09-21",
+    });
+    const startOnlyPast = makeComp({
+      id: "start-only-past",
+      startDate: "2026-09-20",
+      endDate: "",
+    });
+    assert.equal(compHasEnded(finished, "2026-09-21"), true);
+    assert.equal(compHasEnded(ongoing, "2026-09-21"), false);
+    assert.equal(compHasEnded(todayOnly, "2026-09-21"), false);
+    assert.equal(compHasEnded(startOnlyPast, "2026-09-21"), true);
+  });
+
+  it("soonest first: nearest upcoming start, then past by most recent", () => {
+    assert.ok(compareCompsByDate(soon, late, "asc", now) < 0);
+    assert.ok(compareCompsByDate(late, early, "asc", now) < 0);
+    assert.ok(compareCompsByDate(yesterday, early, "asc", now) < 0);
+    assert.ok(compareCompsByDate(soon, yesterday, "asc", now) < 0);
+  });
+
+  it("latest first: farthest upcoming start, then past by most recent", () => {
+    assert.ok(compareCompsByDate(late, soon, "desc", now) < 0);
+    assert.ok(compareCompsByDate(soon, yesterday, "desc", now) < 0);
+    assert.ok(compareCompsByDate(yesterday, early, "desc", now) < 0);
   });
 
   it("puts undated comps last in both directions", () => {
-    assert.ok(compareCompsByDate(undated, early, "asc") > 0);
-    assert.ok(compareCompsByDate(undated, late, "desc") > 0);
+    assert.ok(compareCompsByDate(undated, soon, "asc", now) > 0);
+    assert.ok(compareCompsByDate(undated, late, "desc", now) > 0);
+    assert.ok(compareCompsByDate(undated, early, "asc", now) > 0);
   });
 });
 
 describe("filterComps sort", () => {
+  const now = new Date("2026-09-21T12:00:00+09:30");
   const comps = [
     makeComp({
       id: "late",
       startDate: "2026-11-07",
+      endDate: "2026-11-08",
       name: "November Jazz",
       styles: ["Jazz"],
     }),
     makeComp({
       id: "early",
       startDate: "2026-02-12",
-      name: "February Ballet",
-      styles: ["Ballet"],
+      endDate: "2026-02-13",
+      name: "February Jazz",
+      styles: ["Jazz"],
     }),
     makeComp({
-      id: "mid",
+      id: "mid-past",
       startDate: "2026-06-06",
+      endDate: "2026-06-07",
       name: "June Jazz",
       styles: ["Jazz"],
     }),
+    makeComp({
+      id: "soon",
+      startDate: "2026-09-25",
+      endDate: "2026-09-26",
+      name: "September Jazz",
+      styles: ["Jazz"],
+    }),
+    makeComp({
+      id: "ballet-past",
+      startDate: "2026-03-01",
+      endDate: "2026-03-01",
+      name: "March Ballet",
+      styles: ["Ballet"],
+    }),
   ];
 
-  it("defaults to soonest first and still applies search", () => {
+  it("soonest first lists nearest upcoming before any past comps", () => {
     const result = filterComps(comps, {
       query: "jazz",
       includeInterstate: true,
       child: null,
+      now,
     });
     assert.deepEqual(
       result.map((c) => c.id),
-      ["mid", "late"],
+      ["soon", "late", "mid-past", "early"],
     );
   });
 
-  it("reverses date order when sortDir is desc", () => {
+  it("latest first lists farthest upcoming, then past by most recent", () => {
     const result = filterComps(comps, {
       query: "jazz",
       includeInterstate: true,
       child: null,
       sortDir: "desc",
+      now,
     });
     assert.deepEqual(
       result.map((c) => c.id),
-      ["late", "mid"],
+      ["late", "soon", "mid-past", "early"],
+    );
+  });
+
+  it("uses Adelaide today when UTC is still yesterday", () => {
+    const utcYesterday = new Date("2026-09-20T14:30:00.000Z");
+    const result = filterComps(
+      [
+        makeComp({
+          id: "today-comp",
+          startDate: "2026-09-21",
+          endDate: "2026-09-21",
+          name: "Today Jazz",
+          styles: ["Jazz"],
+        }),
+        makeComp({
+          id: "yesterday-comp",
+          startDate: "2026-09-20",
+          endDate: "2026-09-20",
+          name: "Yesterday Jazz",
+          styles: ["Jazz"],
+        }),
+      ],
+      {
+        query: "",
+        includeInterstate: true,
+        child: null,
+        now: utcYesterday,
+      },
+    );
+    assert.deepEqual(
+      result.map((c) => c.id),
+      ["today-comp", "yesterday-comp"],
     );
   });
 });
