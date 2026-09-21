@@ -208,17 +208,15 @@ export function CalendarView({
                 onClick={() => setSelectedIso(cell.iso)}
                 aria-current={isToday ? "date" : undefined}
                 aria-label={dayAriaLabel(cell.iso, marks, isToday)}
-                className={`relative flex min-h-12 flex-col items-center rounded-control px-0.5 py-1 ${
-                  isToday ? "bg-primary-soft ring-2 ring-primary" : ""
-                } ${
+                className={`relative flex min-h-14 flex-col items-center justify-center overflow-visible rounded-control px-0.5 py-1 ${dayCellTone(marks, isToday)} ${
                   cell.inMonth
                     ? "text-foreground"
-                    : "text-muted-foreground/50"
-                } ${hasComps ? "hover:bg-muted" : "cursor-default"}`}
+                    : "text-muted-foreground/60"
+                } ${hasComps ? "hover:brightness-95" : "cursor-default"}`}
               >
                 {marks?.enrolled ? (
                   <span
-                    className="absolute top-0.5 right-0.5 text-[9px] leading-none text-primary-ink"
+                    className="absolute top-0 right-0 text-[11px] leading-none text-primary-ink"
                     aria-hidden
                   >
                     ★
@@ -301,20 +299,40 @@ export function CalendarView({
   );
 }
 
+function dayCellTone(marks: DayMarks | undefined, isToday: boolean): string {
+  if (isToday) return "bg-primary-soft ring-2 ring-primary";
+  const top = marks?.statuses[0];
+  if (!top) return "";
+  switch (top) {
+    case "closing-soon":
+      return "bg-status-closing/55";
+    case "open":
+      return "bg-status-open/45";
+    case "opens-soon":
+      return "bg-status-opening";
+    case "closed":
+      return "bg-status-closed/55";
+    default:
+      return "bg-status-unknown";
+  }
+}
+
 function DayMarksRow({ marks }: { marks: DayMarks }) {
   return (
     <span className="mt-0.5 flex min-h-3 items-center justify-center gap-0.5">
       {marks.statuses.map((status) => (
         <span
           key={status}
-          className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT_CLASS[status]} ${
-            status === "unknown" ? "ring-1 ring-border" : ""
+          className={`h-2 w-2 rounded-full ${STATUS_DOT_CLASS[status]} ${
+            status === "unknown" || status === "opens-soon"
+              ? "ring-1 ring-border"
+              : "ring-1 ring-white/70"
           }`}
           aria-hidden
         />
       ))}
       {marks.total > 1 ? (
-        <span className="text-[9px] font-extrabold leading-none text-muted-foreground">
+        <span className="pl-0.5 text-[10px] font-extrabold leading-none text-foreground">
           {marks.total}
         </span>
       ) : null}
@@ -382,7 +400,7 @@ function DaySheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="calendar-day-title"
-        className="relative z-10 max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-t-card bg-surface p-4 shadow-card ring-1 ring-border sm:rounded-card"
+        className="relative z-10 max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-t-card bg-surface p-4 pb-8 shadow-card ring-1 ring-border sm:rounded-card"
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
