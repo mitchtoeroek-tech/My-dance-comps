@@ -27,7 +27,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
       </Link>
       <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap gap-2">
               <StatusPill status={status} />
               <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
@@ -44,12 +44,12 @@ export function CompDetail({ comp }: { comp: Competition }) {
               {formatDateRange(comp.startDate, comp.endDate)}
             </p>
           </div>
-          <div className="flex shrink-0 items-start gap-1.5">
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
             <EnrolledButton
               enrolled={enrolled}
               onClick={() => toggleEnrolled(comp.id)}
             />
-            <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
           </div>
         </div>
         <dl className="mt-4 space-y-2 text-sm">
