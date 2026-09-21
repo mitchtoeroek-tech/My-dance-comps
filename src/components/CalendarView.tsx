@@ -23,6 +23,7 @@ import {
 import { statusLabel, registrationStatus } from "@/lib/comps";
 import { formatDateRange } from "@/lib/datetime";
 import { compHasEnded, resolveHomeState } from "@/lib/filter";
+import { canReviewCompetition } from "@/lib/reviews";
 import type { Competition, RegistrationStatus } from "@/lib/types";
 import {
   ChildFilterNote,
@@ -33,6 +34,7 @@ import {
 } from "./ChildPicker";
 import { EmptyState } from "./EmptyState";
 import { EnrolledButton } from "./EnrolledButton";
+import { CompReviewSummary } from "./CompReviewSummary";
 import { StatusPill } from "./StatusPill";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -507,6 +509,9 @@ function DaySheet({
                 >
                   {comp.suburb}, {comp.state} · {comp.organiser}
                 </p>
+                {canReviewCompetition(comp) ? (
+                  <CompReviewSummary competitionId={comp.id} />
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Link
                     href={`/comps/${comp.id}`}

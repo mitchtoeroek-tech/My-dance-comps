@@ -20,6 +20,13 @@ import {
   saveFamilyState,
   STORAGE_KEY,
 } from "./storage";
+import {
+  defaultReviewsState,
+  loadReviewsState,
+  REVIEWS_STORAGE_KEY,
+  saveReviewsState,
+} from "./reviews";
+import { persistReview } from "./reviews-backend";
 import type { Competition } from "./types";
 
 const memory = new Map<string, string>();
@@ -186,4 +193,49 @@ test("unionCompetitions keeps Full Out seeds when live API returns a stale subse
   const merged = unionCompetitions([fullOut, sampleComp], [sampleComp]);
   assert.equal(merged.length, 2);
   assert.ok(merged.some((row) => row.id === "full-out-state-finals-2026"));
+});
+
+test("loadReviewsState wipes corrupt JSON instead of throwing", () => {
+  memory.set(REVIEWS_STORAGE_KEY, "{not json");
+  const loaded = loadReviewsState();
+  assert.deepEqual(loaded, defaultReviewsState);
+  assert.equal(memory.has(REVIEWS_STORAGE_KEY), false);
+});
+
+test("persistReview upserts one guest review per competition in localStorage", async () => {
+  await persistReview({
+    competitionId: "test-comp",
+    stars: 4,
+    comment: "Ran on time",
+  });
+  await persistReview({
+    competitionId: "test-comp",
+    stars: 5,
+    comment: "Even better the second thought",
+  });
+  const loaded = loadReviewsState();
+  assert.equal(Object.keys(loaded.byCompetitionId).length, 1);
+  assert.equal(loaded.byCompetitionId["test-comp"]?.stars, 5);
+  assert.equal(loaded.byCompetitionId["test-comp"]?.comment, "Even better the second thought");
+  assert.equal(loaded.byCompetitionId["test-comp"]?.userId, null);
+});
+
+test("saveReviewsState round-trips without throwing in private mode", () => {
+  saveReviewsState({
+    version: 1,
+    byCompetitionId: {
+      "test-comp": {
+        id: "r1",
+        competitionId: "test-comp",
+        userId: null,
+        displayName: null,
+        stars: 3,
+        comment: "",
+        createdAt: "2026-09-21T00:00:00.000Z",
+        updatedAt: "2026-09-21T00:00:00.000Z",
+      },
+    },
+  });
+  const loaded = loadReviewsState();
+  assert.equal(loaded.byCompetitionId["test-comp"]?.stars, 3);
 });
