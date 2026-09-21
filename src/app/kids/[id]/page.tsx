@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import { ChildForm } from "@/components/ChildForm";
+import { FriendsPanel } from "@/components/FriendsPanel";
 import { ResultLog } from "@/components/ResultLog";
 import { useFamily } from "@/context/FamilyContext";
 
@@ -82,6 +83,7 @@ export default function KidDetailPage({
           </div>
         </section>
       )}
+      <FriendsPanel childId={child.id} childName={child.name} />
       <ResultLog childId={child.id} />
     </div>
   );

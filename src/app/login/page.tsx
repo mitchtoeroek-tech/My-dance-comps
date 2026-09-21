@@ -8,10 +8,12 @@ import {
   AuthField,
   AuthLinks,
   AuthSubmit,
+  AuthSwitchLink,
   AuthTextLink,
   AuthUnavailable,
 } from "@/components/AuthCard";
 import { useAuth } from "@/context/AuthContext";
+import { resolveAuthNextPath } from "@/lib/friends";
 
 export default function LogInPage() {
   const router = useRouter();
@@ -40,7 +42,7 @@ export default function LogInPage() {
             setError(result.error);
             return;
           }
-          router.push("/account");
+          router.push(resolveAuthNextPath());
         }}
       >
         <AuthField
@@ -69,7 +71,7 @@ export default function LogInPage() {
           <AuthTextLink href="/forgot-password">Forgot password?</AuthTextLink>
         </AuthLinks>
         <AuthLinks>
-          Need an account? <AuthTextLink href="/signup">Sign up</AuthTextLink>
+          Need an account? <AuthSwitchLink baseHref="/signup">Sign up</AuthSwitchLink>
         </AuthLinks>
         <AuthLinks>
           <AuthTextLink href="/">Continue as guest</AuthTextLink>
