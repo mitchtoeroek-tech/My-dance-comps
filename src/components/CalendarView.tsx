@@ -134,8 +134,9 @@ export function CalendarView({
         <h1 className="text-2xl font-bold">Calendar</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           Competition dates for the selected dancer’s home state (plus National
-          finals). Dots use the same entry-status colours as the Comps list. A
-          star means you marked a confirmed entry.
+          finals). Dots use the same entry-status colours as the Comps list. Tap
+          Enrolled on a competition card to add a star on these dates. Tap again
+          to un-enrol.
         </p>
       </div>
 
@@ -438,7 +439,7 @@ function DaySheet({
                   <StatusPill status={registrationStatus(comp)} />
                   {enrolled ? (
                     <span className="inline-flex items-center gap-1 rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
-                      ★ Entered
+                      ★ Enrolled
                     </span>
                   ) : null}
                   {isFavourite(comp.id) ? (

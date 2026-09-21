@@ -12,14 +12,17 @@ export function EnrolledButton({
       type="button"
       onClick={onClick}
       aria-pressed={enrolled}
-      aria-label={enrolled ? "Remove confirmed entry" : "Mark as entered"}
-      className={`inline-flex min-h-11 items-center rounded-control px-3 py-1.5 text-xs font-bold ${
+      aria-label={enrolled ? "Un-enrol from this competition" : "Mark as enrolled"}
+      className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-3 text-xs font-bold ${
         enrolled
           ? "bg-primary text-white"
-          : "bg-surface text-primary-ink ring-1 ring-primary"
+          : "bg-surface text-muted-foreground ring-1 ring-border"
       }`}
     >
-      {enrolled ? "Entered" : "Mark as entered"}
+      <span aria-hidden className="text-[11px] leading-none">
+        ★
+      </span>
+      Enrolled
     </button>
   );
 }

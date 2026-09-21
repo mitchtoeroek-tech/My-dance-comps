@@ -18,8 +18,8 @@ export function CompCard({
   comp: Competition;
   saved: boolean;
   onToggleSave: () => void;
-  enrolled?: boolean;
-  onToggleEnrolled?: () => void;
+  enrolled: boolean;
+  onToggleEnrolled: () => void;
   ageHint?: string;
 }) {
   const status = registrationStatus(comp);
@@ -67,7 +67,10 @@ export function CompCard({
             {comp.organiser}
           </p>
         </div>
-        <StarButton saved={saved} onClick={onToggleSave} />
+        <div className="flex shrink-0 items-start gap-1.5">
+          <EnrolledButton enrolled={enrolled} onClick={onToggleEnrolled} />
+          <StarButton saved={saved} onClick={onToggleSave} />
+        </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {styles.slice(0, 5).map((style) => (
@@ -102,12 +105,6 @@ export function CompCard({
         >
           Register
         </a>
-        {onToggleEnrolled ? (
-          <EnrolledButton
-            enrolled={Boolean(enrolled)}
-            onClick={onToggleEnrolled}
-          />
-        ) : null}
       </div>
     </article>
   );

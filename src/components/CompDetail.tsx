@@ -44,7 +44,13 @@ export function CompDetail({ comp }: { comp: Competition }) {
               {formatDateRange(comp.startDate, comp.endDate)}
             </p>
           </div>
-          <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
+          <div className="flex shrink-0 items-start gap-1.5">
+            <EnrolledButton
+              enrolled={enrolled}
+              onClick={() => toggleEnrolled(comp.id)}
+            />
+            <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
+          </div>
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <Row label="Venue" value={formatCompLocation(comp)} />
@@ -115,15 +121,12 @@ export function CompDetail({ comp }: { comp: Competition }) {
           >
             Add dates to calendar
           </button>
-          <EnrolledButton
-            enrolled={enrolled}
-            onClick={() => toggleEnrolled(comp.id)}
-          />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Saving a comp adds it to Reminders. Mark as entered stores a confirmed
-          entry on this device (family list in local storage) and shows a star
-          on the Calendar tab. Always confirm dates on the organiser website.
+          Tap Enrolled to store a confirmed entry on this device (same
+          localStorage family list as favourites). That date then shows a star
+          on the Calendar tab. Saving a comp adds it to Reminders. Always
+          confirm dates on the organiser website.
         </p>
       </div>
     </article>
