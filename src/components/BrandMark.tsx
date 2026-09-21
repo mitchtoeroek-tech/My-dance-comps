@@ -11,8 +11,7 @@ export function BrandMark({ size = 44 }: { size?: number }) {
       alt=""
       width={width}
       height={size}
-      className="shrink-0 object-contain"
-      style={{ height: size, width: "auto" }}
+      className="h-11 w-auto shrink-0 object-contain"
       priority
     />
   );
