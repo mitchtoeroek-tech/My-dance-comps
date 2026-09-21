@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   addDaysIso,
+  calendarDayIsPast,
   compsOnDate,
   eachDateInRange,
   marksForDay,
@@ -188,6 +189,14 @@ describe("selectCalendarComps", () => {
       },
     }).map((comp) => comp.id);
     assert.deepEqual(ids, ["sa-local"]);
+  });
+});
+
+describe("calendarDayIsPast", () => {
+  it("treats dates before Adelaide today as past, not today or later", () => {
+    assert.equal(calendarDayIsPast("2026-09-20", "2026-09-21"), true);
+    assert.equal(calendarDayIsPast("2026-09-21", "2026-09-21"), false);
+    assert.equal(calendarDayIsPast("2026-09-22", "2026-09-21"), false);
   });
 });
 
