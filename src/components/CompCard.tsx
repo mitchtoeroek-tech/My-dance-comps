@@ -26,7 +26,6 @@ export function CompCard({
   const styles = Array.isArray(comp.styles) ? comp.styles : [];
   const past = compHasEnded(comp, adelaideToday());
   return (
-<<<<<<< HEAD
     <article
       className={`relative overflow-hidden rounded-card p-4 shadow-card ring-1 ring-border ${
         past ? "bg-past-surface" : "bg-surface"
@@ -34,12 +33,7 @@ export function CompCard({
       data-ended={past ? "true" : "false"}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-=======
-    <article className="relative overflow-hidden rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
-      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
->>>>>>> 8448713 (Keep the Enrolled chip in the top-right of each comp card)
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <StatusPill status={status} />
             <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
