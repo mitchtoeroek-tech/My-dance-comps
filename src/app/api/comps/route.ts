@@ -1,0 +1,54 @@
+import { NextRequest } from "next/server";
+import { getComps, registrationStatus } from "@/lib/comps";
+import { ADELAIDE_TZ } from "@/lib/datetime";
+import { filterComps } from "@/lib/filter";
+import { ageAsAt1January } from "@/lib/age";
+import type { AuStateCode, ChildProfile, DanceStyle } from "@/lib/types";
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const query = searchParams.get("q") ?? "";
+  const includeInterstate = searchParams.get("interstate") === "1";
+  const state = searchParams.get("state") as AuStateCode | null;
+  const styles = (searchParams.get("styles") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean) as DanceStyle[];
+  const dob = searchParams.get("dob");
+  const favouriteIds = (searchParams.get("saved") ?? "")
+    .split(",")
+    .filter(Boolean);
+
+  const child: ChildProfile | null =
+    dob && state
+      ? {
+          id: "query",
+          name: "Filter",
+          dob,
+          styles,
+          studio: "",
+          homeState: state,
+        }
+      : null;
+
+  const comps = filterComps(getComps(), {
+    query,
+    includeInterstate: child ? includeInterstate : true,
+    child,
+    onlyFavourites: favouriteIds.length > 0,
+    favouriteIds,
+  });
+
+  return Response.json({
+    timezone: ADELAIDE_TZ,
+    count: comps.length,
+    generatedAt: new Date().toISOString(),
+    comps: comps.map((comp) => ({
+      ...comp,
+      registrationStatus: registrationStatus(comp),
+      ageAsAt1January: dob
+        ? ageAsAt1January(dob, Number(comp.startDate.slice(0, 4)))
+        : null,
+    })),
+  });
+}

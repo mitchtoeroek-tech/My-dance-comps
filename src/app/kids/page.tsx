@@ -1,0 +1,93 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { ChildForm } from "@/components/ChildForm";
+import { EmptyState } from "@/components/EmptyState";
+import { useFamily } from "@/context/FamilyContext";
+import { displayAge } from "@/lib/age";
+import { SOFT_MAX_KIDS } from "@/lib/storage";
+
+export default function KidsPage() {
+  const { state, canAddChild, upsertChild, setSelectedChildId } = useFamily();
+  const [showForm, setShowForm] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold">
+            Kids
+          </h1>
+          <p className="text-sm text-[var(--ink-soft)]">
+            {state.children.length} of {SOFT_MAX_KIDS} dancer profiles
+          </p>
+        </div>
+        {canAddChild ? (
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+          >
+            Add child
+          </button>
+        ) : (
+          <p className="max-w-36 text-right text-xs font-semibold text-[var(--ink-soft)]">
+            Soft limit of {SOFT_MAX_KIDS} reached
+          </p>
+        )}
+      </div>
+      {showForm && canAddChild ? (
+        <ChildForm
+          onSubmit={(child) => {
+            const id = upsertChild(child);
+            setShowForm(false);
+            if (id) setSelectedChildId(id);
+          }}
+          onCancel={() => setShowForm(false)}
+          submitLabel="Add dancer"
+        />
+      ) : null}
+      {state.children.length === 0 && !showForm ? (
+        <EmptyState
+          title="Your studio starts here"
+          body="Add each child with date of birth, preferred styles, studio and home state. There is no hard limit of two — families can keep going up to about 20."
+          action={
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+            >
+              Add first child
+            </button>
+          }
+        />
+      ) : (
+        <ul className="space-y-3">
+          {state.children.map((child) => (
+            <li key={child.id}>
+              <Link
+                href={`/kids/${child.id}`}
+                className="block rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]"
+                onClick={() => setSelectedChildId(child.id)}
+              >
+                <p className="font-[family-name:var(--font-display)] text-lg font-extrabold">
+                  {child.name}
+                </p>
+                <p className="text-sm text-[var(--ink-soft)]">
+                  {displayAge(child.dob)} · {child.homeState}
+                  {child.studio ? ` · ${child.studio}` : ""}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-[var(--teal)]">
+                  {child.styles.length
+                    ? child.styles.join(" · ")
+                    : "All styles"}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

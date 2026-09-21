@@ -1,0 +1,92 @@
+[
+  {
+    "id": "sasds",
+    "name": "South Australian State Dance Sport (SASDS)",
+    "url": "https://www.sasds.com.au",
+    "scrapeUrl": "https://www.sasds.com.au/information",
+    "parser": "sasds",
+    "notes": "Annual eisteddfod at Westminster School, Marion. Key dates also appear in Buzz e-news.",
+    "region": "SA"
+  },
+  {
+    "id": "dance-comps-sa",
+    "name": "Dance Competitions SA",
+    "url": "https://www.dancecompetitionssa.com.au",
+    "scrapeUrl": "https://www.dancecompetitionssa.com.au/",
+    "parser": "html-generic",
+    "notes": "Mason family comps, typically June and September. Site is brochure-style; confirm dates with the organiser.",
+    "region": "SA"
+  },
+  {
+    "id": "evolution",
+    "name": "Evolution Dance Comp",
+    "url": "https://www.evolutiondancecomp.com",
+    "scrapeUrl": "https://www.evolutiondancecomp.com/regionals",
+    "parser": "evolution",
+    "notes": "National tour plus January Gold Coast finals. City pages have entry close times.",
+    "region": "National"
+  },
+  {
+    "id": "cmidc",
+    "name": "Count Me In Dance Competition (CMIDC)",
+    "url": "https://cmidc.com.au",
+    "scrapeUrl": "https://cmidc.com.au/dates",
+    "parser": "cmidc",
+    "notes": "Golden Grove and Goolwa seasons. Enter via cmidc.com.au/enter-now.",
+    "region": "SA"
+  },
+  {
+    "id": "dance-hub-nsw",
+    "name": "Dance Hub Australia — NSW",
+    "url": "https://dancehubaustralia.com",
+    "scrapeUrl": "https://dancehubaustralia.com/new-south-wales-dance/new-south-wales-dance-competitions/",
+    "parser": "dance-hub-table",
+    "notes": "Aggregator calendar. Always confirm on the organiser site before entering.",
+    "region": "NSW"
+  },
+  {
+    "id": "dance-hub-qld",
+    "name": "Dance Hub Australia — Queensland",
+    "url": "https://dancehubaustralia.com",
+    "scrapeUrl": "https://dancehubaustralia.com/queensland-dance/queensland-dance-competitions/",
+    "parser": "dance-hub-table",
+    "notes": "Aggregator calendar for QLD events.",
+    "region": "QLD"
+  },
+  {
+    "id": "dance-hub-vic",
+    "name": "Dance Hub Australia — Victoria",
+    "url": "https://dancehubaustralia.com",
+    "scrapeUrl": "https://dancehubaustralia.com/victoria-dance/victoria-dance-competitions/",
+    "parser": "dance-hub-table",
+    "notes": "Aggregator calendar for VIC events.",
+    "region": "VIC"
+  },
+  {
+    "id": "fyd",
+    "name": "Follow Your Dreams",
+    "url": "https://www.fydentry.com",
+    "scrapeUrl": "https://www.fydentry.com",
+    "parser": "html-generic",
+    "notes": "Running sheets and entries at fydentry.com.",
+    "region": "National"
+  },
+  {
+    "id": "carnival",
+    "name": "Carnival Dance Challenge",
+    "url": "https://carnivaldance.com.au",
+    "scrapeUrl": "https://carnivaldance.com.au",
+    "parser": "html-generic",
+    "notes": "Adelaide solos and troupes plus interstate events.",
+    "region": "National"
+  },
+  {
+    "id": "dancetrain",
+    "name": "dancetrain magazine — Competitions & Events",
+    "url": "https://www.dancetrain.com.au/competitions-2026/",
+    "scrapeUrl": "https://www.dancetrain.com.au/competitions-2026/",
+    "parser": "html-generic",
+    "notes": "National listings useful as a cross-check, especially SA dates.",
+    "region": "National"
+  }
+]
