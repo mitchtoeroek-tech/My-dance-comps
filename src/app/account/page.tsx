@@ -25,8 +25,9 @@ export default function AccountPage() {
         <h1 className="text-2xl font-bold">Account</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           You are using <strong className="font-bold text-foreground">guest mode</strong>.
-          Kids, saved comps, enrolled comps and results stay on this device. An
-          account is optional — home still works without logging in.
+          Kids, saved comps, enrolled comps and results stay on this device. Friends
+          unlock when you sign in. An account is optional — home still works
+          without logging in.
         </p>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -59,8 +60,9 @@ export default function AccountPage() {
         <p className="mt-1 text-lg font-bold text-foreground">{email}</p>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           This family’s kids, saved comps, enrolled comps and results sync to
-          your account. Signing out leaves a copy on this device so guest use
-          still works.
+          your account. Friends live on the account too — open a dancer on Kids
+          to share an invite. Signing out leaves a copy of family data on this
+          device so guest use still works.
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <Stat label="Kids" value={String(state.children.length)} />
@@ -76,6 +78,12 @@ export default function AccountPage() {
           Sign out
         </button>
       </section>
+      <Link
+        href="/kids"
+        className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+      >
+        Kids and friends
+      </Link>
       <Link
         href="/"
         className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"

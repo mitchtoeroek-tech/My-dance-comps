@@ -13,13 +13,15 @@ export function CompCard({
   enrolled,
   onToggleEnrolled,
   ageHint,
+  eyebrow,
 }: {
   comp: Competition;
-  saved: boolean;
-  onToggleSave: () => void;
+  saved?: boolean;
+  onToggleSave?: () => void;
   enrolled?: boolean;
   onToggleEnrolled?: () => void;
   ageHint?: string;
+  eyebrow?: string;
 }) {
   const status = registrationStatus(comp);
   const styles = Array.isArray(comp.styles) ? comp.styles : [];
@@ -28,6 +30,11 @@ export function CompCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
+            {eyebrow ? (
+              <span className="rounded-control bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-foreground">
+                {eyebrow}
+              </span>
+            ) : null}
             <StatusPill status={status} />
             <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
               {comp.isNational ? "National" : comp.state}
@@ -48,7 +55,9 @@ export function CompCard({
             {comp.organiser}
           </p>
         </div>
-        <StarButton saved={saved} onClick={onToggleSave} />
+        {onToggleSave ? (
+          <StarButton saved={Boolean(saved)} onClick={onToggleSave} />
+        ) : null}
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {styles.slice(0, 5).map((style) => (
@@ -88,6 +97,10 @@ export function CompCard({
             enrolled={Boolean(enrolled)}
             onClick={onToggleEnrolled}
           />
+        ) : enrolled ? (
+          <span className="inline-flex min-h-11 items-center rounded-control bg-primary px-3 py-1.5 text-xs font-bold text-white">
+            Entered
+          </span>
         ) : null}
       </div>
     </article>
