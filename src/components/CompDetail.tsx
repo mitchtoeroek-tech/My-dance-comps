@@ -8,10 +8,13 @@ import { competitionToIcs, downloadIcs } from "@/lib/ics";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
+import { EnrolledButton } from "./EnrolledButton";
 
 export function CompDetail({ comp }: { comp: Competition }) {
-  const { isFavourite, toggleFavourite } = useFamily();
+  const { isFavourite, toggleFavourite, isEnrolled, toggleEnrolled } =
+    useFamily();
   const saved = isFavourite(comp.id);
+  const enrolled = isEnrolled(comp.id);
   const status = registrationStatus(comp);
 
   return (
@@ -112,10 +115,15 @@ export function CompDetail({ comp }: { comp: Competition }) {
           >
             Add dates to calendar
           </button>
+          <EnrolledButton
+            enrolled={enrolled}
+            onClick={() => toggleEnrolled(comp.id)}
+          />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Saving this comp adds it to Reminders so you can get entry open/close
-          nudges. Always confirm dates on the organiser website.
+          Saving a comp adds it to Reminders. Mark as entered stores a confirmed
+          entry with this family (this device, and your account when signed in).
+          Always confirm dates on the organiser website.
         </p>
       </div>
     </article>

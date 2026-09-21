@@ -14,11 +14,19 @@ import {
   dueReminders,
   upcomingReminders,
 } from "@/lib/reminders";
+import { useAuth } from "@/context/AuthContext";
+import {
+  pullFamilyState,
+  pushFamilyState,
+  reconcileFamilyState,
+} from "@/lib/family-sync";
 import {
   defaultFamilyState,
   loadFamilyState,
+  loadLastOwnerId,
   newId,
   saveFamilyState,
+  saveLastOwnerId,
   SOFT_MAX_KIDS,
 } from "@/lib/storage";
 import type {
@@ -31,6 +39,10 @@ import type {
 
 let memory: FamilyState = defaultFamilyState;
 let hydrated = false;
+let cloudUserId: string | null = null;
+let acceptCloudPushes = false;
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+let lastPushedJson = "";
 const listeners = new Set<() => void>();
 
 function snapshot(): FamilyState {
@@ -45,11 +57,27 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
+function scheduleCloudPush(state: FamilyState) {
+  if (!cloudUserId || !acceptCloudPushes) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    const userId = cloudUserId;
+    if (!userId) return;
+    const json = JSON.stringify(state);
+    if (json === lastPushedJson) return;
+    lastPushedJson = json;
+    void pushFamilyState(userId, state).catch(() => {
+      lastPushedJson = "";
+    });
+  }, 600);
+}
+
 function write(next: FamilyState) {
   memory = next;
   hydrated = true;
   saveFamilyState(next);
   emit();
+  scheduleCloudPush(next);
 }
 
 function hydrateFromStorage() {
@@ -80,6 +108,8 @@ interface FamilyContextValue {
   removeChild: (id: string) => void;
   toggleFavourite: (compId: string) => void;
   isFavourite: (compId: string) => boolean;
+  toggleEnrolled: (compId: string) => void;
+  isEnrolled: (compId: string) => boolean;
   setReminderPrefs: (prefs: ReminderPrefs) => void;
   addResult: (result: Omit<CompResult, "id">) => void;
   removeResult: (id: string) => void;
@@ -89,6 +119,8 @@ interface FamilyContextValue {
 const FamilyContext = createContext<FamilyContextValue | null>(null);
 
 export function FamilyProvider({ children }: { children: React.ReactNode }) {
+  const { user, ready: authReady } = useAuth();
+  const userId = user?.id ?? null;
   const state = useSyncExternalStore(
     subscribe,
     snapshot,
@@ -103,6 +135,45 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     hydrateFromStorage();
   }, []);
+
+  useEffect(() => {
+    if (!authReady || !hydrated) return;
+    if (!userId) {
+      cloudUserId = null;
+      acceptCloudPushes = false;
+      lastPushedJson = "";
+      return;
+    }
+
+    let cancelled = false;
+    cloudUserId = userId;
+    acceptCloudPushes = false;
+
+    void (async () => {
+      try {
+        const remote = await pullFamilyState(userId);
+        if (cancelled) return;
+        const next = reconcileFamilyState(
+          snapshot(),
+          remote,
+          loadLastOwnerId(),
+          userId,
+        );
+        saveLastOwnerId(userId);
+        acceptCloudPushes = true;
+        write(next);
+      } catch {
+        if (cancelled) return;
+        saveLastOwnerId(userId);
+        acceptCloudPushes = true;
+        scheduleCloudPush(snapshot());
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, userId, ready]);
 
   const selectedChild = useMemo(() => {
     if (!Array.isArray(state.children)) return null;
@@ -196,6 +267,25 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     [state.favourites],
   );
 
+  const toggleEnrolled = useCallback((compId: string) => {
+    patch((prev) => {
+      const enrolled = Array.isArray(prev.enrolled) ? prev.enrolled : [];
+      const has = enrolled.includes(compId);
+      return {
+        ...prev,
+        enrolled: has
+          ? enrolled.filter((id) => id !== compId)
+          : [...enrolled, compId],
+      };
+    });
+  }, []);
+
+  const isEnrolled = useCallback(
+    (compId: string) =>
+      Array.isArray(state.enrolled) && state.enrolled.includes(compId),
+    [state.enrolled],
+  );
+
   const setReminderPrefs = useCallback((prefs: ReminderPrefs) => {
     patch((prev) => ({ ...prev, reminderPrefs: prefs }));
   }, []);
@@ -280,6 +370,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     removeChild,
     toggleFavourite,
     isFavourite,
+    toggleEnrolled,
+    isEnrolled,
     setReminderPrefs,
     addResult,
     removeResult,

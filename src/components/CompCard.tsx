@@ -4,16 +4,21 @@ import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
+import { EnrolledButton } from "./EnrolledButton";
 
 export function CompCard({
   comp,
   saved,
   onToggleSave,
+  enrolled,
+  onToggleEnrolled,
   ageHint,
 }: {
   comp: Competition;
   saved: boolean;
   onToggleSave: () => void;
+  enrolled?: boolean;
+  onToggleEnrolled?: () => void;
   ageHint?: string;
 }) {
   const status = registrationStatus(comp);
@@ -63,7 +68,7 @@ export function CompCard({
       {ageHint ? (
         <p className="mt-2 text-xs font-medium text-primary-ink">{ageHint}</p>
       ) : null}
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <Link
           href={`/comps/${comp.id}`}
           className="inline-flex min-h-11 items-center rounded-control bg-primary px-3 py-1.5 text-xs font-bold text-white"
@@ -78,6 +83,12 @@ export function CompCard({
         >
           Register
         </a>
+        {onToggleEnrolled ? (
+          <EnrolledButton
+            enrolled={Boolean(enrolled)}
+            onClick={onToggleEnrolled}
+          />
+        ) : null}
       </div>
     </article>
   );

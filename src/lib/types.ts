@@ -110,6 +110,8 @@ export interface FamilyState {
   children: ChildProfile[];
   selectedChildId: string | null;
   favourites: string[];
+  /** Family-wide confirmed entries, stored like favourites in localStorage. */
+  enrolled: string[];
   includeInterstate: boolean;
   /** Last-used / preferred home state for the main Comps list. */
   preferredState: AuStateCode | null;

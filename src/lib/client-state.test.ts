@@ -83,6 +83,7 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
     ],
     selectedChildId: "ghost",
     favourites: ["a", 1, "b"],
+    enrolled: ["entered", 9, "also"],
     reminderPrefs: { onOpen: false, weekBeforeClose: "nope" },
     results: [{ id: "r1", childId: "ok", compName: "Nationals" }, { id: "bad" }],
   });
@@ -95,6 +96,7 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
   assert.deepEqual(normalized.children[1]?.styles, []);
   assert.equal(normalized.selectedChildId, null);
   assert.deepEqual(normalized.favourites, ["a", "b"]);
+  assert.deepEqual(normalized.enrolled, ["entered", "also"]);
   assert.equal(normalized.reminderPrefs.onOpen, false);
   assert.equal(normalized.reminderPrefs.weekBeforeClose, true);
   assert.equal(normalized.results.length, 1);
@@ -123,11 +125,13 @@ test("saveFamilyState round-trips a valid family without throwing in private mod
     ],
     selectedChildId: "c1",
     favourites: ["test-comp"],
+    enrolled: ["test-comp"],
   });
   const loaded = loadFamilyState();
   assert.equal(loaded.includeInterstate, true);
   assert.equal(loaded.children[0]?.name, "Mia");
   assert.equal(loaded.selectedChildId, "c1");
+  assert.deepEqual(loaded.enrolled, ["test-comp"]);
 });
 
 test("null and invalid registration dates never throw", () => {
