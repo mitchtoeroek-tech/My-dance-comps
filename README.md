@@ -65,7 +65,7 @@ Query params for `/api/comps`:
 
 ## Seed data and daily scrape
 
-Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if a live scrape cannot reach organiser sites.
+Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), **Full Out** ([fullout.com.au](https://fullout.com.au) only — not the US Full Out Dance Production site), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if a live scrape cannot reach organiser sites.
 
 Sources live in [`src/data/sources.json`](src/data/sources.json). Last automated run is recorded in [`src/data/scrape-status.json`](src/data/scrape-status.json).
 
@@ -75,7 +75,9 @@ Daily refresh is automatic after you import the repo on Vercel **and** leave Git
 npm run scrape
 ```
 
-The scraper (`src/lib/scrape.ts`, CLI in `scripts/scrape.ts`) fetches each source, parses what it can, and **merges** into `comps.json`. Existing seed rows are never deleted.
+The scraper (`src/lib/scrape.ts`, CLI in `scripts/scrape.ts`) fetches each source, parses what it can, and **merges** into `comps.json`. Existing seed rows are never deleted. Each scrape records `lastFetchedAt` (same ISO timestamp as `lastRunAt`, Australia/Adelaide timezone context) in [`src/data/scrape-status.json`](src/data/scrape-status.json).
+
+**Full Out (Australia)** uses [fullout.com.au](https://fullout.com.au) only — not the US Full Out Dance Production site. Daily scrape reads the enter cards at [fullout.com.au/enter/](https://fullout.com.au/enter/) (robots.txt allows fetches). Tour dates are also published as an image at [fullout.com.au/tour-dates/](https://fullout.com.au/tour-dates/). Styles come from [fullout.com.au/rules-dance/](https://fullout.com.au/rules-dance/). CompHQ registration links that appear on the enter page are stored as `registrationUrl`. Waitlist: dance@fullout.com.au. If the HTML is flaky, seed rows in `comps.json` still show in the UI.
 
 Organiser websites change layout without notice. Treat scrape output as a hint and confirm on the official registration page before you enter.
 
@@ -100,6 +102,7 @@ Organiser websites change layout without notice. Treat scrape output as a hint a
    - `sasds` — SASDS information page
    - `evolution` — Evolution regionals table
    - `cmidc` — Count Me In dates
+   - `full-out` — Full Out Australia enter cards ([fullout.com.au](https://fullout.com.au) only)
    - `dance-hub-table` — Dance Hub Australia HTML tables
    - `html-generic` — best-effort date sniffing
    - `seed-only` — skip live fetch

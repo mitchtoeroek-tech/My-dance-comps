@@ -58,6 +58,7 @@ export function normalizeCompetition(raw: unknown): Competition | null {
     notes: asString(raw.notes),
     sourceId: asString(raw.sourceId),
     lastUpdated: asString(raw.lastUpdated),
+    lastFetchedAt: asNullableString(raw.lastFetchedAt) ?? undefined,
   };
 }
 
