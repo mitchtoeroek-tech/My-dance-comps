@@ -1,5 +1,6 @@
 import { ageAsAtCompYear } from "./age";
 import { registrationStatus } from "./comps";
+import { adelaideToday, calendarDate } from "./datetime";
 import type {
   AuStateCode,
   ChildProfile,
@@ -7,7 +8,7 @@ import type {
   RegistrationStatus,
 } from "./types";
 
-/** Soonest first (default) or latest first by event date. */
+/** Soonest first (default) or latest first, relative to Adelaide today. */
 export type DateSortDir = "asc" | "desc";
 
 export interface CompFilters {
@@ -47,18 +48,48 @@ export function compDateSortKey(comp: Competition): string {
   return "";
 }
 
+/**
+ * True when the event start (Adelaide calendar date) is today or later.
+ * Already-started comps — even if the end date is still in the future — are
+ * treated as past so they cannot rank as “soonest” ahead of future starts.
+ */
+export function compIsUpcoming(comp: Competition, today: string): boolean {
+  const start = calendarDate(compDateSortKey(comp));
+  if (!start) return false;
+  return start >= today;
+}
+
+/**
+ * Date sort relative to Adelaide today — not a raw chronological dump.
+ *
+ * Choice (documented): keep past comps in the list, but always after
+ * upcoming ones (start date today or later in Australia/Adelaide).
+ * - Soonest first: nearest future/current start, then past by most recent.
+ * - Latest first: farthest-future start, then past by most recent.
+ * Undated comps stay last in both directions.
+ */
 export function compareCompsByDate(
   a: Competition,
   b: Competition,
   dir: DateSortDir = "asc",
+  now: Date = new Date(),
 ): number {
   const ka = compDateSortKey(a);
   const kb = compDateSortKey(b);
   if (!ka && !kb) return a.id.localeCompare(b.id);
   if (!ka) return 1;
   if (!kb) return -1;
+
+  const today = adelaideToday(now);
+  const aUpcoming = compIsUpcoming(a, today);
+  const bUpcoming = compIsUpcoming(b, today);
+  if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+
   const cmp = ka.localeCompare(kb);
-  if (cmp !== 0) return dir === "desc" ? -cmp : cmp;
+  if (cmp !== 0) {
+    if (aUpcoming) return dir === "desc" ? -cmp : cmp;
+    return -cmp;
+  }
   return a.id.localeCompare(b.id);
 }
 
@@ -152,5 +183,7 @@ export function filterComps(
       }
       return matchesHomeState(comp, homeState, filters.includeInterstate);
     })
-    .sort((a, b) => compareCompsByDate(a, b, filters.sortDir ?? "asc"));
+    .sort((a, b) =>
+      compareCompsByDate(a, b, filters.sortDir ?? "asc", filters.now),
+    );
 }

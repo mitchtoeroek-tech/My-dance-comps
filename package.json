@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx --yes tsx --test src/lib/client-state.test.ts src/lib/filter.test.ts",
+    "test": "npx --yes tsx --test src/lib/client-state.test.ts src/lib/filter.test.ts src/lib/datetime.test.ts",
     "scrape": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/scrape.ts"
   },
   "dependencies": {
