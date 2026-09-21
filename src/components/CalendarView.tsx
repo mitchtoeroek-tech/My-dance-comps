@@ -150,6 +150,36 @@ export function CalendarView({
         includeInterstate={includeInterstate}
       />
 
+      <div className="rounded-card bg-surface px-4 py-3 text-sm shadow-card ring-1 ring-border">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          Legend
+        </p>
+        <ul className="flex flex-wrap gap-x-3 gap-y-1.5">
+          {LEGEND.map((item) => (
+            <li key={item.status} className="flex items-center gap-1.5">
+              <span
+                className={`h-3 w-3 shrink-0 rounded-full ${item.swatch}`}
+                aria-hidden
+              />
+              <span className="text-xs font-semibold text-foreground">
+                {statusLabel(item.status)}
+              </span>
+            </li>
+          ))}
+          <li className="flex items-center gap-1.5">
+            <span
+              className="text-[12px] leading-none text-primary-ink"
+              aria-hidden
+            >
+              ★
+            </span>
+            <span className="text-xs font-semibold text-foreground">
+              Enrolled
+            </span>
+          </li>
+        </ul>
+      </div>
+
       <section
         className="rounded-card bg-surface p-3 shadow-card ring-1 ring-border"
         {...swipe}
@@ -233,36 +263,6 @@ export function CalendarView({
           })}
         </div>
       </section>
-
-      <div className="rounded-card bg-surface px-4 py-3 text-sm shadow-card ring-1 ring-border">
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Legend
-        </p>
-        <ul className="space-y-1.5">
-          {LEGEND.map((item) => (
-            <li key={item.status} className="flex items-center gap-2">
-              <span
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${item.swatch}`}
-                aria-hidden
-              />
-              <span className="font-semibold text-foreground">
-                {statusLabel(item.status)}
-              </span>
-            </li>
-          ))}
-          <li className="flex items-center gap-2">
-            <span
-              className="grid h-2.5 w-2.5 place-items-center text-[11px] leading-none text-primary-ink"
-              aria-hidden
-            >
-              ★
-            </span>
-            <span className="font-semibold text-foreground">
-              Enrolled / confirmed entry
-            </span>
-          </li>
-        </ul>
-      </div>
 
       {!ready ? (
         <p className="text-sm text-muted-foreground">Loading your family…</p>

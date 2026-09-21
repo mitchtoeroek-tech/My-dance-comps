@@ -20,7 +20,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build (what Vercel runs) |
 | `npm start` | Serve the production build |
-| `npm run test` | Home-state / interstate filter and client-state unit tests |
+| `npm run test` | Home-state / interstate filter, calendar, datetime, and client-state unit tests |
 | `npm run scrape` | Fetch organiser calendars and merge into `src/data/comps.json` |
 
 ## Deploy on Vercel
