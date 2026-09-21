@@ -80,6 +80,8 @@ interface FamilyContextValue {
   removeChild: (id: string) => void;
   toggleFavourite: (compId: string) => void;
   isFavourite: (compId: string) => boolean;
+  toggleEnrolled: (compId: string) => void;
+  isEnrolled: (compId: string) => boolean;
   setReminderPrefs: (prefs: ReminderPrefs) => void;
   addResult: (result: Omit<CompResult, "id">) => void;
   removeResult: (id: string) => void;
@@ -196,6 +198,25 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     [state.favourites],
   );
 
+  const toggleEnrolled = useCallback((compId: string) => {
+    patch((prev) => {
+      const enrolled = Array.isArray(prev.enrolled) ? prev.enrolled : [];
+      const has = enrolled.includes(compId);
+      return {
+        ...prev,
+        enrolled: has
+          ? enrolled.filter((id) => id !== compId)
+          : [...enrolled, compId],
+      };
+    });
+  }, []);
+
+  const isEnrolled = useCallback(
+    (compId: string) =>
+      Array.isArray(state.enrolled) && state.enrolled.includes(compId),
+    [state.enrolled],
+  );
+
   const setReminderPrefs = useCallback((prefs: ReminderPrefs) => {
     patch((prev) => ({ ...prev, reminderPrefs: prefs }));
   }, []);
@@ -280,6 +301,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     removeChild,
     toggleFavourite,
     isFavourite,
+    toggleEnrolled,
+    isEnrolled,
     setReminderPrefs,
     addResult,
     removeResult,

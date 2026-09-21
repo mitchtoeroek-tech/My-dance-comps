@@ -32,6 +32,7 @@ export const defaultFamilyState: FamilyState = {
   children: [],
   selectedChildId: null,
   favourites: [],
+  enrolled: [],
   includeInterstate: false,
   preferredState: null,
   reminderPrefs: defaultReminderPrefs,
@@ -129,6 +130,7 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     children,
     selectedChildId,
     favourites: asStringArray(raw.favourites),
+    enrolled: asStringArray(raw.enrolled),
     includeInterstate: asBoolean(raw.includeInterstate, false),
     preferredState: derivePreferredState({
       preferredState: isAuStateCode(raw.preferredState)

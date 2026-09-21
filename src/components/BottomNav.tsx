@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/", label: "Comps", icon: CompIcon },
+  { href: "/calendar", label: "Calendar", icon: CalendarIcon },
   { href: "/kids", label: "Kids", icon: KidsIcon },
   { href: "/saved", label: "Saved", icon: SavedIcon },
   { href: "/reminders", label: "Reminders", icon: BellIcon },
@@ -19,7 +20,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Main"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-4">
+      <ul className="mx-auto grid max-w-lg grid-cols-5">
         {items.map((item) => {
           const active =
             item.href === "/"
@@ -30,7 +31,7 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-bold tracking-wide ${
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 text-[10px] font-bold tracking-wide ${
                   active ? "text-primary-ink" : "text-muted-foreground"
                 }`}
               >
@@ -60,6 +61,30 @@ function CompIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2.2 : 1.8}
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+function CalendarIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect
+        x="4"
+        y="6"
+        width="16"
+        height="14"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth={active ? 2.2 : 1.8}
+      />
+      <path
+        d="M8 4v4M16 4v4M4 10h16"
+        stroke="currentColor"
+        strokeWidth={active ? 2.2 : 1.8}
+        strokeLinecap="round"
+      />
+      <circle cx="9" cy="14" r="1.1" fill="currentColor" />
+      <circle cx="12.5" cy="14" r="1.1" fill="currentColor" />
     </svg>
   );
 }

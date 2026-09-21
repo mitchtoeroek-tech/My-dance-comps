@@ -9,7 +9,8 @@ import { useLiveComps } from "@/hooks/useLiveComps";
 import { getComps } from "@/lib/comps";
 
 export default function SavedPage() {
-  const { state, toggleFavourite, isFavourite } = useFamily();
+  const { state, toggleFavourite, isFavourite, toggleEnrolled, isEnrolled } =
+    useFamily();
   const { comps: allComps } = useLiveComps(getComps());
   const comps = allComps.filter((comp) => state.favourites.includes(comp.id));
 
@@ -42,6 +43,8 @@ export default function SavedPage() {
                   comp={comp}
                   saved={isFavourite(comp.id)}
                   onToggleSave={() => toggleFavourite(comp.id)}
+                  enrolled={isEnrolled(comp.id)}
+                  onToggleEnrolled={() => toggleEnrolled(comp.id)}
                 />
               </ErrorBoundary>
             </li>
