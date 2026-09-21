@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { FamilyProvider } from "@/context/FamilyContext";
 import { BottomNav } from "./BottomNav";
 import { Header } from "./Header";
+import { SiteFooter } from "./SiteFooter";
 
 function NavFallback() {
   return (
@@ -18,7 +19,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <FamilyProvider>
       <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-background">
         <Header />
-        <main className="flex-1 px-4 pb-28 pt-4">{children}</main>
+        <main className="flex-1 px-4 pb-4 pt-4">{children}</main>
+        <SiteFooter />
         <Suspense fallback={<NavFallback />}>
           <BottomNav />
         </Suspense>
