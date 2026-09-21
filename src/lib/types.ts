@@ -54,6 +54,8 @@ export interface Competition {
   notes: string;
   sourceId: string;
   lastUpdated: string;
+  /** ISO timestamp of the last successful organiser fetch for this row, if known. */
+  lastFetchedAt?: string;
 }
 
 export interface CompSource {
@@ -61,7 +63,14 @@ export interface CompSource {
   name: string;
   url: string;
   scrapeUrl: string;
-  parser: "sasds" | "evolution" | "cmidc" | "dance-hub-table" | "html-generic" | "seed-only";
+  parser:
+    | "sasds"
+    | "evolution"
+    | "cmidc"
+    | "dance-hub-table"
+    | "html-generic"
+    | "full-out"
+    | "seed-only";
   notes: string;
   region: string;
 }

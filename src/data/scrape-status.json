@@ -1,19 +1,21 @@
 {
-  "lastRunAt": "2026-09-21T07:26:29.041Z",
+  "lastRunAt": "2026-09-21T10:05:05.163Z",
+  "lastFetchedAt": "2026-09-21T10:05:05.163Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
   "updated": 0,
-  "kept": 49,
+  "kept": 60,
   "sources": [
-    "✓ South Australian State Dance Sport (SASDS): 0 event(s)",
-    "✓ Dance Competitions SA: 0 event(s)",
-    "✓ Evolution Dance Comp: 0 event(s)",
+    "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
+    "✓ Dance Competitions SA: 0 event(s) scraped; 2 seed event(s) retained",
+    "✓ Evolution Dance Comp: 0 event(s) scraped; 7 seed event(s) retained",
     "✓ Count Me In Dance Competition (CMIDC): 9 event(s)",
-    "✓ Dance Hub Australia — NSW: 51 event(s)",
+    "✓ Dance Hub Australia — NSW: 52 event(s)",
     "✓ Dance Hub Australia — Queensland: 39 event(s)",
     "✓ Dance Hub Australia — Victoria: 2 event(s)",
-    "✓ Follow Your Dreams: 0 event(s)",
-    "✓ Carnival Dance Challenge: 0 event(s)",
-    "✓ dancetrain magazine — Competitions & Events: 25 event(s)"
+    "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
+    "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
+    "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
+    "✗ Full Out: Blocked by bot challenge (202) for https://fullout.com.au/enter/ (11 seed event(s) retained)"
   ]
 }

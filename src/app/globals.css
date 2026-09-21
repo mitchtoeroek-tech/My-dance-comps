@@ -27,6 +27,7 @@
   --radius-control: 13px;
   --shadow-card: 0 10px 28px -16px rgb(31 58 52 / 16%);
   --foreground: var(--text);
+  --brand-ink: #086165;
 }
 
 @theme inline {
@@ -53,6 +54,9 @@
   --color-status-unknown: var(--status-unknown);
   --color-status-unknown-ink: var(--status-unknown-ink);
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-brand-sans: var(--font-nunito), var(--font-dm-sans), system-ui, sans-serif;
+  --font-brand-script: var(--font-pacifico), "Segoe Script", cursive;
+  --color-brand-ink: var(--brand-ink);
   --radius-card: 18px;
   --radius-control: 13px;
   --shadow-card: 0 10px 28px -16px rgb(31 58 52 / 16%);

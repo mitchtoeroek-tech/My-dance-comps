@@ -88,5 +88,14 @@
     "parser": "html-generic",
     "notes": "National listings useful as a cross-check, especially SA dates.",
     "region": "National"
+  },
+  {
+    "id": "full-out",
+    "name": "Full Out",
+    "url": "https://fullout.com.au",
+    "scrapeUrl": "https://fullout.com.au/enter/",
+    "parser": "full-out",
+    "notes": "Australian Full Out regionals and state finals. Listings and CompHQ entry links come from fullout.com.au/enter/ only (tour dates image at fullout.com.au/tour-dates/). Waitlist: dance@fullout.com.au.",
+    "region": "National"
   }
 ]

@@ -20,7 +20,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build (what Vercel runs) |
 | `npm start` | Serve the production build |
-| `npm run test` | Home-state / interstate filter, calendar, datetime, reviews, and client-state unit tests |
+| `npm run test` | Home-state / interstate filter, calendar, datetime, scrape, reviews, and client-state unit tests |
 | `npm run scrape` | Fetch organiser calendars and merge into `src/data/comps.json` |
 
 ## Deploy on Vercel
@@ -58,14 +58,14 @@ Query params for `/api/comps`:
 ## What the app does
 
 - **Comps** — dates, venue (name, suburb, state), registration open/close, styles, organiser, registration links. The main list defaults to the selected child’s **home state plus National finals**. Interstate events stay hidden until you turn on **Include interstate comps**. If no dancer is selected, the list uses the last-used / first child’s home state, or asks you to pick a state chip. Age (as at 1 January) and overlapping styles still apply for the selected child. Filter by entry status (open / closing soon / closed / opening / dates TBC). Sort by event date relative to **today in Australia/Adelaide** (soonest first by default: nearest upcoming start, then past by most recent; or latest first: farthest upcoming start, then past by most recent). Past comps stay in the list after upcoming ones — they are not treated as “soonest”. Finished events (end date, or start if no end, before Adelaide today) are shown with a muted mint-grey card so they read as “already been” without changing entry-status colours. Sort and status choices are stored in `localStorage`. Each card has an **Enrolled** toggle next to the favourite star. It stores a confirmed entry in the same `localStorage` family blob (`enrolled: string[]`, next to `favourites`); tap again to un-enrol. **Reviews:** finished comps (end date before today in Australia/Adelaide) show an average star rating and review count, plus a 1–5 star control and optional comment on the detail page. Guests store one review per competition in `localStorage`. Aggregates on main are this device only — they do not pretend other families have reviewed. A public reviews list is stubbed with “Public reviews unlock when accounts go live”. The `reviews` table SQL and persist stub live in [`supabase/migrations/20260921_reviews.sql`](supabase/migrations/20260921_reviews.sql) and [`src/lib/reviews-backend.ts`](src/lib/reviews-backend.ts); they stay unused until accounts (held-off PR #8) ship. Do not set `NEXT_PUBLIC_REVIEWS_PUBLIC=1` on main.
-- **Calendar** — month view of the same state filter as Comps (swipe or previous/next). State chips (SA, Vic, NSW, All, …) and the interstate toggle sit on the Calendar page; changing them updates the month marks immediately. A selected state shows that state’s events plus National finals; **All** / interstate-on shows every state. Dots use the same registration-status colours as the Comps chips (open / closing soon / closed / dates TBC). A star on a day means you tapped **Enrolled** for a competition in the current filter. Tap a day for the comps, status, and the same Enrolled control.
+- **Calendar** — month view of the same state filter as Comps (swipe or previous/next). State chips (SA, Vic, NSW, All, …) and the interstate toggle sit on the Calendar page; changing them updates the month marks immediately. A selected state shows that state’s events plus National finals; **All** / interstate-on shows every state. Dots use the same registration-status colours as the Comps chips (open / closing soon / closed / dates TBC). Dates before **today in Australia/Adelaide** use the same muted mint-grey (`past-surface`) as finished Comp cards; status dots stay. A star on a day means you tapped **Enrolled** for a competition in the current filter. Tap a day for the comps, status, and the same Enrolled control — finished events in that sheet are muted like the main list. Finished comps in the day sheet also show the this-device review summary.
 - **Kids** — multiple child profiles (no hard cap of two; soft max 20): name, date of birth, preferred styles, dance studio, home state. Per-child results log (manual).
 - **Saved** — favourite comps, persisted in `localStorage`.
 - **Reminders** — prefs for entries open, 1 week before close, and 1 day before close. In-app list for saved comps, `.ics` download, `mailto` list, and browser notifications when the browser allows them (no paid API keys).
 
 ## Seed data and daily scrape
 
-Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if a live scrape cannot reach organiser sites.
+Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), **Full Out** ([fullout.com.au](https://fullout.com.au) only — not the US Full Out Dance Production site), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if a live scrape cannot reach organiser sites.
 
 Sources live in [`src/data/sources.json`](src/data/sources.json). Last automated run is recorded in [`src/data/scrape-status.json`](src/data/scrape-status.json).
 
@@ -75,7 +75,9 @@ Daily refresh is automatic after you import the repo on Vercel **and** leave Git
 npm run scrape
 ```
 
-The scraper (`src/lib/scrape.ts`, CLI in `scripts/scrape.ts`) fetches each source, parses what it can, and **merges** into `comps.json`. Existing seed rows are never deleted.
+The scraper (`src/lib/scrape.ts`, CLI in `scripts/scrape.ts`) fetches each source, parses what it can, and **merges** into `comps.json`. Existing seed rows are never deleted. Each scrape records `lastFetchedAt` (same ISO timestamp as `lastRunAt`, Australia/Adelaide timezone context) in [`src/data/scrape-status.json`](src/data/scrape-status.json).
+
+**Full Out (Australia)** uses [fullout.com.au](https://fullout.com.au) only — not the US Full Out Dance Production site. Daily scrape reads the enter cards at [fullout.com.au/enter/](https://fullout.com.au/enter/) (robots.txt allows fetches). Tour dates are also published as an image at [fullout.com.au/tour-dates/](https://fullout.com.au/tour-dates/). Styles come from [fullout.com.au/rules-dance/](https://fullout.com.au/rules-dance/). CompHQ registration links that appear on the enter page are stored as `registrationUrl`. Waitlist: dance@fullout.com.au. If the HTML is flaky, seed rows in `comps.json` still show in the UI.
 
 Organiser websites change layout without notice. Treat scrape output as a hint and confirm on the official registration page before you enter.
 
@@ -100,6 +102,7 @@ Organiser websites change layout without notice. Treat scrape output as a hint a
    - `sasds` — SASDS information page
    - `evolution` — Evolution regionals table
    - `cmidc` — Count Me In dates
+   - `full-out` — Full Out Australia enter cards ([fullout.com.au](https://fullout.com.au) only)
    - `dance-hub-table` — Dance Hub Australia HTML tables
    - `html-generic` — best-effort date sniffing
    - `seed-only` — skip live fetch

@@ -58,6 +58,7 @@ export function normalizeCompetition(raw: unknown): Competition | null {
     notes: asString(raw.notes),
     sourceId: asString(raw.sourceId),
     lastUpdated: asString(raw.lastUpdated),
+    lastFetchedAt: asNullableString(raw.lastFetchedAt) ?? undefined,
   };
 }
 
@@ -66,6 +67,19 @@ export function normalizeCompetitions(raw: unknown): Competition[] {
   return raw
     .map(normalizeCompetition)
     .filter((comp): comp is Competition => comp !== null);
+}
+
+/** Keep seed rows (e.g. Full Out) when a live API payload is a stale subset. */
+export function unionCompetitions(
+  seed: Competition[],
+  live: Competition[],
+): Competition[] {
+  const byId = new Map(seed.map((row) => [row.id, row]));
+  for (const row of live) {
+    const existing = byId.get(row.id);
+    byId.set(row.id, existing ? { ...existing, ...row } : row);
+  }
+  return [...byId.values()];
 }
 
 export function getComps(): Competition[] {

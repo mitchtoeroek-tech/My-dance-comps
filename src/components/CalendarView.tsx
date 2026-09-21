@@ -6,6 +6,7 @@ import { useFamily } from "@/context/FamilyContext";
 import { useLiveComps } from "@/hooks/useLiveComps";
 import {
   adelaideTodayIso,
+  calendarDayIsPast,
   compsOnDate,
   formatDayHeading,
   formatMonthTitle,
@@ -21,7 +22,7 @@ import {
 } from "@/lib/calendar";
 import { statusLabel, registrationStatus } from "@/lib/comps";
 import { formatDateRange } from "@/lib/datetime";
-import { resolveHomeState } from "@/lib/filter";
+import { compHasEnded, resolveHomeState } from "@/lib/filter";
 import { canReviewCompetition } from "@/lib/reviews";
 import type { Competition, RegistrationStatus } from "@/lib/types";
 import {
@@ -190,7 +191,7 @@ export function CalendarView({
           ))}
           <li className="flex items-center gap-1.5">
             <span
-              className="text-[12px] leading-none text-primary-ink"
+              className="text-[14px] leading-none text-primary-ink"
               aria-hidden
             >
               ★
@@ -250,6 +251,7 @@ export function CalendarView({
           {cells.map((cell) => {
             const marks = marksByIso.get(cell.iso);
             const isToday = cell.iso === todayIso;
+            const isPast = calendarDayIsPast(cell.iso, todayIso);
             const hasComps = Boolean(marks && marks.total > 0);
             const dayNumber = Number(cell.iso.slice(-2));
             return (
@@ -259,16 +261,19 @@ export function CalendarView({
                 disabled={!hasComps}
                 onClick={() => setSelectedIso(cell.iso)}
                 aria-current={isToday ? "date" : undefined}
-                aria-label={dayAriaLabel(cell.iso, marks, isToday)}
-                className={`relative flex min-h-14 flex-col items-center justify-center overflow-visible rounded-control px-0.5 py-1 ${dayCellTone(marks, isToday)} ${
-                  cell.inMonth
-                    ? "text-foreground"
-                    : "text-muted-foreground/60"
+                aria-label={dayAriaLabel(cell.iso, marks, isToday, isPast)}
+                data-past={isPast ? "true" : "false"}
+                className={`relative flex min-h-14 flex-col items-center justify-center overflow-visible rounded-control px-0.5 py-1 ${dayCellTone(marks, isToday, isPast)} ${
+                  !cell.inMonth
+                    ? "text-muted-foreground/60"
+                    : isPast
+                      ? "text-foreground/70"
+                      : "text-foreground"
                 } ${hasComps ? "hover:brightness-95" : "cursor-default"}`}
               >
                 {marks?.enrolled ? (
                   <span
-                    className="absolute top-0 right-0 text-[11px] leading-none text-primary-ink"
+                    className="absolute top-px right-px text-[14px] leading-none text-primary-ink"
                     aria-hidden
                   >
                     ★
@@ -311,6 +316,7 @@ export function CalendarView({
         <DaySheet
           iso={selectedIso}
           comps={selectedComps}
+          todayIso={todayIso}
           isEnrolled={isEnrolled}
           toggleEnrolled={toggleEnrolled}
           isFavourite={isFavourite}
@@ -321,8 +327,13 @@ export function CalendarView({
   );
 }
 
-function dayCellTone(marks: DayMarks | undefined, isToday: boolean): string {
+function dayCellTone(
+  marks: DayMarks | undefined,
+  isToday: boolean,
+  isPast: boolean,
+): string {
   if (isToday) return "bg-primary-soft ring-2 ring-primary";
+  if (isPast) return "bg-past-surface";
   const top = marks?.statuses[0];
   if (!top) return "";
   switch (top) {
@@ -366,10 +377,12 @@ function dayAriaLabel(
   iso: string,
   marks: DayMarks | undefined,
   isToday: boolean,
+  isPast: boolean,
 ): string {
   const heading = formatDayHeading(iso);
   const bits = [heading];
   if (isToday) bits.push("today");
+  else if (isPast) bits.push("past");
   if (!marks || marks.total === 0) return bits.join(", ");
   bits.push(
     `${marks.total} ${marks.total === 1 ? "competition" : "competitions"}`,
@@ -382,6 +395,7 @@ function dayAriaLabel(
 function DaySheet({
   iso,
   comps,
+  todayIso,
   isEnrolled,
   toggleEnrolled,
   isFavourite,
@@ -389,6 +403,7 @@ function DaySheet({
 }: {
   iso: string;
   comps: Competition[];
+  todayIso: string;
   isEnrolled: (id: string) => boolean;
   toggleEnrolled: (id: string) => void;
   isFavourite: (id: string) => boolean;
@@ -451,10 +466,14 @@ function DaySheet({
         <ul className="space-y-3">
           {comps.map((comp) => {
             const enrolled = isEnrolled(comp.id);
+            const past = compHasEnded(comp, todayIso);
             return (
               <li
                 key={comp.id}
-                className="rounded-card bg-background p-3 ring-1 ring-border"
+                data-ended={past ? "true" : "false"}
+                className={`rounded-card p-3 ring-1 ring-border ${
+                  past ? "bg-past-surface" : "bg-surface"
+                }`}
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <StatusPill status={registrationStatus(comp)} />
@@ -469,13 +488,25 @@ function DaySheet({
                     </span>
                   ) : null}
                 </div>
-                <p className="font-bold leading-snug text-foreground">
+                <p
+                  className={`font-bold leading-snug ${
+                    past ? "text-foreground/70" : "text-foreground"
+                  }`}
+                >
                   {comp.name}
                 </p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+                <p
+                  className={`mt-0.5 text-sm ${
+                    past ? "text-muted-foreground/90" : "text-muted-foreground"
+                  }`}
+                >
                   {formatDateRange(comp.startDate, comp.endDate)}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p
+                  className={`text-sm ${
+                    past ? "text-foreground/65" : "text-muted-foreground"
+                  }`}
+                >
                   {comp.suburb}, {comp.state} · {comp.organiser}
                 </p>
                 {canReviewCompetition(comp) ? (
