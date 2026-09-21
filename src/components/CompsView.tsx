@@ -30,6 +30,8 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
     state,
     toggleFavourite,
     isFavourite,
+    toggleEnrolled,
+    isEnrolled,
     setPreferredState,
   } = useFamily();
   const [query, setQuery] = useState("");
@@ -127,6 +129,8 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
                       comp={comp}
                       saved={isFavourite(comp.id)}
                       onToggleSave={() => toggleFavourite(comp.id)}
+                      enrolled={isEnrolled(comp.id)}
+                      onToggleEnrolled={() => toggleEnrolled(comp.id)}
                       ageHint={
                         child && comp.startDate
                           ? `Age ${ageAsAtCompYear(child.dob, comp.startDate)} as at 1 Jan ${comp.startDate.slice(0, 4)}`

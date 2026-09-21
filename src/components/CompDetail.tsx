@@ -8,10 +8,13 @@ import { competitionToIcs, downloadIcs } from "@/lib/ics";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
+import { EnrolledButton } from "./EnrolledButton";
 
 export function CompDetail({ comp }: { comp: Competition }) {
-  const { isFavourite, toggleFavourite } = useFamily();
+  const { isFavourite, toggleFavourite, isEnrolled, toggleEnrolled } =
+    useFamily();
   const saved = isFavourite(comp.id);
+  const enrolled = isEnrolled(comp.id);
   const status = registrationStatus(comp);
 
   return (
@@ -24,7 +27,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
       </Link>
       <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap gap-2">
               <StatusPill status={status} />
               <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
@@ -41,7 +44,13 @@ export function CompDetail({ comp }: { comp: Competition }) {
               {formatDateRange(comp.startDate, comp.endDate)}
             </p>
           </div>
-          <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
+            <EnrolledButton
+              enrolled={enrolled}
+              onClick={() => toggleEnrolled(comp.id)}
+            />
+          </div>
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <Row label="Venue" value={formatCompLocation(comp)} />
@@ -114,8 +123,10 @@ export function CompDetail({ comp }: { comp: Competition }) {
           </button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Saving this comp adds it to Reminders so you can get entry open/close
-          nudges. Always confirm dates on the organiser website.
+          Tap Enrolled to store a confirmed entry on this device (same
+          localStorage family list as favourites). That date then shows a star
+          on the Calendar tab. Saving a comp adds it to Reminders. Always
+          confirm dates on the organiser website.
         </p>
       </div>
     </article>

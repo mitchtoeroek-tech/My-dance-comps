@@ -5,16 +5,21 @@ import { compHasEnded } from "@/lib/filter";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
+import { EnrolledButton } from "./EnrolledButton";
 
 export function CompCard({
   comp,
   saved,
   onToggleSave,
+  enrolled,
+  onToggleEnrolled,
   ageHint,
 }: {
   comp: Competition;
   saved: boolean;
   onToggleSave: () => void;
+  enrolled: boolean;
+  onToggleEnrolled: () => void;
   ageHint?: string;
 }) {
   const status = registrationStatus(comp);
@@ -28,7 +33,7 @@ export function CompCard({
       data-ended={past ? "true" : "false"}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <StatusPill status={status} />
             <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
@@ -62,7 +67,10 @@ export function CompCard({
             {comp.organiser}
           </p>
         </div>
-        <StarButton saved={saved} onClick={onToggleSave} />
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <StarButton saved={saved} onClick={onToggleSave} />
+          <EnrolledButton enrolled={enrolled} onClick={onToggleEnrolled} />
+        </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {styles.slice(0, 5).map((style) => (
@@ -82,7 +90,7 @@ export function CompCard({
       {ageHint ? (
         <p className="mt-2 text-xs font-medium text-primary-ink">{ageHint}</p>
       ) : null}
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <Link
           href={`/comps/${comp.id}`}
           className="inline-flex min-h-11 items-center rounded-control bg-primary px-3 py-1.5 text-xs font-bold text-white"
