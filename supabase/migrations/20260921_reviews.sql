@@ -1,5 +1,5 @@
 -- My Dance Comps — public competition reviews
--- Scaffolding only: do not run this until accounts/login (PR #8) exist.
+-- Scaffolding only. Public reviews stay off until NEXT_PUBLIC_REVIEWS_PUBLIC=1.
 -- Guest MVP on main stores reviews in localStorage
 -- (`mydancecomps.reviews.v1`, keyed by competition id).
 --

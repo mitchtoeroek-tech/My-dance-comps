@@ -75,7 +75,7 @@ function JoinFriendInner() {
         <h1 className="text-2xl font-bold">Request sent</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           {friendName || "That dancer"} will show as pending until their parent
-          accepts. After that, you can both see entered comps.
+          accepts. After that, you can both see enrolled comps.
         </p>
         <Link
           href={child ? `/kids/${child.id}` : "/kids"}

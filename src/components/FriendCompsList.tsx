@@ -25,7 +25,7 @@ export function FriendCompsList({
     return (
       <p className="rounded-control bg-muted px-3 py-3 text-sm leading-6 text-muted-foreground">
         {emptyLabel ??
-          `${friendName} has not marked any comps as entered yet.`}
+          `${friendName} has not marked any comps Enrolled yet.`}
       </p>
     );
   }
@@ -38,7 +38,7 @@ export function FriendCompsList({
             <CompCard
               comp={comp}
               enrolled
-              eyebrow={`Entered by ${friendName}`}
+              eyebrow={`Enrolled: ${friendName}`}
             />
           </ErrorBoundary>
         </li>

@@ -81,7 +81,10 @@ export function CompCard({
         {showSave || showEnrolled ? (
           <div className="flex shrink-0 flex-col items-end gap-1.5">
             {showSave ? (
-              <StarButton saved={Boolean(saved)} onClick={onToggleSave} />
+              <StarButton
+                saved={Boolean(saved)}
+                onClick={() => onToggleSave?.()}
+              />
             ) : null}
             {showEnrolled ? (
               <EnrolledButton

@@ -1,5 +1,4 @@
 import { getSupabase } from "./supabase";
-import { enrolledIdsForChild } from "./enrolled";
 import {
   defaultFamilyState,
   defaultReminderPrefs,
@@ -72,12 +71,8 @@ function mergeEnrolledByChild(
       id,
     );
     if (!localHas && !remoteHas) continue;
-    const locIds = localHas
-      ? local.enrolledByChild[id] ?? []
-      : enrolledIdsForChild(local.enrolled, local.enrolledByChild, id);
-    const remIds = remoteHas
-      ? remote.enrolledByChild[id] ?? []
-      : enrolledIdsForChild(remote.enrolled, remote.enrolledByChild, id);
+    const locIds = localHas ? (local.enrolledByChild[id] ?? []) : [];
+    const remIds = remoteHas ? (remote.enrolledByChild[id] ?? []) : [];
     out[id] = uniqueStrings(locIds, remIds);
   }
   return out;
@@ -180,6 +175,7 @@ export async function pullFamilyState(
     favouritesRes,
     enrolledRes,
     enrolledByChildRes,
+    enrolledSetsRes,
     resultsRes,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
@@ -190,6 +186,7 @@ export async function pullFamilyState(
       .from("enrolled_by_child")
       .select("child_id, comp_id")
       .eq("user_id", userId),
+    supabase.from("enrolled_child_sets").select("child_id").eq("user_id", userId),
     supabase.from("results").select("*").eq("user_id", userId),
   ]);
 
@@ -202,6 +199,9 @@ export async function pullFamilyState(
   const enrolledByChildRows = enrolledByChildRes.error
     ? []
     : (enrolledByChildRes.data ?? []);
+  const enrolledSetRows = enrolledSetsRes.error
+    ? []
+    : (enrolledSetsRes.data ?? []);
 
   if (!profileRes.data && !(childrenRes.data && childrenRes.data.length)) {
     return null;
@@ -232,6 +232,10 @@ export async function pullFamilyState(
   }));
 
   const enrolledByChild: Record<string, string[]> = {};
+  for (const row of enrolledSetRows) {
+    const childId = row.child_id as string;
+    if (childId) enrolledByChild[childId] = [];
+  }
   for (const row of enrolledByChildRows) {
     const childId = row.child_id as string;
     const compId = row.comp_id as string;
@@ -362,13 +366,25 @@ export async function pushFamilyState(
   if (byChildDelete.error) throw byChildDelete.error;
   const byChildRows: { user_id: string; child_id: string; comp_id: string }[] =
     [];
+  const setRows: { user_id: string; child_id: string }[] = [];
   for (const [childId, ids] of Object.entries(next.enrolledByChild ?? {})) {
+    setRows.push({ user_id: userId, child_id: childId });
     for (const compId of ids) {
       byChildRows.push({ user_id: userId, child_id: childId, comp_id: compId });
     }
   }
   if (byChildRows.length > 0) {
     const insert = await supabase.from("enrolled_by_child").insert(byChildRows);
+    if (insert.error) throw insert.error;
+  }
+
+  const setsDelete = await supabase
+    .from("enrolled_child_sets")
+    .delete()
+    .eq("user_id", userId);
+  if (setsDelete.error) throw setsDelete.error;
+  if (setRows.length > 0) {
+    const insert = await supabase.from("enrolled_child_sets").insert(setRows);
     if (insert.error) throw insert.error;
   }
 }

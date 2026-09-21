@@ -6,6 +6,21 @@
 -- remove requests. Accepted friends may see each other's enrolled comps only
 -- (not favourites, not date of birth). Direct table access stays own-row;
 -- friend reads go through SECURITY DEFINER RPCs that return limited fields.
+-- Shared enrolments use enrolled_by_child when that dancer has their own
+-- set, otherwise the family-wide enrolled_comps list.
+
+create table if not exists public.enrolled_by_child (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  child_id text not null references public.children (id) on delete cascade,
+  comp_id text not null,
+  created_at timestamptz not null default now(),
+  primary key (child_id, comp_id)
+);
+
+create table if not exists public.enrolled_child_sets (
+  child_id text primary key references public.children (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade
+);
 
 create table if not exists public.child_friend_settings (
   child_id text primary key references public.children (id) on delete cascade,
@@ -169,6 +184,17 @@ as $$
   select case
     when c.id is null then '{}'::text[]
     when coalesce(s.share_enrolled, true) is not true then '{}'::text[]
+    when exists (
+      select 1 from public.enrolled_child_sets sets
+      where sets.child_id = c.id
+    ) then coalesce(
+      (
+        select array_agg(e.comp_id order by e.comp_id)
+        from public.enrolled_by_child e
+        where e.child_id = c.id
+      ),
+      '{}'::text[]
+    )
     else coalesce(
       (
         select array_agg(e.comp_id order by e.comp_id)

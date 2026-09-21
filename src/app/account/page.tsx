@@ -7,7 +7,7 @@ import { AuthUnavailable } from "@/components/AuthCard";
 
 export default function AccountPage() {
   const { configured, ready, user, signOut } = useAuth();
-  const { state } = useFamily();
+  const { state, enrolledIdsFor } = useFamily();
 
   if (!configured) return <AuthUnavailable />;
 
@@ -25,9 +25,9 @@ export default function AccountPage() {
         <h1 className="text-2xl font-bold">Account</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           You are using <strong className="font-bold text-foreground">guest mode</strong>.
-          Kids, saved comps, enrolled comps and results stay on this device. Friends
-          unlock when you sign in. An account is optional — home still works
-          without logging in.
+          Kids, saved comps, enrolled comps and results stay on this device.
+          Sign in to add friends by email and share enrolled comps. Home still
+          works as a guest.
         </p>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -67,7 +67,7 @@ export default function AccountPage() {
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <Stat label="Kids" value={String(state.children.length)} />
           <Stat label="Saved" value={String(state.favourites.length)} />
-          <Stat label="Enrolled" value={String(state.enrolled.length)} />
+          <Stat label="Enrolled" value={String(enrolledIdsFor(null).length)} />
           <Stat label="Results" value={String(state.results.length)} />
         </dl>
         <button

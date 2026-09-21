@@ -58,7 +58,7 @@ export function CompReviewSection({ comp }: { comp: Competition }) {
         <h2 className="text-lg font-bold text-foreground">Your review</h2>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           Rate this finished competition. Comments are optional. Your review
-          stays on this device until accounts go live.
+          stays on this device. Public reviews are not shared yet.
         </p>
       </div>
 
@@ -156,7 +156,7 @@ export function CompReviewSection({ comp }: { comp: Competition }) {
           </ul>
         ) : (
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Public reviews unlock when accounts go live
+            Public reviews are not shared yet
           </p>
         )}
       </div>

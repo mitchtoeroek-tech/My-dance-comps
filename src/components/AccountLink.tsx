@@ -24,7 +24,7 @@ export function AccountLink() {
         active ? "bg-primary-soft text-primary-ink" : "text-primary-ink"
       }`}
     >
-      Account
+      {ready && user ? "Account" : "Log in"}
       {ready && user ? (
         <span
           className="h-2 w-2 rounded-full bg-primary"
@@ -33,7 +33,7 @@ export function AccountLink() {
         />
       ) : null}
       <span className="sr-only">
-        {user ? "Signed in" : "Optional — guest mode stays available"}
+        {user ? "Signed in" : "Log in or create an account"}
       </span>
     </Link>
   );

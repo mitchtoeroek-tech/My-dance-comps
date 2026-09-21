@@ -7,15 +7,10 @@ import {
 } from "./reviews";
 
 /**
- * Public (everyone-visible) reviews stay off on main.
- *
- * Guest MVP writes only to localStorage so we do not merge identities before
- * accounts exist. Do not turn this on until the held-off login work
- * (PR #8, `cursor/email-password-accounts-f549`) is merged and a session
- * can supply `userId`.
- *
- * Set NEXT_PUBLIC_REVIEWS_PUBLIC=1 later to fetch/list shared rows. The
- * persist path below still no-ops without a Supabase client.
+ * Public (everyone-visible) reviews stay off until
+ * `NEXT_PUBLIC_REVIEWS_PUBLIC=1` and a signed-in `userId` is supplied.
+ * Guest MVP still writes only to localStorage so device reviews do not
+ * pretend to be a public feed.
  */
 export const PUBLIC_REVIEWS_ENABLED =
   process.env.NEXT_PUBLIC_REVIEWS_PUBLIC === "1";
@@ -55,7 +50,7 @@ export async function listPublicReviews(
 }
 
 /**
- * Later, once PR #8 is merged and `@supabase/supabase-js` exists on main:
+ * Later, with a signed-in session:
  *
  *   import { getSupabase } from "./supabase";
  *   const client = getSupabase();

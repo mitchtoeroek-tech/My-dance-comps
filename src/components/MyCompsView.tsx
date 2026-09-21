@@ -12,6 +12,7 @@ import { DateSortControl, useCompsDateSort } from "./DateSortControl";
 import { EmptyState } from "./EmptyState";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { MonthCalendar } from "./MonthCalendar";
+import { FriendsOnMyComps } from "./FriendsOnMyComps";
 import { useLiveComps } from "@/hooks/useLiveComps";
 
 export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
@@ -70,7 +71,8 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
         <h1 className="text-2xl font-bold">My Comps</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           Competitions you have marked Enrolled. Filter by dancer, or choose
-          All children to see every confirmed entry on this device.
+          All children to see every confirmed entry. When you are signed in,
+          friends of that dancer see these enrolments automatically.
         </p>
       </div>
 
@@ -144,6 +146,11 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
                 />
               ) : null
             }
+          />
+
+          <FriendsOnMyComps
+            filterChildId={activeFilterId}
+            filterChild={filterChild}
           />
         </>
       )}

@@ -30,8 +30,8 @@ const jazz: Competition = {
   venue: "Town Hall",
   suburb: "Adelaide",
   state: "SA",
-  startDate: "2026-05-01",
-  endDate: "2026-05-02",
+  startDate: "2026-12-01",
+  endDate: "2026-12-02",
   registrationOpens: null,
   registrationCloses: null,
   registrationUrl: "https://example.com/enter",
@@ -49,8 +49,8 @@ const tap: Competition = {
   ...jazz,
   id: "tap-classic",
   name: "Tap Classic",
-  startDate: "2026-03-10",
-  endDate: "2026-03-11",
+  startDate: "2026-11-10",
+  endDate: "2026-11-11",
 };
 
 test("normalizeFriendCode strips dashes and spaces", () => {
@@ -160,6 +160,7 @@ test("friend enrolled comps are the marked-entered list in date order", () => {
 
 test("guest copy and missing-SQL errors are plain English", () => {
   assert.equal(GUEST_FRIENDS_TITLE, "Friends unlock when you sign in");
+  assert.match(GUEST_FRIENDS_BODY, /marked Enrolled/);
   assert.match(GUEST_FRIENDS_BODY, /not their favourites/);
   assert.match(
     friendlyFriendsError("Could not find the function public.list_friends_for_child"),

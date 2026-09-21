@@ -86,6 +86,15 @@ create table if not exists public.enrolled_by_child (
 create index if not exists enrolled_by_child_user_id_idx
   on public.enrolled_by_child (user_id);
 
+-- Which children have their own enrolled set (including empty after un-enrol).
+create table if not exists public.enrolled_child_sets (
+  child_id text primary key references public.children (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade
+);
+
+create index if not exists enrolled_child_sets_user_id_idx
+  on public.enrolled_child_sets (user_id);
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -134,6 +143,7 @@ alter table public.favourites enable row level security;
 alter table public.results enable row level security;
 alter table public.enrolled_comps enable row level security;
 alter table public.enrolled_by_child enable row level security;
+alter table public.enrolled_child_sets enable row level security;
 
 drop policy if exists "profiles_select_own" on public.profiles;
 drop policy if exists "profiles_insert_own" on public.profiles;
@@ -201,9 +211,20 @@ create policy "enrolled_by_child_insert_own" on public.enrolled_by_child
 create policy "enrolled_by_child_delete_own" on public.enrolled_by_child
   for delete to authenticated using (auth.uid() = user_id);
 
+drop policy if exists "enrolled_child_sets_select_own" on public.enrolled_child_sets;
+drop policy if exists "enrolled_child_sets_insert_own" on public.enrolled_child_sets;
+drop policy if exists "enrolled_child_sets_delete_own" on public.enrolled_child_sets;
+create policy "enrolled_child_sets_select_own" on public.enrolled_child_sets
+  for select to authenticated using (auth.uid() = user_id);
+create policy "enrolled_child_sets_insert_own" on public.enrolled_child_sets
+  for insert to authenticated with check (auth.uid() = user_id);
+create policy "enrolled_child_sets_delete_own" on public.enrolled_child_sets
+  for delete to authenticated using (auth.uid() = user_id);
+
 grant select, insert, update, delete on public.profiles to authenticated;
 grant select, insert, update, delete on public.children to authenticated;
 grant select, insert, delete on public.favourites to authenticated;
 grant select, insert, update, delete on public.results to authenticated;
 grant select, insert, delete on public.enrolled_comps to authenticated;
 grant select, insert, delete on public.enrolled_by_child to authenticated;
+grant select, insert, delete on public.enrolled_child_sets to authenticated;
