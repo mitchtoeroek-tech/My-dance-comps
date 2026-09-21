@@ -179,6 +179,39 @@ export function selectCalendarComps(
   }).filter((comp) => Boolean(comp.startDate));
 }
 
+/**
+ * Enrolled comps for the My Comps month view.
+ * Matches the My Comps list (selected child vs All children via enrolledIds).
+ * No home-state / interstate filter — enrolled interstate comps stay visible.
+ */
+export function selectEnrolledCalendarComps(
+  comps: Competition[],
+  enrolledIds: string[],
+): Competition[] {
+  const enrolledSet = new Set(enrolledIds);
+  return (Array.isArray(comps) ? comps : []).filter(
+    (comp) =>
+      Boolean(comp?.id) && enrolledSet.has(comp.id) && Boolean(comp.startDate),
+  );
+}
+
+/** Dated comps that overlap any day of this calendar month. */
+export function compsInCalendarMonth(
+  comps: Competition[],
+  month: CalendarMonth,
+): Competition[] {
+  return (Array.isArray(comps) ? comps : []).filter((comp) =>
+    eachDateInRange(comp.startDate, comp.endDate || comp.startDate).some(
+      (iso) => {
+        const parsed = parseIsoDate(iso);
+        return Boolean(
+          parsed && parsed.year === month.year && parsed.month === month.month,
+        );
+      },
+    ),
+  );
+}
+
 export function compsOnDate(
   comps: Competition[],
   iso: string,

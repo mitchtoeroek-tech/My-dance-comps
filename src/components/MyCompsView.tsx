@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useFamily } from "@/context/FamilyContext";
 import { ageAsAtCompYear } from "@/lib/age";
+import { selectEnrolledCalendarComps } from "@/lib/calendar";
 import { compareCompsByDate } from "@/lib/filter";
 import type { ChildProfile, Competition } from "@/lib/types";
 import { CompCard } from "./CompCard";
 import { DateSortControl, useCompsDateSort } from "./DateSortControl";
 import { EmptyState } from "./EmptyState";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { MonthCalendar } from "./MonthCalendar";
 import { useLiveComps } from "@/hooks/useLiveComps";
 
 export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
@@ -34,10 +36,12 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
   const filterChild =
     children.find((child) => child.id === activeFilterId) ?? null;
 
-  const enrolledSet = useMemo(() => {
-    if (!ready) return new Set<string>();
-    return new Set(enrolledIdsFor(activeFilterId));
+  const enrolledIds = useMemo(() => {
+    if (!ready) return [];
+    return enrolledIdsFor(activeFilterId);
   }, [ready, enrolledIdsFor, activeFilterId]);
+
+  const enrolledSet = useMemo(() => new Set(enrolledIds), [enrolledIds]);
 
   const comps = useMemo(() => {
     if (!ready) return [];
@@ -45,6 +49,20 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
       .filter((comp) => enrolledSet.has(comp.id))
       .sort((a, b) => compareCompsByDate(a, b, sortDir));
   }, [ready, liveComps, enrolledSet, sortDir]);
+
+  const calendarComps = useMemo(
+    () => (ready ? selectEnrolledCalendarComps(liveComps, enrolledIds) : []),
+    [ready, liveComps, enrolledIds],
+  );
+
+  const isEnrolledForFilter = useCallback(
+    (compId: string) => isEnrolled(compId, activeFilterId),
+    [isEnrolled, activeFilterId],
+  );
+  const toggleEnrolledForFilter = useCallback(
+    (compId: string) => toggleEnrolled(compId, activeFilterId),
+    [toggleEnrolled, activeFilterId],
+  );
 
   return (
     <div className="space-y-4">
@@ -66,35 +84,66 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
         <p className="text-sm text-muted-foreground">Loading your family…</p>
       ) : (
         <>
-          <DateSortControl value={sortDir} onChange={setSortDir} />
-          {comps.length === 0 ? (
-            <MyCompsEmpty
-              childrenCount={children.length}
-              filterChild={filterChild}
-            />
-          ) : (
-            <ul className="space-y-3">
-              {comps.map((comp) => (
-                <li key={comp.id}>
-                  <ErrorBoundary>
-                    <CompCard
-                      comp={comp}
-                      saved={isFavourite(comp.id)}
-                      onToggleSave={() => toggleFavourite(comp.id)}
-                      enrolled={isEnrolled(comp.id, activeFilterId)}
-                      onToggleEnrolled={() =>
-                        toggleEnrolled(comp.id, activeFilterId)
-                      }
-                      ageHint={
-                        filterChild && comp.startDate
-                          ? `Age ${ageAsAtCompYear(filterChild.dob, comp.startDate)} as at 1 Jan ${comp.startDate.slice(0, 4)}`
-                          : undefined
-                      }
-                    />
-                  </ErrorBoundary>
-                </li>
-              ))}
-            </ul>
+          <div>
+            <h2 className="text-lg font-bold">Calendar</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Same month layout as the Calendar tab, showing only enrolled
+              comps
+              {filterChild
+                ? ` for ${filterChild.name}`
+                : children.length > 0
+                  ? " for every dancer on this device"
+                  : ""}
+              . Interstate entries stay visible, matching this list.
+            </p>
+          </div>
+          <MonthCalendar
+            comps={calendarComps}
+            enrolledIds={enrolledIds}
+            isEnrolled={isEnrolledForFilter}
+            toggleEnrolled={toggleEnrolledForFilter}
+            isFavourite={isFavourite}
+            emptyMonth={({ monthTitle, hasAnyComps }) =>
+              hasAnyComps ? (
+                <EmptyState
+                  title="Nothing enrolled this month"
+                  body={`No enrolled dates in ${monthTitle}. Swipe or tap next to look at another month.`}
+                />
+              ) : (
+                <MyCompsEmpty
+                  childrenCount={children.length}
+                  filterChild={filterChild}
+                />
+              )
+            }
+          />
+
+          {comps.length === 0 ? null : (
+            <>
+              <DateSortControl value={sortDir} onChange={setSortDir} />
+              <ul className="space-y-3">
+                {comps.map((comp) => (
+                  <li key={comp.id}>
+                    <ErrorBoundary>
+                      <CompCard
+                        comp={comp}
+                        saved={isFavourite(comp.id)}
+                        onToggleSave={() => toggleFavourite(comp.id)}
+                        enrolled={isEnrolled(comp.id, activeFilterId)}
+                        onToggleEnrolled={() =>
+                          toggleEnrolled(comp.id, activeFilterId)
+                        }
+                        ageHint={
+                          filterChild && comp.startDate
+                            ? `Age ${ageAsAtCompYear(filterChild.dob, comp.startDate)} as at 1 Jan ${comp.startDate.slice(0, 4)}`
+                            : undefined
+                        }
+                      />
+                    </ErrorBoundary>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </>
       )}
