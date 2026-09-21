@@ -19,7 +19,7 @@ export function AccountLink() {
 
   return (
     <Link
-      href="/account"
+      href={ready && user ? "/account" : "/login"}
       className={`ml-auto inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-control px-3 text-xs font-bold ${
         active ? "bg-primary-soft text-primary-ink" : "text-primary-ink"
       }`}
