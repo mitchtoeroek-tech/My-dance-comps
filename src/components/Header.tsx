@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountLink } from "./AccountLink";
 import { BrandMark } from "./BrandMark";
 
 export function Header({
@@ -11,7 +12,7 @@ export function Header({
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
-        <Link href="/" className="flex min-h-11 items-center gap-2.5">
+        <Link href="/" className="flex min-h-11 min-w-0 items-center gap-2.5">
           <BrandMark size={44} />
           <div className="min-w-0 leading-tight">
             <p className="text-lg font-bold tracking-tight text-foreground">
@@ -29,6 +30,7 @@ export function Header({
             </p>
           </div>
         </Link>
+        <AccountLink />
       </div>
     </header>
   );

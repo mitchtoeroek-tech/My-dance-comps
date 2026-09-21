@@ -12,6 +12,7 @@ import type {
 } from "./types";
 
 export const STORAGE_KEY = "mydancecomps.family.v1";
+export const LAST_OWNER_KEY = "mydancecomps.lastOwnerId";
 export const LEGACY_STORAGE_KEYS = [
   "mydancecomps.family",
   "mydancecomps.family.v0",
@@ -32,6 +33,7 @@ export const defaultFamilyState: FamilyState = {
   children: [],
   selectedChildId: null,
   favourites: [],
+  enrolled: [],
   includeInterstate: false,
   preferredState: null,
   reminderPrefs: defaultReminderPrefs,
@@ -129,6 +131,7 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     children,
     selectedChildId,
     favourites: asStringArray(raw.favourites),
+    enrolled: asStringArray(raw.enrolled),
     includeInterstate: asBoolean(raw.includeInterstate, false),
     preferredState: derivePreferredState({
       preferredState: isAuStateCode(raw.preferredState)
@@ -202,6 +205,24 @@ export function newId(): string {
     return crypto.randomUUID();
   }
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+export function loadLastOwnerId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(LAST_OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function saveLastOwnerId(id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_OWNER_KEY, id);
+  } catch {
+    /* private mode / quota */
+  }
 }
 
 export function isDateSortDir(value: unknown): value is DateSortDir {

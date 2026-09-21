@@ -18,7 +18,8 @@ export default function KidsPage() {
         <div>
           <h1 className="text-2xl font-bold">Kids</h1>
           <p className="text-sm text-muted-foreground">
-            {state.children.length} of {SOFT_MAX_KIDS} dancer profiles
+            {state.children.length} of {SOFT_MAX_KIDS} dancer profiles. They
+            stay on this device; sign in from Account to sync.
           </p>
         </div>
         {canAddChild ? (
