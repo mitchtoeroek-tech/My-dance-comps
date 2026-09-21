@@ -52,43 +52,41 @@ export function RemindersView() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold">
-        Reminders
-      </h1>
-      <p className="text-sm leading-6 text-[var(--ink-soft)]">
+      <h1 className="text-2xl font-bold">Reminders</h1>
+      <p className="text-sm leading-6 text-muted-foreground">
         Nudges for saved comps, using Australia/Adelaide time. No paid
         notification service — browser alerts only work while this site is open
         (or installed) after you allow them.
       </p>
-      <section className="space-y-2 rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]">
-        <h2 className="font-extrabold text-[var(--ink)]">When to remind me</h2>
-        <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+      <section className="space-y-2 rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
+        <h2 className="font-bold text-foreground">When to remind me</h2>
+        <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold">
           When entries open
           <input
             type="checkbox"
-            className="h-5 w-5 accent-[var(--raspberry)]"
+            className="h-5 w-5 accent-primary"
             checked={prefs.onOpen}
             onChange={(e) =>
               setReminderPrefs({ ...prefs, onOpen: e.target.checked })
             }
           />
         </label>
-        <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+        <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold">
           1 week before entries close
           <input
             type="checkbox"
-            className="h-5 w-5 accent-[var(--raspberry)]"
+            className="h-5 w-5 accent-primary"
             checked={prefs.weekBeforeClose}
             onChange={(e) =>
               setReminderPrefs({ ...prefs, weekBeforeClose: e.target.checked })
             }
           />
         </label>
-        <label className="flex items-center justify-between gap-3 text-sm font-semibold">
+        <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold">
           1 day before entries close
           <input
             type="checkbox"
-            className="h-5 w-5 accent-[var(--raspberry)]"
+            className="h-5 w-5 accent-primary"
             checked={prefs.dayBeforeClose}
             onChange={(e) =>
               setReminderPrefs({ ...prefs, dayBeforeClose: e.target.checked })
@@ -103,24 +101,24 @@ export function RemindersView() {
           onClick={() =>
             downloadIcs("dance-comp-reminders.ics", remindersToIcs(items))
           }
-          className="rounded-full bg-[var(--teal)] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+          className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
         >
           Download .ics
         </button>
         <a
           href={items.length ? mailtoReminders(items) : undefined}
-          className={`rounded-full bg-white px-4 py-2 text-sm font-bold ring-1 ring-[var(--line)] ${
-            items.length ? "text-[var(--ink)]" : "pointer-events-none opacity-50"
+          className={`inline-flex min-h-11 items-center rounded-control bg-surface px-4 py-2 text-sm font-bold ring-1 ring-border ${
+            items.length ? "text-foreground" : "pointer-events-none opacity-50"
           }`}
         >
           Email list
         </a>
         {permission === "unsupported" ? (
-          <p className="text-xs text-[var(--ink-soft)]">
+          <p className="text-xs text-muted-foreground">
             This browser does not support notifications.
           </p>
         ) : permission === "granted" ? (
-          <p className="self-center text-xs font-semibold text-[var(--teal)]">
+          <p className="self-center text-xs font-semibold text-primary-ink">
             Browser notifications on
           </p>
         ) : (
@@ -130,7 +128,7 @@ export function RemindersView() {
               const result = await Notification.requestPermission();
               setRequested(result);
             }}
-            className="rounded-full bg-[var(--gold)] px-4 py-2 text-sm font-bold text-[var(--gold-ink)]"
+            className="min-h-11 rounded-control bg-accent px-4 py-2 text-sm font-bold text-foreground"
           >
             Allow browser notifications
           </button>
@@ -143,7 +141,7 @@ export function RemindersView() {
           action={
             <Link
               href="/"
-              className="inline-flex rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+              className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
               Browse comps
             </Link>
@@ -159,19 +157,19 @@ export function RemindersView() {
           {items.map((item) => (
             <li
               key={item.id}
-              className="rounded-3xl bg-white p-4 ring-1 ring-[var(--line)]"
+              className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
             >
-              <p className="text-xs font-bold uppercase tracking-wide text-[var(--raspberry)]">
+              <p className="text-xs font-bold uppercase tracking-wide text-primary-ink">
                 {item.kind.replace(/-/g, " ")}
               </p>
-              <p className="font-extrabold text-[var(--ink)]">{item.label}</p>
-              <p className="text-sm text-[var(--ink-soft)]">
+              <p className="font-bold text-foreground">{item.label}</p>
+              <p className="text-sm text-muted-foreground">
                 {formatDateTime(item.fireAt)}
               </p>
               <p className="mt-1 text-sm leading-6">{item.detail}</p>
               <Link
                 href={`/comps/${item.compId}`}
-                className="mt-2 inline-block text-sm font-bold text-[var(--teal)]"
+                className="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-primary-ink"
               >
                 View comp
               </Link>

@@ -15,7 +15,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--cream-raised)]/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur-md"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Main"
     >
@@ -30,10 +30,8 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-bold tracking-wide ${
-                  active
-                    ? "text-[var(--raspberry)]"
-                    : "text-[var(--ink-soft)]"
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-bold tracking-wide ${
+                  active ? "text-primary-ink" : "text-muted-foreground"
                 }`}
               >
                 <Icon active={active} />

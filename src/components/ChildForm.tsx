@@ -38,7 +38,7 @@ export function ChildForm({
 
   return (
     <form
-      className="space-y-3 rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]"
+      className="space-y-3 rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
       onSubmit={(e) => {
         e.preventDefault();
         if (!form.name.trim() || !form.dob) {
@@ -57,30 +57,30 @@ export function ChildForm({
         setError("");
       }}
     >
-      <label className="block text-sm font-bold text-[var(--ink)]">
+      <label className="block text-sm font-bold text-foreground">
         Name
         <input
           required
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="mt-1 w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2.5 text-sm font-medium"
+          className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-medium"
           placeholder="e.g. Mia"
         />
       </label>
-      <label className="block text-sm font-bold text-[var(--ink)]">
+      <label className="block text-sm font-bold text-foreground">
         Date of birth
         <input
           required
           type="date"
           value={form.dob}
           onChange={(e) => setForm({ ...form, dob: e.target.value })}
-          className="mt-1 w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2.5 text-sm font-medium"
+          className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-medium"
         />
       </label>
-      <p className="text-xs text-[var(--ink-soft)]">
+      <p className="text-xs text-muted-foreground">
         Age for comps is calculated as at 1 January of the competition year.
       </p>
-      <label className="block text-sm font-bold text-[var(--ink)]">
+      <label className="block text-sm font-bold text-foreground">
         Home state
         <div className="mt-1">
           <StateSelect
@@ -91,17 +91,17 @@ export function ChildForm({
           />
         </div>
       </label>
-      <label className="block text-sm font-bold text-[var(--ink)]">
+      <label className="block text-sm font-bold text-foreground">
         Dance studio
         <input
           value={form.studio}
           onChange={(e) => setForm({ ...form, studio: e.target.value })}
-          className="mt-1 w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2.5 text-sm font-medium"
+          className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-medium"
           placeholder="Optional"
         />
       </label>
       <div>
-        <p className="mb-2 text-sm font-bold text-[var(--ink)]">
+        <p className="mb-2 text-sm font-bold text-foreground">
           Preferred styles
         </p>
         <StyleChecklist
@@ -110,17 +110,17 @@ export function ChildForm({
             setForm({ ...form, styles: styles as DanceStyle[] })
           }
         />
-        <p className="mt-1 text-xs text-[var(--ink-soft)]">
+        <p className="mt-1 text-xs text-muted-foreground">
           Leave blank to match every style.
         </p>
       </div>
       {error ? (
-        <p className="text-sm font-semibold text-[var(--raspberry)]">{error}</p>
+        <p className="text-sm font-semibold text-primary-ink">{error}</p>
       ) : null}
       <div className="flex gap-2">
         <button
           type="submit"
-          className="rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+          className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
         >
           {submitLabel}
         </button>
@@ -128,7 +128,7 @@ export function ChildForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full bg-white px-4 py-2 text-sm font-bold text-[var(--ink)] ring-1 ring-[var(--line)]"
+            className="min-h-11 rounded-control bg-surface px-4 py-2 text-sm font-bold text-foreground ring-1 ring-border"
           >
             Cancel
           </button>

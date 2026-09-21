@@ -21,11 +21,9 @@ export function ResultLog({ childId }: { childId: string }) {
 
   return (
     <section className="space-y-3">
-      <h2 className="font-[family-name:var(--font-display)] text-xl font-extrabold">
-        Results log
-      </h2>
+      <h2 className="text-xl font-bold">Results log</h2>
       <form
-        className="space-y-2 rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]"
+        className="space-y-2 rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
         onSubmit={(e) => {
           e.preventDefault();
           const picked = comps.find((c) => c.id === form.compId);
@@ -55,7 +53,7 @@ export function ResultLog({ childId }: { childId: string }) {
           <select
             value={form.compId}
             onChange={(e) => setForm({ ...form, compId: e.target.value })}
-            className="mt-1 w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+            className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm"
           >
             <option value="">Other / not listed</option>
             {comps.map((comp) => (
@@ -70,7 +68,7 @@ export function ResultLog({ childId }: { childId: string }) {
             value={form.compName}
             onChange={(e) => setForm({ ...form, compName: e.target.value })}
             placeholder="Competition name"
-            className="w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+            className="min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm"
           />
         ) : null}
         <div className="grid grid-cols-2 gap-2">
@@ -78,25 +76,25 @@ export function ResultLog({ childId }: { childId: string }) {
             type="date"
             value={form.date}
             onChange={(e) => setForm({ ...form, date: e.target.value })}
-            className="rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+            className="min-h-11 rounded-control border border-border bg-surface px-3 py-2 text-sm"
           />
           <input
             value={form.section}
             onChange={(e) => setForm({ ...form, section: e.target.value })}
             placeholder="Section e.g. Jazz 8/U"
-            className="rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+            className="min-h-11 rounded-control border border-border bg-surface px-3 py-2 text-sm"
           />
           <input
             value={form.placing}
             onChange={(e) => setForm({ ...form, placing: e.target.value })}
             placeholder="Placing"
-            className="rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+            className="min-h-11 rounded-control border border-border bg-surface px-3 py-2 text-sm"
           />
           <input
             value={form.score}
             onChange={(e) => setForm({ ...form, score: e.target.value })}
             placeholder="Score / crit"
-            className="rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+            className="min-h-11 rounded-control border border-border bg-surface px-3 py-2 text-sm"
           />
         </div>
         <textarea
@@ -104,17 +102,17 @@ export function ResultLog({ childId }: { childId: string }) {
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
           placeholder="Notes for next time"
           rows={2}
-          className="w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2 text-sm"
+          className="w-full rounded-control border border-border bg-surface px-3 py-2 text-sm"
         />
         <button
           type="submit"
-          className="rounded-full bg-[var(--teal)] px-4 py-2 text-sm font-bold text-white"
+          className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
         >
           Add result
         </button>
       </form>
       {results.length === 0 ? (
-        <p className="text-sm text-[var(--ink-soft)]">
+        <p className="text-sm text-muted-foreground">
           No results yet. Pop in placings after the weekend so you remember the
           highlights.
         </p>
@@ -123,26 +121,26 @@ export function ResultLog({ childId }: { childId: string }) {
           {results.map((result) => (
             <li
               key={result.id}
-              className="rounded-2xl bg-white p-3 ring-1 ring-[var(--line)]"
+              className="rounded-card bg-surface p-3 ring-1 ring-border"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-bold text-[var(--ink)]">{result.compName}</p>
-                  <p className="text-sm text-[var(--ink-soft)]">
+                  <p className="font-bold text-foreground">{result.compName}</p>
+                  <p className="text-sm text-muted-foreground">
                     {formatShortDate(result.date)}
                     {result.section ? ` · ${result.section}` : ""}
                   </p>
-                  <p className="text-sm font-semibold text-[var(--raspberry)]">
+                  <p className="text-sm font-semibold text-primary-ink">
                     {[result.placing, result.score].filter(Boolean).join(" · ")}
                   </p>
                   {result.notes ? (
-                    <p className="mt-1 text-sm text-[var(--ink)]">{result.notes}</p>
+                    <p className="mt-1 text-sm text-foreground">{result.notes}</p>
                   ) : null}
                 </div>
                 <button
                   type="button"
                   onClick={() => removeResult(result.id)}
-                  className="text-xs font-bold text-[var(--ink-soft)]"
+                  className="min-h-11 text-xs font-bold text-muted-foreground"
                 >
                   Remove
                 </button>

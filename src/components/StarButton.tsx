@@ -15,7 +15,9 @@ export function StarButton({
       onClick={onClick}
       aria-pressed={saved}
       aria-label={saved ? "Remove from saved" : label}
-      className="grid h-10 w-10 place-items-center rounded-full bg-white/80 text-[var(--gold-ink)] shadow-sm ring-1 ring-[var(--line)]"
+      className={`grid h-11 w-11 place-items-center rounded-full bg-surface shadow-sm ring-1 ring-border ${
+        saved ? "text-primary-ink" : "text-muted-foreground"
+      }`}
     >
       <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
         <path

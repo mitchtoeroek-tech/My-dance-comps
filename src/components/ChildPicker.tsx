@@ -14,10 +14,10 @@ export function ChildPicker() {
       <button
         type="button"
         onClick={() => setSelectedChildId(null)}
-        className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-bold ${
+        className={`min-h-11 shrink-0 rounded-control px-3 py-1.5 text-sm font-bold ${
           !selectedChild
-            ? "bg-[var(--raspberry)] text-white"
-            : "bg-white text-[var(--ink)] ring-1 ring-[var(--line)]"
+            ? "bg-primary text-white"
+            : "bg-surface text-foreground ring-1 ring-border"
         }`}
       >
         Everyone
@@ -27,10 +27,10 @@ export function ChildPicker() {
           key={child.id}
           type="button"
           onClick={() => setSelectedChildId(child.id)}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-bold ${
+          className={`min-h-11 shrink-0 rounded-control px-3 py-1.5 text-sm font-bold ${
             selectedChild?.id === child.id
-              ? "bg-[var(--raspberry)] text-white"
-              : "bg-white text-[var(--ink)] ring-1 ring-[var(--line)]"
+              ? "bg-primary text-white"
+              : "bg-surface text-foreground ring-1 ring-border"
           }`}
         >
           {(child.name || "Dancer").split(" ")[0]}
@@ -49,7 +49,7 @@ export function HomeStateChips({
 }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-extrabold text-[var(--ink)]">Home state</p>
+      <p className="mb-2 text-sm font-bold text-foreground">Home state</p>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {AU_STATES.map((state) => {
           const on = value === state.code;
@@ -59,10 +59,10 @@ export function HomeStateChips({
               type="button"
               aria-pressed={on}
               onClick={() => onChange(state.code)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-bold ${
+              className={`min-h-11 shrink-0 rounded-control px-3 py-1.5 text-sm font-bold ${
                 on
-                  ? "bg-[var(--teal)] text-white"
-                  : "bg-white text-[var(--ink)] ring-1 ring-[var(--line)]"
+                  ? "bg-primary text-white"
+                  : "bg-surface text-foreground ring-1 ring-border"
               }`}
             >
               {state.short}
@@ -85,7 +85,7 @@ export function ChildFilterNote({
 }) {
   if (includeInterstate) {
     return (
-      <p className="text-sm text-[var(--ink-soft)]">
+      <p className="text-sm text-muted-foreground">
         {child
           ? `Showing comps that fit ${child.name}, ${displayAge(child.dob)}${
               child.styles?.length ? ` · ${child.styles.join(", ")}` : ""
@@ -97,7 +97,7 @@ export function ChildFilterNote({
 
   if (child) {
     return (
-      <p className="text-sm text-[var(--ink-soft)]">
+      <p className="text-sm text-muted-foreground">
         Showing {child.homeState} comps and National finals that fit{" "}
         {child.name}, {displayAge(child.dob)}
         {child.styles?.length ? ` · ${child.styles.join(", ")}` : ""}.
@@ -107,7 +107,7 @@ export function ChildFilterNote({
 
   if (homeState) {
     return (
-      <p className="text-sm text-[var(--ink-soft)]">
+      <p className="text-sm text-muted-foreground">
         Showing {homeState} comps and National finals. Select a dancer to also
         filter by age (as at 1 January) and styles.
       </p>
@@ -115,7 +115,7 @@ export function ChildFilterNote({
   }
 
   return (
-    <p className="text-sm text-[var(--ink-soft)]">
+    <p className="text-sm text-muted-foreground">
       Pick a home state or add a dancer. The main list stays local until you
       include interstate comps.
     </p>
@@ -136,17 +136,15 @@ export function InterstateToggle({
       aria-checked={on}
       aria-label="Include interstate comps"
       onClick={() => setIncludeInterstate(!on)}
-      className={`flex w-full items-center justify-between gap-3 rounded-3xl px-4 py-3.5 text-left shadow-[0_8px_24px_-18px_rgba(90,30,50,0.45)] ring-2 transition ${
-        on
-          ? "bg-[var(--teal-soft)] ring-[var(--teal)]"
-          : "bg-white ring-[var(--raspberry)]"
+      className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-card px-4 py-3.5 text-left shadow-card ring-2 transition ${
+        on ? "bg-primary-soft ring-primary" : "bg-surface ring-border"
       }`}
     >
       <span className="min-w-0">
-        <span className="block text-sm font-extrabold text-[var(--ink)]">
+        <span className="block text-sm font-bold text-foreground">
           Include interstate comps
         </span>
-        <span className="mt-0.5 block text-xs font-medium leading-5 text-[var(--ink-soft)]">
+        <span className="mt-0.5 block text-xs font-medium leading-5 text-muted-foreground">
           {on
             ? "On — comps from every Australian state are listed."
             : homeState
@@ -157,7 +155,7 @@ export function InterstateToggle({
       <span
         aria-hidden
         className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-          on ? "bg-[var(--teal)]" : "bg-[var(--muted)]"
+          on ? "bg-primary" : "bg-muted"
         }`}
       >
         <span
@@ -190,10 +188,10 @@ export function StyleChecklist({
                 on ? value.filter((s) => s !== style) : [...value, style],
               )
             }
-            className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+            className={`min-h-11 rounded-control px-2.5 py-1 text-xs font-bold ${
               on
-                ? "bg-[var(--teal)] text-white"
-                : "bg-[var(--muted)] text-[var(--ink)]"
+                ? "bg-primary text-white"
+                : "bg-muted text-foreground"
             }`}
           >
             {style}
@@ -218,7 +216,7 @@ export function StateSelect({
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-2xl border border-[var(--line)] bg-white px-3 py-2.5 text-sm font-semibold text-[var(--ink)]"
+      className="min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-semibold text-foreground"
     >
       {AU_STATES.map((state) => (
         <option key={state.code} value={state.code}>

@@ -18,26 +18,26 @@ export function CompDetail({ comp }: { comp: Competition }) {
     <article className="space-y-4">
       <Link
         href="/"
-        className="text-sm font-bold text-[var(--teal)] hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink hover:underline"
       >
         ← All comps
       </Link>
-      <div className="rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]">
+      <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="mb-2 flex flex-wrap gap-2">
               <StatusPill status={status} />
-              <span className="rounded-full bg-[var(--teal-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--teal)]">
+              <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
                 {comp.isNational ? "National" : comp.state}
               </span>
-              <span className="rounded-full bg-[var(--gold-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--gold-ink)]">
+              <span className="rounded-control bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-foreground">
                 {comp.kind}
               </span>
             </div>
-            <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold leading-tight text-[var(--ink)]">
+            <h1 className="text-2xl font-bold leading-tight text-foreground">
               {comp.name}
             </h1>
-            <p className="mt-1 text-sm font-medium text-[var(--ink-soft)]">
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
               {formatDateRange(comp.startDate, comp.endDate)}
             </p>
           </div>
@@ -49,7 +49,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
             label="Organiser"
             value={
               <a
-                className="font-semibold text-[var(--teal)] underline"
+                className="font-semibold text-primary-ink underline"
                 href={comp.organiserUrl}
                 target="_blank"
                 rel="noreferrer"
@@ -79,21 +79,21 @@ export function CompDetail({ comp }: { comp: Competition }) {
           {(Array.isArray(comp.styles) ? comp.styles : []).map((style) => (
             <span
               key={style}
-              className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-semibold"
+              className="rounded-control bg-muted px-2 py-0.5 text-[11px] font-semibold"
             >
               {style}
             </span>
           ))}
         </div>
         {comp.notes ? (
-          <p className="mt-3 text-sm leading-6 text-[var(--ink)]">{comp.notes}</p>
+          <p className="mt-3 text-sm leading-6 text-foreground">{comp.notes}</p>
         ) : null}
         <div className="mt-4 flex flex-wrap gap-2">
           <a
             href={comp.registrationUrl}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+            className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
           >
             Registration link
           </a>
@@ -101,19 +101,19 @@ export function CompDetail({ comp }: { comp: Competition }) {
             href={comp.infoUrl}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full bg-white px-4 py-2 text-sm font-bold text-[var(--ink)] ring-1 ring-[var(--line)]"
+            className="inline-flex min-h-11 items-center rounded-control bg-surface px-4 py-2 text-sm font-bold text-foreground ring-1 ring-border"
           >
             Organiser info
           </a>
           <button
             type="button"
             onClick={() => downloadIcs(`${comp.id}.ics`, competitionToIcs(comp))}
-            className="rounded-full bg-[var(--teal)] px-4 py-2 text-sm font-bold text-white"
+            className="inline-flex min-h-11 items-center rounded-control bg-accent px-4 py-2 text-sm font-bold text-foreground"
           >
             Add dates to calendar
           </button>
         </div>
-        <p className="mt-3 text-xs text-[var(--ink-soft)]">
+        <p className="mt-3 text-xs text-muted-foreground">
           Saving this comp adds it to Reminders so you can get entry open/close
           nudges. Always confirm dates on the organiser website.
         </p>
@@ -131,8 +131,8 @@ function Row({
 }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-[var(--ink-soft)]">{label}</dt>
-      <dd className="text-right font-semibold text-[var(--ink)]">{value}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-right font-semibold text-foreground">{value}</dd>
     </div>
   );
 }

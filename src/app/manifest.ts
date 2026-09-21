@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Australian youth dance competitions for families — dates, entries, saved comps and reminders.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fbf4ea",
-    theme_color: "#c81e5d",
+    background_color: "#F4FBF8",
+    theme_color: "#7BC4A8",
     lang: "en-AU",
     icons: [
       {

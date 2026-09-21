@@ -20,7 +20,7 @@ export default function KidDetailPage({
     return (
       <div className="space-y-3">
         <p className="font-bold">We could not find that dancer on this device.</p>
-        <Link href="/kids" className="text-[var(--teal)] underline">
+        <Link href="/kids" className="text-primary-ink underline">
           Back to Kids
         </Link>
       </div>
@@ -29,7 +29,10 @@ export default function KidDetailPage({
 
   return (
     <div className="space-y-4">
-      <Link href="/kids" className="text-sm font-bold text-[var(--teal)]">
+      <Link
+        href="/kids"
+        className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink"
+      >
         ← Kids
       </Link>
       {editing ? (
@@ -42,11 +45,9 @@ export default function KidDetailPage({
           onCancel={() => setEditing(false)}
         />
       ) : (
-        <section className="rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]">
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold">
-            {child.name}
-          </h1>
-          <p className="text-sm text-[var(--ink-soft)]">
+        <section className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
+          <h1 className="text-2xl font-bold">{child.name}</h1>
+          <p className="text-sm text-muted-foreground">
             Born {child.dob} · Home state {child.homeState}
           </p>
           {child.studio ? (
@@ -59,7 +60,7 @@ export default function KidDetailPage({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="rounded-full bg-[var(--teal)] px-4 py-2 text-sm font-bold text-white"
+              className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
               Edit
             </button>
@@ -74,7 +75,7 @@ export default function KidDetailPage({
                   removeChild(child.id);
                 }
               }}
-              className="rounded-full bg-white px-4 py-2 text-sm font-bold text-[var(--raspberry)] ring-1 ring-[var(--raspberry-soft)]"
+              className="min-h-11 rounded-control bg-surface px-4 py-2 text-sm font-bold text-primary-ink ring-1 ring-accent"
             >
               Remove
             </button>

@@ -61,7 +61,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search name, suburb, style…"
-          className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm font-medium"
+          className="min-h-11 w-full rounded-control border border-border bg-surface px-4 py-3 text-sm font-medium"
         />
       </label>
       <ChildFilterNote
@@ -70,7 +70,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         includeInterstate={includeInterstate}
       />
       {!ready ? (
-        <p className="text-sm text-[var(--ink-soft)]">Loading your family…</p>
+        <p className="text-sm text-muted-foreground">Loading your family…</p>
       ) : needsStatePrompt ? (
         <EmptyState
           title="Pick a home state"
@@ -79,7 +79,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
             state.children.length === 0 ? (
               <Link
                 href="/kids"
-                className="inline-flex rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+                className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
               >
                 Add a dancer
               </Link>
@@ -89,7 +89,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
       ) : (
         <>
           {state.children.length === 0 ? (
-            <p className="rounded-2xl bg-[var(--gold-soft)] px-3 py-2 text-xs font-semibold text-[var(--gold-ink)]">
+            <p className="rounded-card bg-accent-soft px-3 py-2 text-xs font-semibold text-foreground">
               Add a dancer on the Kids tab to also filter this list by age (as
               at 1 January) and preferred styles.
             </p>
@@ -122,7 +122,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         </>
       )}
       {refreshedAt ? (
-        <p className="text-center text-xs text-[var(--ink-soft)]">
+        <p className="text-center text-xs text-muted-foreground">
           Listings last checked {formatDateTime(refreshedAt)}
           {live ? " from organiser websites." : " from saved seed data."}
         </p>

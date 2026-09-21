@@ -19,24 +19,24 @@ export function CompCard({
   const status = registrationStatus(comp);
   const styles = Array.isArray(comp.styles) ? comp.styles : [];
   return (
-    <article className="relative overflow-hidden rounded-3xl bg-[var(--cream-raised)] p-4 shadow-[0_10px_30px_-18px_rgba(90,30,50,0.45)] ring-1 ring-[var(--line)]">
+    <article className="relative overflow-hidden rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <StatusPill status={status} />
-            <span className="rounded-full bg-[var(--teal-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--teal)]">
+            <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
               {comp.isNational ? "National" : comp.state}
             </span>
           </div>
-          <h2 className="font-[family-name:var(--font-display)] text-lg font-extrabold leading-snug text-[var(--ink)]">
+          <h2 className="text-lg font-bold leading-snug text-foreground">
             <Link href={`/comps/${comp.id}`} className="hover:underline">
               {comp.name}
             </Link>
           </h2>
-          <p className="mt-1 text-sm font-medium text-[var(--ink-soft)]">
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
             {formatDateRange(comp.startDate, comp.endDate)}
           </p>
-          <p className="mt-0.5 text-sm text-[var(--ink-soft)]">
+          <p className="mt-0.5 text-sm text-muted-foreground">
             {comp.suburb}, {comp.state} · {comp.organiser}
           </p>
         </div>
@@ -46,24 +46,24 @@ export function CompCard({
         {styles.slice(0, 5).map((style) => (
           <span
             key={style}
-            className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-semibold text-[var(--ink)]"
+            className="rounded-control bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground"
           >
             {style}
           </span>
         ))}
         {styles.length > 5 ? (
-          <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[11px] font-semibold text-[var(--ink-soft)]">
+          <span className="rounded-control bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
             +{styles.length - 5}
           </span>
         ) : null}
       </div>
       {ageHint ? (
-        <p className="mt-2 text-xs font-medium text-[var(--teal)]">{ageHint}</p>
+        <p className="mt-2 text-xs font-medium text-primary-ink">{ageHint}</p>
       ) : null}
       <div className="mt-3 flex gap-2">
         <Link
           href={`/comps/${comp.id}`}
-          className="rounded-full bg-[var(--raspberry)] px-3 py-1.5 text-xs font-bold text-white"
+          className="inline-flex min-h-11 items-center rounded-control bg-primary px-3 py-1.5 text-xs font-bold text-white"
         >
           Details
         </Link>
@@ -71,7 +71,7 @@ export function CompCard({
           href={comp.registrationUrl}
           target="_blank"
           rel="noreferrer"
-          className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[var(--teal)] ring-1 ring-[var(--teal)]"
+          className="inline-flex min-h-11 items-center rounded-control bg-surface px-3 py-1.5 text-xs font-bold text-primary-ink ring-1 ring-primary"
         >
           Register
         </a>
