@@ -33,7 +33,7 @@ function uniqueIds(ids: string[]): string[] {
 
 /**
  * Comp ids marked Enrolled for one child, or the family union when
- * `childId` is null (All children / Everyone).
+ * `childId` is null (All dancers / Everyone).
  *
  * A child without their own set still sees the legacy family-wide list
  * until they toggle Enrolled for the first time.

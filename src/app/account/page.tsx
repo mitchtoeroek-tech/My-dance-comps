@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { AuthUnavailable } from "@/components/AuthCard";
+import { myDancersLabel } from "@/lib/copy";
 
 export default function AccountPage() {
   const { configured, ready, user, signOut } = useAuth();
@@ -25,7 +26,7 @@ export default function AccountPage() {
         <h1 className="text-2xl font-bold">Account</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           You are using <strong className="font-bold text-foreground">guest mode</strong>.
-          Kids, saved comps, enrolled comps and results stay on this device.
+          Your dancers, saved comps, enrolled comps and results stay on this device.
           Sign in to add friends by email and share enrolled comps. Home still
           works as a guest.
         </p>
@@ -59,13 +60,17 @@ export default function AccountPage() {
         <p className="text-sm font-semibold text-muted-foreground">Signed in as</p>
         <p className="mt-1 text-lg font-bold text-foreground">{email}</p>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          This family’s kids, saved comps, enrolled comps and results sync to
-          your account. Friends live on the account too — open a dancer on Kids
-          to share an invite. Signing out leaves a copy of family data on this
-          device so guest use still works.
+          This family’s dancers, saved comps, enrolled comps and results sync to
+          your account. Friends live on the account too — open a dancer on{" "}
+          {myDancersLabel(state.children.length)} to share an invite. Signing
+          out leaves a copy of family data on this device so guest use still
+          works.
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-          <Stat label="Kids" value={String(state.children.length)} />
+          <Stat
+            label={myDancersLabel(state.children.length)}
+            value={String(state.children.length)}
+          />
           <Stat label="Saved" value={String(state.favourites.length)} />
           <Stat label="Enrolled" value={String(enrolledIdsFor(null).length)} />
           <Stat label="Results" value={String(state.results.length)} />
@@ -82,7 +87,7 @@ export default function AccountPage() {
         href="/kids"
         className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
       >
-        Kids and friends
+        {myDancersLabel(state.children.length)} and friends
       </Link>
       <Link
         href="/"

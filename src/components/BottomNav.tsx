@@ -2,18 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const items = [
-  { href: "/", label: "Comps", icon: CompIcon },
-  { href: "/my-comps", label: "My Comps", icon: MyCompsIcon },
-  { href: "/calendar", label: "Calendar", icon: CalendarIcon },
-  { href: "/kids", label: "Kids", icon: KidsIcon },
-  { href: "/saved", label: "Saved", icon: SavedIcon },
-  { href: "/reminders", label: "Reminders", icon: BellIcon },
-] as const;
+import { useFamily } from "@/context/FamilyContext";
+import { myDancersLabel } from "@/lib/copy";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { state } = useFamily();
+  const childrenCount = Array.isArray(state.children) ? state.children.length : 0;
+  const dancersLabel = myDancersLabel(childrenCount);
+
+  const items = [
+    { href: "/", label: "Comps", icon: CompIcon },
+    { href: "/my-comps", label: "My Comps", icon: MyCompsIcon },
+    { href: "/calendar", label: "Calendar", icon: CalendarIcon },
+    { href: "/kids", label: dancersLabel, icon: KidsIcon },
+    { href: "/saved", label: "Saved", icon: SavedIcon },
+    { href: "/reminders", label: "Reminders", icon: BellIcon },
+  ] as const;
 
   return (
     <nav
@@ -28,13 +33,16 @@ export function BottomNav() {
               ? pathname === "/" || pathname.startsWith("/comps")
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
+          const longLabel = item.href === "/kids";
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 text-[10px] font-bold tracking-wide whitespace-nowrap ${
-                  active ? "text-primary-ink" : "text-muted-foreground"
-                }`}
+                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 font-bold whitespace-nowrap ${
+                  longLabel
+                    ? "text-[9px] tracking-normal"
+                    : "text-[10px] tracking-wide"
+                } ${active ? "text-primary-ink" : "text-muted-foreground"}`}
               >
                 <Icon active={active} />
                 {item.label}

@@ -43,7 +43,7 @@ export default function SignUpPage() {
   return (
     <AuthCard
       title="Create an account"
-      subtitle="Optional. You can keep using My Dance Comps as a guest — an account just syncs kids, saved comps, results and enrolled comps across devices."
+      subtitle="Optional. You can keep using My Dance Comps as a guest — an account just syncs dancers, saved comps, results and enrolled comps across devices."
     >
       <form
         className="space-y-3"

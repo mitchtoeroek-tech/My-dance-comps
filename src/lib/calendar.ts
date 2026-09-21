@@ -181,7 +181,7 @@ export function selectCalendarComps(
 
 /**
  * Enrolled comps for the My Comps month view.
- * Matches the My Comps list (selected child vs All children via enrolledIds).
+ * Matches the My Comps list (selected child vs All dancers via enrolledIds).
  * No home-state / interstate filter — enrolled interstate comps stay visible.
  */
 export function selectEnrolledCalendarComps(

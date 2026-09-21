@@ -71,7 +71,7 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
         <h1 className="text-2xl font-bold">My Comps</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           Competitions you have marked Enrolled. Filter by dancer, or choose
-          All children to see every confirmed entry. When you are signed in,
+          All dancers to see every confirmed entry. When you are signed in,
           friends of that dancer see these enrolments automatically.
         </p>
       </div>
@@ -171,7 +171,7 @@ function MyCompsChildFilter({
     <div
       className="flex gap-2 overflow-x-auto pb-1"
       role="group"
-      aria-label="Filter enrolled comps by child"
+      aria-label="Filter enrolled comps by dancer"
     >
       <button
         type="button"
@@ -183,7 +183,7 @@ function MyCompsChildFilter({
             : "bg-surface text-foreground ring-1 ring-border"
         }`}
       >
-        All children
+        All dancers
       </button>
       {dancers.map((child) => {
         const on = value === child.id;
@@ -218,7 +218,7 @@ function MyCompsEmpty({
     return (
       <EmptyState
         title={`Nothing enrolled for ${filterChild.name} yet`}
-        body={`Mark Enrolled on a competition to see it here. You can do that on the Comps tab with ${filterChild.name.split(" ")[0]} selected, or from a card on this list after choosing All children.`}
+        body={`Mark Enrolled on a competition to see it here. You can do that on the Comps tab with ${filterChild.name.split(" ")[0]} selected, or from a card on this list after choosing All dancers.`}
         action={
           <Link
             href="/"
@@ -235,7 +235,7 @@ function MyCompsEmpty({
     return (
       <EmptyState
         title="No enrolled comps yet"
-        body="Add a dancer on the Kids tab if you like, then Mark Enrolled on a competition to see it here."
+        body="Add a dancer on the My Dancers tab if you like, then Mark Enrolled on a competition to see it here."
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Link

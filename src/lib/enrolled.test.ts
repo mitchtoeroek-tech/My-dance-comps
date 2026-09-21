@@ -60,7 +60,7 @@ test("toggle for a child copies the family list then applies the change", () => 
   assert.deepEqual(second.enrolled, ["comp-a"]);
 });
 
-test("toggle with All children removes a comp from family and every child", () => {
+test("toggle with All dancers removes a comp from family and every child", () => {
   const next = toggleEnrollment(
     ["comp-a", "comp-b"],
     { mia: ["comp-a", "comp-c"], leo: ["comp-c"] },
@@ -72,7 +72,7 @@ test("toggle with All children removes a comp from family and every child", () =
   assert.deepEqual(next.enrolledByChild.leo, ["comp-c"]);
 });
 
-test("toggle with All children adds to the family list only", () => {
+test("toggle with All dancers adds to the family list only", () => {
   const next = toggleEnrollment(["comp-a"], { mia: ["comp-a"] }, "comp-b", null);
   assert.deepEqual(next.enrolled, ["comp-a", "comp-b"]);
   assert.deepEqual(next.enrolledByChild.mia, ["comp-a"]);

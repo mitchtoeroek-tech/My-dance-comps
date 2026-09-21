@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
+import { myDancersLabel } from "@/lib/copy";
 import {
   displayFriendCode,
   lookupFriendByCode,
@@ -91,7 +92,7 @@ function JoinFriendInner() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Add a dance friend</h1>
       <p className="text-sm leading-6 text-muted-foreground">
-        This invite is for another family’s dancer. Pick which of your kids the
+        This invite is for another family’s dancer. Pick which of your dancers the
         friendship is for, then send the request. They need to accept.
       </p>
       <div className="rounded-card bg-surface p-4 text-center shadow-card ring-1 ring-border">
@@ -111,7 +112,7 @@ function JoinFriendInner() {
       </div>
       {state.children.length === 0 ? (
         <p className="rounded-card bg-accent-soft px-4 py-4 text-sm leading-6">
-          Add a dancer on Kids first, then come back to this link.
+          Add a dancer on My Dancers first, then come back to this link.
           <Link href="/kids" className="mt-2 block font-bold text-primary-ink underline">
             Add a dancer
           </Link>
@@ -174,7 +175,7 @@ function JoinFriendInner() {
         </>
       )}
       <Link href="/kids" className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline">
-        Back to Kids
+        Back to {myDancersLabel(state.children.length)}
       </Link>
     </div>
   );

@@ -28,7 +28,7 @@ export default function LogInPage() {
   return (
     <AuthCard
       title="Log in"
-      subtitle="Guest mode stays available on the home screen. Logging in syncs this family’s kids, saved comps, results and enrolled comps."
+      subtitle="Guest mode stays available on the home screen. Logging in syncs this family’s dancers, saved comps, results and enrolled comps."
     >
       <form
         className="space-y-3"
