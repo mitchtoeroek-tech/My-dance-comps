@@ -28,6 +28,7 @@ import {
   ChildPicker,
   HomeStateChips,
   InterstateToggle,
+  type LocationChip,
 } from "./ChildPicker";
 import { EmptyState } from "./EmptyState";
 import { EnrolledButton } from "./EnrolledButton";
@@ -53,6 +54,8 @@ export function CalendarView({
     selectedChild,
     state,
     setPreferredState,
+    setSelectedChildId,
+    setIncludeInterstate,
     isEnrolled,
     toggleEnrolled,
     isFavourite,
@@ -80,20 +83,28 @@ export function CalendarView({
               child,
               homeState,
             },
-            favouriteIds: state.favourites,
-            enrolledIds: state.enrolled ?? [],
           })
         : [],
-    [
-      ready,
-      liveComps,
-      includeInterstate,
-      child,
-      homeState,
-      state.favourites,
-      state.enrolled,
-    ],
+    [ready, liveComps, includeInterstate, child, homeState],
   );
+
+  const locationChip: LocationChip | null = includeInterstate
+    ? "ALL"
+    : homeState;
+
+  const onSelectLocation = (next: LocationChip) => {
+    if (next === "ALL") {
+      setIncludeInterstate(true);
+      setSelectedIso(null);
+      return;
+    }
+    setIncludeInterstate(false);
+    setPreferredState(next);
+    if (selectedChild && selectedChild.homeState !== next) {
+      setSelectedChildId(null);
+    }
+    setSelectedIso(null);
+  };
 
   const cells = useMemo(
     () => monthGrid(month.year, month.month),
@@ -119,6 +130,12 @@ export function CalendarView({
     );
   }, [selectedIso, calendarComps, state.enrolled]);
 
+  useEffect(() => {
+    if (selectedIso && selectedComps.length === 0) {
+      setSelectedIso(null);
+    }
+  }, [selectedIso, selectedComps.length]);
+
   const goPrev = () => setMonth((current) => shiftMonth(current, -1));
   const goNext = () => setMonth((current) => shiftMonth(current, 1));
   const goToday = () => setMonth(monthFromIso(todayIso));
@@ -133,17 +150,19 @@ export function CalendarView({
       <div>
         <h1 className="text-2xl font-bold">Calendar</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Competition dates for the selected dancer’s home state (plus National
-          finals). Dots use the same entry-status colours as the Comps list. Tap
-          Enrolled on a competition card to add a star on these dates. Tap again
-          to un-enrol.
+          Dates for the selected state (plus National finals), matching the
+          Comps list. Tap SA, Vic, NSW, or All to update the month immediately.
+          Dots use the same entry-status colours as Comps. Enrolled comps in
+          this filter get a star.
         </p>
       </div>
 
       <ChildPicker />
-      {!child ? (
-        <HomeStateChips value={homeState} onChange={setPreferredState} />
-      ) : null}
+      <HomeStateChips
+        showAll
+        value={locationChip}
+        onChange={onSelectLocation}
+      />
       <InterstateToggle homeState={homeState} />
       <ChildFilterNote
         child={child}
@@ -272,8 +291,8 @@ export function CalendarView({
           title="Nothing on this calendar yet"
           body={
             homeState || includeInterstate
-              ? "Star a competition or mark one as entered, or turn on interstate comps to see more dates."
-              : "Pick a home state (or add a dancer) so we can show local comps instead of every event in Australia."
+              ? "No matching dates for this state. Try All, another state chip, or a different month."
+              : "Pick a state chip (or All) so we can show dates instead of every event in Australia."
           }
           action={
             <Link

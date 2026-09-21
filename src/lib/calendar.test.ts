@@ -116,7 +116,7 @@ describe("shiftMonth", () => {
 });
 
 describe("selectCalendarComps", () => {
-  const filters = {
+  const saFilters = {
     query: "",
     includeInterstate: false,
     child: saChild,
@@ -125,24 +125,69 @@ describe("selectCalendarComps", () => {
 
   it("keeps home-state comps and does not dump interstate by default", () => {
     const ids = selectCalendarComps(catalogue, {
-      filters,
-      favouriteIds: [],
-      enrolledIds: [],
+      filters: saFilters,
     }).map((comp) => comp.id);
     assert.deepEqual(ids, ["sa-local"]);
     assert.ok(!ids.includes("nsw-local"));
   });
 
-  it("still plots favourites and enrolled comps outside the filter", () => {
+  it("does not plot out-of-state favourites or enrolled comps", () => {
     const ids = selectCalendarComps(catalogue, {
-      filters,
-      favouriteIds: ["vic-fav"],
-      enrolledIds: ["qld-enrolled"],
+      filters: saFilters,
     }).map((comp) => comp.id);
-    assert.ok(ids.includes("sa-local"));
-    assert.ok(ids.includes("vic-fav"));
-    assert.ok(ids.includes("qld-enrolled"));
+    assert.deepEqual(ids, ["sa-local"]);
+    assert.ok(!ids.includes("vic-fav"));
+    assert.ok(!ids.includes("qld-enrolled"));
+  });
+
+  it("VIC chip keeps VIC comps and nationals, not SA/NSW locals", () => {
+    const vicNational = makeComp({
+      id: "vic-national",
+      state: "VIC",
+      isNational: true,
+      startDate: "2026-09-15",
+      endDate: "2026-09-16",
+    });
+    const ids = selectCalendarComps([...catalogue, vicNational], {
+      filters: {
+        query: "",
+        includeInterstate: false,
+        child: null,
+        homeState: "VIC",
+      },
+    }).map((comp) => comp.id);
+    assert.deepEqual(ids.sort(), ["vic-fav", "vic-national"]);
+    assert.ok(!ids.includes("sa-local"));
     assert.ok(!ids.includes("nsw-local"));
+  });
+
+  it("All / interstate-on plots every dated comp", () => {
+    const ids = selectCalendarComps(catalogue, {
+      filters: {
+        query: "",
+        includeInterstate: true,
+        child: null,
+        homeState: null,
+      },
+    }).map((comp) => comp.id);
+    assert.deepEqual(ids.sort(), [
+      "nsw-local",
+      "qld-enrolled",
+      "sa-local",
+      "vic-fav",
+    ]);
+  });
+
+  it("Everyone + SA matches the Comps-list home-state rule", () => {
+    const ids = selectCalendarComps(catalogue, {
+      filters: {
+        query: "",
+        includeInterstate: false,
+        child: null,
+        homeState: "SA",
+      },
+    }).map((comp) => comp.id);
+    assert.deepEqual(ids, ["sa-local"]);
   });
 });
 

@@ -71,7 +71,12 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
     <div className="space-y-4">
       <ChildPicker />
       {!child ? (
-        <HomeStateChips value={homeState} onChange={setPreferredState} />
+        <HomeStateChips
+          value={homeState}
+          onChange={(next) => {
+            if (next !== "ALL") setPreferredState(next);
+          }}
+        />
       ) : null}
       <InterstateToggle homeState={homeState} />
       <label className="block">

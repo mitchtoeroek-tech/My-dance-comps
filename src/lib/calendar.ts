@@ -158,39 +158,20 @@ export function formatDayHeading(iso: string): string {
 }
 
 /**
- * Comps to plot on the month view: the current Comps-list filter
- * (home state / interstate / selected child), plus favourites and
- * enrolled entries so confirmed or starred comps are never hidden.
+ * Comps to plot on the month view — same state / interstate / child
+ * rules as the Comps list. Favourites and enrolled comps only appear
+ * when they also match that location filter (enrolled still gets a star).
  */
 export function selectCalendarComps(
   comps: Competition[],
   options: {
     filters: CompFilters;
-    favouriteIds: string[];
-    enrolledIds: string[];
   },
 ): Competition[] {
-  const list = Array.isArray(comps) ? comps : [];
-  const filtered = filterComps(list, {
+  return filterComps(comps, {
     ...options.filters,
     query: options.filters.query ?? "",
-  });
-  const byId = new Map(list.map((comp) => [comp.id, comp]));
-  const ids = new Set(filtered.map((comp) => comp.id));
-  for (const id of [
-    ...(options.favouriteIds ?? []),
-    ...(options.enrolledIds ?? []),
-  ]) {
-    if (byId.has(id)) ids.add(id);
-  }
-  return [...ids]
-    .map((id) => byId.get(id))
-    .filter((comp): comp is Competition => Boolean(comp?.startDate))
-    .sort(
-      (a, b) =>
-        (a.startDate || "").localeCompare(b.startDate || "") ||
-        a.name.localeCompare(b.name),
-    );
+  }).filter((comp) => Boolean(comp.startDate));
 }
 
 export function compsOnDate(

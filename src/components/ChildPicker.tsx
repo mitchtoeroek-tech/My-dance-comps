@@ -40,17 +40,44 @@ export function ChildPicker() {
   );
 }
 
+export type LocationChip = AuStateCode | "ALL";
+
+const CHIP_CLASS = {
+  on: "bg-primary text-white",
+  off: "bg-surface text-foreground ring-1 ring-border",
+} as const;
+
 export function HomeStateChips({
   value,
   onChange,
+  showAll = false,
 }: {
-  value: AuStateCode | null;
-  onChange: (value: AuStateCode) => void;
+  value: LocationChip | null;
+  onChange: (value: LocationChip) => void;
+  showAll?: boolean;
 }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-bold text-foreground">Home state</p>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <p className="mb-2 text-sm font-bold text-foreground">
+        {showAll ? "State" : "Home state"}
+      </p>
+      <div
+        className="flex gap-2 overflow-x-auto pb-1"
+        role="group"
+        aria-label={showAll ? "Filter by state" : "Home state"}
+      >
+        {showAll ? (
+          <button
+            type="button"
+            aria-pressed={value === "ALL"}
+            onClick={() => onChange("ALL")}
+            className={`min-h-11 shrink-0 rounded-control px-3 py-1.5 text-sm font-bold ${
+              value === "ALL" ? CHIP_CLASS.on : CHIP_CLASS.off
+            }`}
+          >
+            All
+          </button>
+        ) : null}
         {AU_STATES.map((state) => {
           const on = value === state.code;
           return (
@@ -60,9 +87,7 @@ export function HomeStateChips({
               aria-pressed={on}
               onClick={() => onChange(state.code)}
               className={`min-h-11 shrink-0 rounded-control px-3 py-1.5 text-sm font-bold ${
-                on
-                  ? "bg-primary text-white"
-                  : "bg-surface text-foreground ring-1 ring-border"
+                on ? CHIP_CLASS.on : CHIP_CLASS.off
               }`}
             >
               {state.short}
