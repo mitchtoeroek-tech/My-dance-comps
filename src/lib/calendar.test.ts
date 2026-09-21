@@ -3,11 +3,13 @@ import { describe, it } from "node:test";
 import {
   addDaysIso,
   calendarDayIsPast,
+  compsInCalendarMonth,
   compsOnDate,
   eachDateInRange,
   marksForDay,
   monthGrid,
   selectCalendarComps,
+  selectEnrolledCalendarComps,
   shiftMonth,
 } from "./calendar";
 import type { ChildProfile, Competition } from "./types";
@@ -189,6 +191,63 @@ describe("selectCalendarComps", () => {
       },
     }).map((comp) => comp.id);
     assert.deepEqual(ids, ["sa-local"]);
+  });
+});
+
+describe("selectEnrolledCalendarComps", () => {
+  it("plots only enrolled comps, including interstate", () => {
+    const ids = selectEnrolledCalendarComps(catalogue, [
+      "qld-enrolled",
+      "sa-local",
+    ]).map((comp) => comp.id);
+    assert.deepEqual(ids.sort(), ["qld-enrolled", "sa-local"]);
+    assert.ok(!ids.includes("nsw-local"));
+    assert.ok(!ids.includes("vic-fav"));
+  });
+
+  it("matches the My Comps child filter via enrolled ids", () => {
+    const miaIds = selectEnrolledCalendarComps(catalogue, ["sa-local"]).map(
+      (comp) => comp.id,
+    );
+    const allIds = selectEnrolledCalendarComps(catalogue, [
+      "sa-local",
+      "qld-enrolled",
+    ]).map((comp) => comp.id);
+    assert.deepEqual(miaIds, ["sa-local"]);
+    assert.deepEqual(allIds.sort(), ["qld-enrolled", "sa-local"]);
+  });
+
+  it("drops enrolled comps that have no start date", () => {
+    const undated = makeComp({
+      id: "undated-enrolled",
+      startDate: "",
+      endDate: "",
+    });
+    const ids = selectEnrolledCalendarComps([...catalogue, undated], [
+      "undated-enrolled",
+      "sa-local",
+    ]).map((comp) => comp.id);
+    assert.deepEqual(ids, ["sa-local"]);
+  });
+});
+
+describe("compsInCalendarMonth", () => {
+  it("keeps comps that overlap the month and treats other months as empty", () => {
+    const september = compsInCalendarMonth(catalogue, {
+      year: 2026,
+      month: 9,
+    }).map((comp) => comp.id);
+    assert.deepEqual(september.sort(), [
+      "nsw-local",
+      "qld-enrolled",
+      "sa-local",
+      "vic-fav",
+    ]);
+    const october = compsInCalendarMonth(catalogue, {
+      year: 2026,
+      month: 10,
+    });
+    assert.deepEqual(october, []);
   });
 });
 
