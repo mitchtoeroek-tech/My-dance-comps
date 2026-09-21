@@ -16,10 +16,8 @@ export default function KidsPage() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold">
-            Kids
-          </h1>
-          <p className="text-sm text-[var(--ink-soft)]">
+          <h1 className="text-2xl font-bold">Kids</h1>
+          <p className="text-sm text-muted-foreground">
             {state.children.length} of {SOFT_MAX_KIDS} dancer profiles
           </p>
         </div>
@@ -27,12 +25,12 @@ export default function KidsPage() {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+            className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
           >
             Add child
           </button>
         ) : (
-          <p className="max-w-36 text-right text-xs font-semibold text-[var(--ink-soft)]">
+          <p className="max-w-36 text-right text-xs font-semibold text-muted-foreground">
             Soft limit of {SOFT_MAX_KIDS} reached
           </p>
         )}
@@ -56,7 +54,7 @@ export default function KidsPage() {
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className="rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+              className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
               Add first child
             </button>
@@ -68,17 +66,15 @@ export default function KidsPage() {
             <li key={child.id}>
               <Link
                 href={`/kids/${child.id}`}
-                className="block rounded-3xl bg-[var(--cream-raised)] p-4 ring-1 ring-[var(--line)]"
+                className="block rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
                 onClick={() => setSelectedChildId(child.id)}
               >
-                <p className="font-[family-name:var(--font-display)] text-lg font-extrabold">
-                  {child.name}
-                </p>
-                <p className="text-sm text-[var(--ink-soft)]">
+                <p className="text-lg font-bold">{child.name}</p>
+                <p className="text-sm text-muted-foreground">
                   {displayAge(child.dob)} · {child.homeState}
                   {child.studio ? ` · ${child.studio}` : ""}
                 </p>
-                <p className="mt-1 text-sm font-semibold text-[var(--teal)]">
+                <p className="mt-1 text-sm font-semibold text-primary-ink">
                   {child.styles?.length
                     ? child.styles.join(" · ")
                     : "All styles"}

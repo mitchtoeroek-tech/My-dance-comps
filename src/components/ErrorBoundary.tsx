@@ -16,7 +16,7 @@ export class ErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
-          <p className="rounded-3xl bg-white p-4 text-sm text-[var(--ink-soft)] ring-1 ring-[var(--line)]">
+          <p className="rounded-card bg-surface p-4 text-sm text-muted-foreground ring-1 ring-border">
             This item could not be displayed. Try refreshing the page.
           </p>
         )

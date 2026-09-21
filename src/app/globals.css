@@ -1,40 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #fbf4ea;
-  --cream-raised: #fffaf3;
-  --ink: #3a2430;
-  --ink-soft: #6b4f5c;
-  --raspberry: #c81e5d;
-  --raspberry-soft: #f8d5e3;
-  --teal: #0f7a7a;
-  --teal-soft: #d4f1ef;
-  --gold: #f4c95d;
-  --gold-soft: #fbeec4;
-  --gold-ink: #7a4e00;
-  --muted: #f1e6d8;
-  --line: #ead9c8;
-  --background: var(--cream);
-  --foreground: var(--ink);
+  --background: #f4fbf8;
+  --surface: #ffffff;
+  --primary: #7bc4a8;
+  --accent: #f2c4ce;
+  --text: #1f3a34;
+  --text-muted: #5a7a70;
+  --border: rgb(0 0 0 / 8%);
+  --primary-soft: color-mix(in srgb, var(--primary) 28%, white);
+  --primary-ink: color-mix(in srgb, var(--text) 58%, var(--primary));
+  --accent-soft: color-mix(in srgb, var(--accent) 42%, white);
+  --muted: color-mix(in srgb, var(--primary) 12%, white);
+  --status-open: #7bc4a8;
+  --status-open-ink: #1f3a34;
+  --status-opening: color-mix(in srgb, var(--primary) 22%, white);
+  --status-opening-ink: color-mix(in srgb, var(--text) 58%, var(--primary));
+  --status-closing: #f5c89a;
+  --status-closing-ink: #6b4510;
+  --status-closed: #f0b4b4;
+  --status-closed-ink: #7a3a3a;
+  --status-unknown: #e4e6e5;
+  --status-unknown-ink: #5c6562;
+  --radius-card: 18px;
+  --radius-control: 13px;
+  --shadow-card: 0 10px 28px -16px rgb(31 58 52 / 16%);
+  --foreground: var(--text);
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-nunito);
-  --font-display: var(--font-display);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-foreground: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--text-muted);
+  --color-border: var(--border);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-status-open: var(--status-open);
+  --color-status-open-ink: var(--status-open-ink);
+  --color-status-opening: var(--status-opening);
+  --color-status-opening-ink: var(--status-opening-ink);
+  --color-status-closing: var(--status-closing);
+  --color-status-closing-ink: var(--status-closing-ink);
+  --color-status-closed: var(--status-closed);
+  --color-status-closed-ink: var(--status-closed-ink);
+  --color-status-unknown: var(--status-unknown);
+  --color-status-unknown-ink: var(--status-unknown-ink);
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --radius-card: 18px;
+  --radius-control: 13px;
+  --shadow-card: 0 10px 28px -16px rgb(31 58 52 / 16%);
 }
 
 html {
-  background: var(--cream);
+  background: var(--background);
 }
 
 body {
-  background: var(--cream);
-  color: var(--ink);
-  font-family: var(--font-nunito), "Segoe UI", sans-serif;
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
 }
 
 ::selection {
-  background: var(--gold-soft);
+  background: var(--accent);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }

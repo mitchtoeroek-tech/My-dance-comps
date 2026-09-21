@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <p className="py-8 text-center text-sm font-semibold text-[var(--ink-soft)]">
+    <p className="py-8 text-center text-sm font-semibold text-muted-foreground">
       Warming up backstage…
     </p>
   );

@@ -15,21 +15,19 @@ export default function SavedPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-[family-name:var(--font-display)] text-2xl font-extrabold">
-        Saved
-      </h1>
-      <p className="text-sm text-[var(--ink-soft)]">
+      <h1 className="text-2xl font-bold">Saved</h1>
+      <p className="text-sm text-muted-foreground">
         Favourites stay on this device in local storage. Star a comp to include
         it in registration reminders.
       </p>
       {comps.length === 0 ? (
         <EmptyState
           title="Nothing saved yet"
-          body="Tap the gold star on a competition to keep it here."
+          body="Tap the star on a competition to keep it here."
           action={
             <Link
               href="/"
-              className="inline-flex rounded-full bg-[var(--raspberry)] px-4 py-2 text-sm font-bold text-white"
+              className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
               Find comps
             </Link>

@@ -9,15 +9,22 @@ export function Header({
   subtitle?: string;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--cream)]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2.5">
-          <BrandMark size={40} />
-          <div className="leading-tight">
-            <p className="font-[family-name:var(--font-display)] text-lg font-extrabold tracking-tight text-[var(--ink)]">
-              {title ?? "My Dance Comps"}
+        <Link href="/" className="flex min-h-11 items-center gap-2.5">
+          <BrandMark size={44} />
+          <div className="min-w-0 leading-tight">
+            <p className="text-lg font-bold tracking-tight text-foreground">
+              {title ?? (
+                <>
+                  My Dance{" "}
+                  <span className="font-semibold italic text-primary">
+                    Comps
+                  </span>
+                </>
+              )}
             </p>
-            <p className="text-xs font-medium text-[var(--ink-soft)]">
+            <p className="text-xs font-medium text-muted-foreground">
               {subtitle ?? "Australian youth dance competitions"}
             </p>
           </div>
