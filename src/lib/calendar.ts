@@ -65,6 +65,11 @@ export function adelaideTodayIso(now = new Date()): string {
   }).format(now);
 }
 
+/** True when this calendar date is before Adelaide today. */
+export function calendarDayIsPast(iso: string, todayIso: string): boolean {
+  return Boolean(iso && todayIso && iso < todayIso);
+}
+
 export function monthFromIso(iso: string): CalendarMonth {
   const parsed = parseIsoDate(iso) ?? parseIsoDate(adelaideTodayIso())!;
   return { year: parsed.year, month: parsed.month };
