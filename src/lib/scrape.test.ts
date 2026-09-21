@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseAussieDateRange, parseFullOutHtml } from "./scrape";
-import type { CompSource } from "./types";
+import {
+  isBlockedChallengeHtml,
+  mergeComps,
+  parseAussieDateRange,
+  parseFullOutHtml,
+  reconcileLiveWithSeeds,
+} from "./scrape";
+import type { CompSource, Competition } from "./types";
 
 const source: CompSource = {
   id: "full-out",
@@ -121,5 +127,120 @@ describe("parseFullOutHtml", () => {
     const ids = rows.map((row) => row.id).sort();
     assert.deepEqual(ids, ["full-out-adelaide-1-2026", "full-out-state-finals-2026"]);
     assert.equal(rows.find((row) => row.id.includes("adelaide"))?.startDate, "2026-02-20");
+  });
+});
+
+function makeComp(
+  partial: Partial<Competition> & Pick<Competition, "id" | "name" | "sourceId" | "startDate">,
+): Competition {
+  return {
+    kind: "competition",
+    organiser: "Org",
+    organiserUrl: "https://example.com",
+    venue: "Venue",
+    suburb: "Suburb",
+    state: "SA",
+    endDate: partial.endDate ?? partial.startDate,
+    registrationOpens: null,
+    registrationCloses: null,
+    registrationUrl: "https://example.com",
+    infoUrl: "https://example.com",
+    styles: ["Jazz"],
+    minAge: 5,
+    maxAge: 18,
+    isNational: false,
+    notes: "",
+    lastUpdated: "2026-09-21",
+    ...partial,
+  };
+}
+
+describe("mergeComps and reconcileLiveWithSeeds", () => {
+  const fullOut = makeComp({
+    id: "full-out-state-finals-2026",
+    name: "Full Out — State Finals",
+    organiser: "Full Out",
+    sourceId: "full-out",
+    startDate: "2026-12-16",
+    endDate: "2026-12-18",
+    state: "SA",
+    suburb: "Reynella",
+  });
+  const other = makeComp({
+    id: "sasds-eisteddfod-2026",
+    name: "SASDS Eisteddfod 2026",
+    sourceId: "sasds",
+    startDate: "2026-08-01",
+  });
+  const fullOutSource: CompSource = {
+    id: "full-out",
+    name: "Full Out",
+    url: "https://fullout.com.au",
+    scrapeUrl: "https://fullout.com.au/enter/",
+    parser: "full-out",
+    notes: "",
+    region: "National",
+  };
+  const sasdsSource: CompSource = {
+    id: "sasds",
+    name: "South Australian State Dance Sport (SASDS)",
+    url: "https://www.sasds.com.au",
+    scrapeUrl: "https://www.sasds.com.au/information",
+    parser: "sasds",
+    notes: "",
+    region: "SA",
+  };
+
+  it("keeps Full Out seeds when a live scrape omits that source", () => {
+    const merged = mergeComps([fullOut, other], [other]);
+    assert.equal(merged.added, 0);
+    assert.ok(merged.comps.some((row) => row.id === "full-out-state-finals-2026"));
+    assert.equal(merged.comps.length, 2);
+  });
+
+  it("copies CompHQ registration URLs and lastFetchedAt onto existing Full Out seeds", () => {
+    const scraped = makeComp({
+      ...fullOut,
+      registrationUrl: "https://fulloutstatefinals.mycomphq.com.au",
+      lastFetchedAt: "2026-09-21T10:00:00.000Z",
+    });
+    const merged = mergeComps([fullOut], [scraped]);
+    const row = merged.comps.find((item) => item.id === fullOut.id);
+    assert.equal(merged.updated, 1);
+    assert.equal(row?.registrationUrl, "https://fulloutstatefinals.mycomphq.com.au");
+    assert.equal(row?.lastFetchedAt, "2026-09-21T10:00:00.000Z");
+  });
+
+  it("pads scrape status so Full Out still appears after a stale 49-comp cache", () => {
+    const live = {
+      comps: [other],
+      status: {
+        lastRunAt: "2026-09-21T07:21:57.761Z",
+        lastFetchedAt: "2026-09-21T07:21:57.761Z",
+        timezone: "Australia/Adelaide" as const,
+        added: 0,
+        updated: 0,
+        kept: 1,
+        sources: ["✓ South Australian State Dance Sport (SASDS): 0 event(s)"],
+      },
+    };
+    const result = reconcileLiveWithSeeds(
+      [fullOut, other],
+      [sasdsSource, fullOutSource],
+      live,
+    );
+    assert.ok(result.comps.some((row) => row.id === "full-out-state-finals-2026"));
+    const fullOutLine = result.status.sources.find((line) => line.includes("Full Out"));
+    assert.ok(fullOutLine);
+    assert.match(fullOutLine ?? "", /1 seed event\(s\) retained/);
+  });
+});
+
+describe("isBlockedChallengeHtml", () => {
+  it("detects SiteGround captcha stubs so seeds are kept instead of a fake 0-event parse", () => {
+    const stub =
+      '<html><head><meta http-equiv="refresh" content="0;/.well-known/sgcaptcha/?r=%2Fenter%2F"></head></html>';
+    assert.equal(isBlockedChallengeHtml(stub, 202), true);
+    assert.equal(isBlockedChallengeHtml("<h2>Adelaide 1</h2><p>Feb 20-22</p>", 200), false);
   });
 });

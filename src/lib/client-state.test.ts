@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { registrationStatus, normalizeCompetitions } from "./comps";
+import {
+  registrationStatus,
+  normalizeCompetitions,
+  unionCompetitions,
+} from "./comps";
 import {
   formatDateRange,
   formatDateTime,
@@ -167,4 +171,19 @@ test("scraped comps with missing styles still filter and sort", () => {
     },
   });
   assert.ok(filtered.length >= 1);
+});
+
+test("unionCompetitions keeps Full Out seeds when live API returns a stale subset", () => {
+  const fullOut: Competition = {
+    ...sampleComp,
+    id: "full-out-state-finals-2026",
+    name: "Full Out — State Finals",
+    organiser: "Full Out",
+    sourceId: "full-out",
+    startDate: "2026-12-16",
+    endDate: "2026-12-18",
+  };
+  const merged = unionCompetitions([fullOut, sampleComp], [sampleComp]);
+  assert.equal(merged.length, 2);
+  assert.ok(merged.some((row) => row.id === "full-out-state-finals-2026"));
 });

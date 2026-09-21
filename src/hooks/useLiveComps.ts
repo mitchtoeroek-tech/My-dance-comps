@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { normalizeCompetitions } from "@/lib/comps";
+import { normalizeCompetitions, unionCompetitions } from "@/lib/comps";
 import type { Competition } from "@/lib/types";
 
 export function useLiveComps(initialComps: Competition[]) {
-  const [comps, setComps] = useState(() => normalizeCompetitions(initialComps));
+  const [seeds] = useState(() => normalizeCompetitions(initialComps));
+  const [comps, setComps] = useState(seeds);
   const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
   const [live, setLive] = useState(false);
 
@@ -17,7 +18,7 @@ export function useLiveComps(initialComps: Competition[]) {
         if (cancelled || !data?.comps) return;
         const next = normalizeCompetitions(data.comps);
         if (next.length === 0) return;
-        setComps(next);
+        setComps(unionCompetitions(seeds, next));
         setRefreshedAt(
           typeof data.refreshedAt === "string" ? data.refreshedAt : null,
         );
@@ -29,7 +30,7 @@ export function useLiveComps(initialComps: Competition[]) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [seeds]);
 
   return { comps, refreshedAt, live };
 }

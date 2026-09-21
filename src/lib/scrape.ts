@@ -157,7 +157,18 @@ async function fetchHtml(url: string): Promise<string> {
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
-  return res.text();
+  const html = await res.text();
+  if (isBlockedChallengeHtml(html, res.status)) {
+    throw new Error(`Blocked by bot challenge (${res.status}) for ${url}`);
+  }
+  return html;
+}
+
+export function isBlockedChallengeHtml(html: string, status = 200): boolean {
+  return (
+    status === 202 ||
+    /sgcaptcha|sg-captcha|just a moment\.{0,3}please wait/i.test(html)
+  );
 }
 
 function guessState(text: string): AuStateCode {
@@ -644,6 +655,14 @@ export function mergeComps(
       next.suburb = row.suburb;
       changed = true;
     }
+    if (row.registrationUrl && row.registrationUrl !== existing.registrationUrl) {
+      next.registrationUrl = row.registrationUrl;
+      changed = true;
+    }
+    if (row.lastFetchedAt && row.lastFetchedAt !== existing.lastFetchedAt) {
+      next.lastFetchedAt = row.lastFetchedAt;
+      changed = true;
+    }
     if (changed) {
       next.lastUpdated = row.lastUpdated;
       byId.set(existing.id, next);
@@ -654,6 +673,35 @@ export function mergeComps(
     a.startDate.localeCompare(b.startDate),
   );
   return { comps, added, updated };
+}
+
+/** Re-apply the current seed file onto a (possibly stale) live scrape. */
+export function reconcileLiveWithSeeds(
+  seed: Competition[],
+  sources: CompSource[],
+  live: ScrapeResult,
+): ScrapeResult {
+  const { comps, added, updated } = mergeComps(seed, live.comps);
+  const report = [...live.status.sources];
+  for (const source of sources) {
+    if (report.some((line) => line.includes(source.name))) continue;
+    const n = seed.filter((row) => row.sourceId === source.id).length;
+    report.push(
+      n > 0
+        ? `✓ ${source.name}: ${n} seed event(s) retained (missing from last live scrape)`
+        : `✓ ${source.name}: 0 event(s) (not in last live scrape)`,
+    );
+  }
+  return {
+    comps,
+    status: {
+      ...live.status,
+      added,
+      updated,
+      kept: comps.length - added,
+      sources: report,
+    },
+  };
 }
 
 type Parser = (source: CompSource) => Promise<Competition[]>;
@@ -680,10 +728,10 @@ export async function scrapeAll(
       try {
         const parser = parsers[source.parser] ?? parseGeneric;
         const rows = await parser(source);
-        return { name: source.name, rows, error: null as string | null };
+        return { source, rows, error: null as string | null };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        return { name: source.name, rows: [] as Competition[], error: message };
+        return { source, rows: [] as Competition[], error: message };
       }
     }),
   );
@@ -693,16 +741,28 @@ export async function scrapeAll(
       report.push(`✗ ${String(result.reason)}`);
       continue;
     }
-    const { name, rows, error } = result.value;
-    if (error) report.push(`✗ ${name}: ${error}`);
-    else {
-      scraped.push(...rows);
-      const fetched = rows.find((row) => row.lastFetchedAt)?.lastFetchedAt;
+    const { source, rows, error } = result.value;
+    const seedCount = seed.filter((row) => row.sourceId === source.id).length;
+    if (error) {
       report.push(
-        fetched
-          ? `✓ ${name}: ${rows.length} event(s) (lastFetchedAt ${fetched})`
-          : `✓ ${name}: ${rows.length} event(s)`,
+        seedCount > 0
+          ? `✗ ${source.name}: ${error} (${seedCount} seed event(s) retained)`
+          : `✗ ${source.name}: ${error}`,
       );
+      continue;
+    }
+    scraped.push(...rows);
+    const fetched = rows.find((row) => row.lastFetchedAt)?.lastFetchedAt;
+    if (rows.length === 0 && seedCount > 0) {
+      report.push(
+        `✓ ${source.name}: 0 event(s) scraped; ${seedCount} seed event(s) retained`,
+      );
+    } else if (fetched) {
+      report.push(
+        `✓ ${source.name}: ${rows.length} event(s) (lastFetchedAt ${fetched})`,
+      );
+    } else {
+      report.push(`✓ ${source.name}: ${rows.length} event(s)`);
     }
   }
 
