@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ChildForm } from "@/components/ChildForm";
 import { EmptyState } from "@/components/EmptyState";
 import { FamilyPanel } from "@/components/FamilyPanel";
+import { StudioFriendsSection } from "@/components/StudioFriendsSection";
 import { StudioLogo } from "@/components/StudioLogo";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
@@ -42,7 +43,7 @@ export default function KidsPage() {
           <p className="text-sm text-muted-foreground">
             {dancer
               ? "This is your info. Comps and My Comps use it. Join a family from Account if a parent should see you too."
-              : `${state.children.length} of ${SOFT_MAX_KIDS} dancer profiles. They stay on this device until you sign in. Open a dancer to invite their own login, link a studio, or share a friend invite.`}
+              : `${state.children.length} of ${SOFT_MAX_KIDS} dancer profiles. They stay on this device until you sign in. Open a dancer to invite their own login, or link a studio to find friends there.`}
           </p>
         </div>
         {canAddChild ? (
@@ -59,6 +60,7 @@ export default function KidsPage() {
           </p>
         )}
       </div>
+      <StudioFriendsSection />
       {showForm && canAddChild ? (
         <ChildForm
           onSubmit={(child) => {

@@ -148,7 +148,11 @@ export default function KidDetailPage({
           ) : null}
         </>
       )}
-      <FriendsPanel childId={child.id} childName={child.name} />
+      <FriendsPanel
+        childId={child.id}
+        childName={child.name}
+        studioId={child.studioId ?? null}
+      />
       <ResultLog childId={child.id} />
     </div>
   );

@@ -7,7 +7,10 @@ export const FRIEND_CODE_LENGTH = 8;
 
 export const GUEST_FRIENDS_TITLE = "Friends unlock when you sign in";
 export const GUEST_FRIENDS_BODY =
-  "Sign in so your dancer can add friends. You will see the comps a friend has marked Enrolled — not their date of birth.";
+  "Sign in to find friends at your dance studio. Parents can add other parents, and dancers can add other dancers. You will see comps a friend has marked Enrolled — not their date of birth.";
+
+export const NO_STUDIO_FRIENDS_COPY =
+  "Link a dancer to a studio to find friends there";
 
 export type FriendshipStatus = "pending" | "accepted" | "declined" | "removed";
 
@@ -152,10 +155,22 @@ export function friendlyFriendsError(
     return "That dancer is already in this family.";
   }
   if (lower.includes("could not find that dancer")) {
-    return "We could not find that dancer. Check the spelling, or ask for their invite code.";
+    return "That person is not on your studio list.";
+  }
+  if (lower.includes("same account type") || lower.includes("other parents") || lower.includes("other dancers")) {
+    return "You can only add friends with the same account type. Parents add parents, and dancers add dancers.";
+  }
+  if (lower.includes("not at your studio") || lower.includes("inside your studio") || lower.includes("same approved studio")) {
+    return "You can only add friends at the same approved studio.";
+  }
+  if (lower.includes("studio accounts")) {
+    return "Studio accounts do not add friends here.";
+  }
+  if (lower.includes("link a dancer")) {
+    return NO_STUDIO_FRIENDS_COPY + ".";
   }
   if (lower.includes("already friends")) {
-    return "Those dancers are already friends.";
+    return "You are already friends.";
   }
   if (lower.includes("already sent you a request")) {
     return "They already sent you a request — accept it from Friends.";
@@ -167,10 +182,10 @@ export function friendlyFriendsError(
     return "That request is no longer waiting.";
   }
   if (lower.includes("not your request")) {
-    return "Only the other parent can accept or decline that request.";
+    return "Only the person who received the request can accept or decline it.";
   }
   if (lower.includes("not your friend")) {
-    return "Only this family or theirs can remove that friend.";
+    return "Only the two of you can remove that friend.";
   }
   if (lower.includes("could not find that request") || lower.includes("could not find that friend")) {
     return "That friend request is no longer there.";
@@ -396,6 +411,258 @@ export async function shareFriendInvite(input: {
   }
   const copied = await copyText(text);
   return copied ? "copied" : "failed";
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type StudioFriendRole = "parent" | "dancer" | "studio" | "none";
+export type StudioFriendStatus = "none" | "pending_in" | "pending_out" | "accepted";
+
+export interface StudioFriendDancer {
+  childId: string;
+  name: string;
+  enrolledCompIds: string[];
+}
+
+export interface StudioFriendPerson {
+  userId: string;
+  label: string;
+  status: StudioFriendStatus;
+  friendshipId: string | null;
+  childId: string | null;
+  enrolledCompIds: string[];
+  dancers: StudioFriendDancer[];
+}
+
+export interface StudioFriendGroup {
+  studioId: string;
+  studioName: string;
+  people: StudioFriendPerson[];
+}
+
+export interface StudioFriendsDirectory {
+  role: StudioFriendRole;
+  studios: StudioFriendGroup[];
+}
+
+export function friendRolesAllowed(
+  actor: string | null | undefined,
+  target: string | null | undefined,
+): boolean {
+  return (
+    (actor === "parent" && target === "parent") ||
+    (actor === "dancer" && target === "dancer")
+  );
+}
+
+export function emptyStudioFriendsDirectory(): StudioFriendsDirectory {
+  return { role: "none", studios: [] };
+}
+
+function asUuid(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return UUID_RE.test(trimmed) ? trimmed.toLowerCase() : null;
+}
+
+function parseFriendStatus(value: unknown): StudioFriendStatus {
+  if (
+    value === "none" ||
+    value === "pending_in" ||
+    value === "pending_out" ||
+    value === "accepted"
+  ) {
+    return value;
+  }
+  return "none";
+}
+
+function safeFriendLabel(value: unknown, role: StudioFriendRole): string {
+  const label = asString(value).trim();
+  if (!label || label.includes("@")) {
+    return role === "dancer" ? "Dancer" : "Parent";
+  }
+  return label;
+}
+
+function parseStudioFriendDancer(raw: unknown): StudioFriendDancer | null {
+  const row = asRecord(raw);
+  if (!row) return null;
+  const childId = asString(row.child_id || row.childId).trim();
+  const name = asString(row.name).trim();
+  if (!childId || !name || name.includes("@")) return null;
+  return {
+    childId,
+    name,
+    enrolledCompIds: asStringArray(row.enrolled_comp_ids ?? row.enrolledCompIds),
+  };
+}
+
+function parseStudioFriendPerson(
+  raw: unknown,
+  role: StudioFriendRole,
+): StudioFriendPerson | null {
+  const row = asRecord(raw);
+  if (!row) return null;
+  const userId = asUuid(row.user_id ?? row.userId);
+  if (!userId) return null;
+  const status = parseFriendStatus(row.status);
+  const friendshipId = asUuid(row.friendship_id ?? row.friendshipId);
+  const childId = asString(row.child_id || row.childId).trim() || null;
+  const dancers = Array.isArray(row.dancers)
+    ? row.dancers
+        .map(parseStudioFriendDancer)
+        .filter((item): item is StudioFriendDancer => Boolean(item))
+    : [];
+  return {
+    userId,
+    label: safeFriendLabel(row.label ?? row.name, role),
+    status,
+    friendshipId: status === "none" ? null : friendshipId,
+    childId,
+    enrolledCompIds: asStringArray(row.enrolled_comp_ids ?? row.enrolledCompIds),
+    dancers,
+  };
+}
+
+export function parseStudioFriendsDirectory(raw: unknown): StudioFriendsDirectory {
+  const row = asRecord(raw) ?? {};
+  const roleValue = asString(row.role);
+  const role: StudioFriendRole =
+    roleValue === "parent" || roleValue === "dancer" || roleValue === "studio"
+      ? roleValue
+      : "none";
+  const studios = Array.isArray(row.studios) ? row.studios : [];
+  return {
+    role,
+    studios: studios
+      .map((item) => {
+        const studio = asRecord(item);
+        if (!studio) return null;
+        const studioId = asUuid(studio.studio_id ?? studio.studioId);
+        const studioName = asString(studio.studio_name ?? studio.studioName).trim();
+        if (!studioId || !studioName || studioName.includes("@")) return null;
+        const people = Array.isArray(studio.people) ? studio.people : [];
+        return {
+          studioId,
+          studioName,
+          people: people
+            .map((person) => parseStudioFriendPerson(person, role))
+            .filter((person): person is StudioFriendPerson => Boolean(person))
+            .sort((a, b) => a.label.localeCompare(b.label, "en-AU")),
+        };
+      })
+      .filter((studio): studio is StudioFriendGroup => Boolean(studio))
+      .sort((a, b) => a.studioName.localeCompare(b.studioName, "en-AU")),
+  };
+}
+
+export function splitStudioPeople(people: StudioFriendPerson[]): {
+  addable: StudioFriendPerson[];
+  incoming: StudioFriendPerson[];
+  outgoing: StudioFriendPerson[];
+  friends: StudioFriendPerson[];
+} {
+  return {
+    addable: people.filter((person) => person.status === "none"),
+    incoming: people.filter((person) => person.status === "pending_in"),
+    outgoing: people.filter((person) => person.status === "pending_out"),
+    friends: people.filter((person) => person.status === "accepted"),
+  };
+}
+
+export function filterPeopleByQuery(
+  people: StudioFriendPerson[],
+  query: string,
+): StudioFriendPerson[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return people;
+  return people.filter((person) => {
+    if (person.label.toLowerCase().includes(needle)) return true;
+    return person.dancers.some((dancer) =>
+      dancer.name.toLowerCase().includes(needle),
+    );
+  });
+}
+
+export function countIncomingStudioFriends(
+  directory: StudioFriendsDirectory,
+): number {
+  return directory.studios.reduce(
+    (total, studio) =>
+      total + studio.people.filter((person) => person.status === "pending_in").length,
+    0,
+  );
+}
+
+export function enrolledDancersFromDirectory(
+  directory: StudioFriendsDirectory,
+  studioId?: string | null,
+): AcceptedFriend[] {
+  const map = new Map<string, AcceptedFriend>();
+  for (const studio of directory.studios) {
+    if (studioId && studio.studioId !== studioId) continue;
+    for (const person of studio.people) {
+      if (person.status !== "accepted") continue;
+      const dancers =
+        person.dancers.length > 0
+          ? person.dancers
+          : person.childId
+            ? [
+                {
+                  childId: person.childId,
+                  name: person.label,
+                  enrolledCompIds: person.enrolledCompIds,
+                },
+              ]
+            : [];
+      for (const dancer of dancers) {
+        const existing = map.get(dancer.childId);
+        if (!existing) {
+          map.set(dancer.childId, {
+            friendshipId: person.friendshipId ?? dancer.childId,
+            childId: dancer.childId,
+            name: dancer.name,
+            enrolledCompIds: [...dancer.enrolledCompIds],
+          });
+          continue;
+        }
+        const ids = new Set([...existing.enrolledCompIds, ...dancer.enrolledCompIds]);
+        map.set(dancer.childId, {
+          ...existing,
+          enrolledCompIds: [...ids],
+        });
+      }
+    }
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "en-AU"));
+}
+
+export async function loadStudioFriends(): Promise<{
+  directory: StudioFriendsDirectory | null;
+  error: string | null;
+}> {
+  const { data, error } = await rpc<unknown>("list_studio_friends", {});
+  if (error) return { directory: null, error };
+  return { directory: parseStudioFriendsDirectory(data), error: null };
+}
+
+export async function sendStudioFriendRequest(
+  studioId: string,
+  targetUserId: string,
+): Promise<FriendActionResult> {
+  const { data, error } = await rpc<unknown>("send_studio_friend_request", {
+    p_studio_id: studioId,
+    p_target_user_id: targetUserId,
+  });
+  if (error) return { ok: false, error };
+  const row = asRecord(data) ?? {};
+  return {
+    ok: asBoolean(row.ok, true),
+    status: asString(row.status) as FriendshipStatus,
+    friendshipId: asString(row.friendship_id || row.friendshipId) || undefined,
+  };
 }
 
 export async function copyText(value: string): Promise<boolean> {

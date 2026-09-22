@@ -8,9 +8,14 @@ import {
   friendInvitePath,
   friendInviteShareText,
   friendInviteUrl,
+  enrolledDancersFromDirectory,
+  filterPeopleByQuery,
+  friendRolesAllowed,
   friendlyFriendsError,
   GUEST_FRIENDS_BODY,
   GUEST_FRIENDS_TITLE,
+  NO_STUDIO_FRIENDS_COPY,
+  parseStudioFriendsDirectory,
   isValidFriendCode,
   loginPathWithNext,
   normalizeFriendCode,
@@ -167,5 +172,73 @@ test("guest copy and missing-SQL errors are plain English", () => {
     friendlyFriendsError("Could not find the function public.list_friends_for_child"),
     /friends SQL/,
   );
-  assert.equal(friendlyFriendsError("Already friends"), "Those dancers are already friends.");
+  assert.equal(friendlyFriendsError("You are already friends."), "You are already friends.");
+  assert.match(NO_STUDIO_FRIENDS_COPY, /Link a dancer to a studio/);
+  assert.match(GUEST_FRIENDS_BODY, /same account|other parents|other dancers|dance studio/);
+});
+
+const studioA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const userA = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const userB = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const friendshipA = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+
+test("parent and dancer roles cannot friend each other", () => {
+  assert.equal(friendRolesAllowed("parent", "parent"), true);
+  assert.equal(friendRolesAllowed("dancer", "dancer"), true);
+  assert.equal(friendRolesAllowed("parent", "dancer"), false);
+  assert.equal(friendRolesAllowed("dancer", "parent"), false);
+  assert.equal(friendRolesAllowed("studio", "parent"), false);
+  assert.equal(friendRolesAllowed("parent", "studio"), false);
+});
+
+test("studio directory drops emails and keeps same-studio people", () => {
+  const directory = parseStudioFriendsDirectory({
+    role: "parent",
+    studios: [
+      {
+        studio_id: studioA,
+        studio_name: "Mint Studio",
+        people: [
+          {
+            user_id: userA,
+            label: "Parent of Mia",
+            status: "none",
+            email: "hidden@example.com",
+            friendship_id: null,
+          },
+          {
+            user_id: userB,
+            label: "sam@example.com",
+            status: "accepted",
+            friendship_id: friendshipA,
+            dancers: [
+              {
+                child_id: "mia",
+                name: "Mia",
+                enrolled_comp_ids: ["jazz-open"],
+                email: "also-hidden@example.com",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+  assert.equal(directory.role, "parent");
+  assert.equal(directory.studios[0]?.studioName, "Mint Studio");
+  assert.equal(directory.studios[0]?.people[0]?.label, "Parent");
+  assert.equal(directory.studios[0]?.people[1]?.label, "Parent of Mia");
+  assert.equal(
+    JSON.stringify(directory).includes("example.com"),
+    false,
+  );
+  const enrolled = enrolledDancersFromDirectory(directory, studioA);
+  assert.equal(enrolled[0]?.name, "Mia");
+  assert.deepEqual(enrolled[0]?.enrolledCompIds, ["jazz-open"]);
+  const searched = filterPeopleByQuery(
+    directory.studios[0]?.people ?? [],
+    "parent of",
+  );
+  assert.equal(searched.length, 1);
+  assert.equal(searched[0]?.label, "Parent of Mia");
 });

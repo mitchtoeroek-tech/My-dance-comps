@@ -30,8 +30,8 @@ export default function AccountPage() {
         <p className="text-sm leading-6 text-muted-foreground">
           You are using <strong className="font-bold text-foreground">guest mode</strong>.
           Your dancers, enrolled comps and results stay on this device.
-          Sign in to add friends by email and share enrolled comps. Home still
-          works as a guest.
+          Sign in to find friends at your studio and share enrolled comps. Home
+          still works as a guest.
         </p>
         <div className="flex flex-wrap gap-2">
           <Link
@@ -78,7 +78,7 @@ export default function AccountPage() {
             ? "Your studio stays private until My Dance Comps approves it. Add your logo, styles and address, then dancers can link to you once you are approved."
             : account?.role === "dancer"
               ? "Your comps, enrolments, friends and Community follow this login. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
-              : `This family’s dancers, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
+              : `This family’s dancers, enrolled comps and results sync to your account. Friends are other parents at the same studio — open ${myDancersLabel(state.children.length)} once a dancer is linked. Signing out leaves a copy on this device.`}
         </p>
         <nav
           aria-label="Family summary"

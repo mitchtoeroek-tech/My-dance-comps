@@ -112,7 +112,7 @@ export function CommunityThread({ friendshipId }: { friendshipId: string }) {
         <BackLink />
         <h1 className="mt-2 text-2xl font-bold">{friendName}</h1>
         <p className="text-sm text-muted-foreground">
-          Friend of {ownName}. Only the two of you can see this thread.
+          Friends at {ownName}. Only the two of you can see this thread.
         </p>
         <CommunityGuidelines />
       </div>
@@ -131,7 +131,7 @@ export function CommunityThread({ friendshipId }: { friendshipId: string }) {
       >
         {messages.length === 0 ? (
           <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-            No messages yet. Say hello to {friendName}’s parent.
+            No messages yet. Say hello to {friendName}.
           </p>
         ) : (
           messages.map((message) => {

@@ -12,7 +12,7 @@ import {
   communityThreadPath,
   formatCommunityTime,
 } from "@/lib/community";
-import { kidsSectionLabel } from "@/lib/copy";
+import { NO_STUDIO_FRIENDS_COPY } from "@/lib/friends";
 import {
   STUDIO_CHAT_EMPTY_BODY,
   studioChatListPreview,
@@ -20,13 +20,14 @@ import {
   studioCommunityThreadPath,
 } from "@/lib/studio-community";
 
+const NO_STUDIO_FRIENDS_BODY = `${NO_STUDIO_FRIENDS_COPY}. Friend chat is only for accepted friends at that studio.`;
+
 export function CommunityView() {
   const { account } = useAuth();
   const inbox = useCommunityInbox();
   const studios = useStudioChats();
   const dancer = account?.role === "dancer";
-  const { view, conversations, incomingCount, error, childrenCount, firstChildId } =
-    inbox;
+  const { view, conversations, incomingCount, error, hasStudio, role } = inbox;
 
   if (
     view === "guest" ||
@@ -160,8 +161,8 @@ export function CommunityView() {
           Friend chats
         </h2>
         <p className="text-sm leading-6 text-muted-foreground">
-          Open a thread to message the other parent. You will see their
-          dancer’s name, not their email.
+          Open a thread to message an accepted friend from your studio. You
+          will see their name, not their email.
         </p>
 
         {view === "loading" ? (
@@ -176,55 +177,54 @@ export function CommunityView() {
           </p>
         ) : null}
 
-        {view === "ready" && incomingCount > 0 && firstChildId ? (
+        {view === "ready" && incomingCount > 0 ? (
           <p className="rounded-control bg-accent-soft px-3 py-2 text-sm font-semibold">
             {incomingCount === 1
               ? "1 friend request is waiting."
               : `${incomingCount} friend requests are waiting.`}{" "}
-            Accept on{" "}
-            <Link href={`/kids/${firstChildId}`} className="underline">
-              {kidsSectionLabel(account?.role, childrenCount)}
+            <Link href="/kids" className="underline">
+              Accept them on Friends
             </Link>{" "}
             before you can chat.
           </p>
         ) : null}
 
-        {view === "ready" && childrenCount === 0 && studios.role !== "studio" ? (
+        {view === "ready" && !hasStudio && role !== "studio" && studios.role !== "studio" ? (
           <EmptyState
-            title={dancer ? "Set up My Info first" : "Add a dancer first"}
-            body={
-              dancer
-                ? "Friends chat is for accepted friends. Set up My Info, then add a friend from My Comps."
-                : "Friends chat is for accepted friends of your dancers. Add a profile, then add a friend from My Comps or My Dancers."
-            }
+            title={dancer ? "Link your studio first" : "Link a studio first"}
+            body={NO_STUDIO_FRIENDS_BODY}
             action={
               <Link
-                href="/kids"
+                href="/studios"
                 className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
               >
-                {dancer ? "Set up My Info" : "Add a dancer"}
+                Browse studios
               </Link>
             }
           />
         ) : null}
 
         {view === "ready" &&
-        (childrenCount > 0 || studios.role === "studio") &&
+        (hasStudio || role === "studio" || studios.role === "studio") &&
         conversations.length === 0 ? (
           <EmptyState
             title="No friend chats yet"
             body={
-              dancer
-                ? "Add a friend from My Comps or My Info. Once they accept, the conversation shows up here."
-                : "Add a friend from My Comps or My Dancers. Once they accept, the conversation shows up here."
+              role === "studio" || studios.role === "studio"
+                ? "Friend chat is for parent and dancer accounts at the same studio."
+                : dancer
+                  ? "Add another dancer from Friends at your studio. Once they accept, the conversation shows up here."
+                  : "Add another parent from Friends at your studio. Once they accept, the conversation shows up here."
             }
             action={
-              <Link
-                href="/my-comps"
-                className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
-              >
-                Add friends on My Comps
-              </Link>
+              role === "studio" || studios.role === "studio" ? undefined : (
+                <Link
+                  href="/kids"
+                  className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
+                >
+                  Find friends at your studio
+                </Link>
+              )
             }
           />
         ) : null}
@@ -255,7 +255,7 @@ export function CommunityView() {
                       ) : null}
                     </div>
                     <p className="mt-0.5 text-xs font-bold text-primary-ink">
-                      Friend of {row.ownChildName}
+                      Friends at {row.ownChildName}
                     </p>
                     <p className="mt-1 text-sm leading-5 text-muted-foreground">
                       {preview}
