@@ -512,7 +512,7 @@ begin
         'comp_name', r.comp_name,
         'date', r.date,
         'section', r.section,
-        'placing', r.placing,
+        'placing', r."placing",
         'score', r.score,
         'notes', r.notes
       )
@@ -688,7 +688,7 @@ begin
     end if;
     v_result_ids := array_append(v_result_ids, v_result ->> 'id');
     insert into public.results (
-      id, user_id, child_id, comp_id, comp_name, date, section, placing, score, notes
+      id, user_id, child_id, comp_id, comp_name, date, section, "placing", score, notes
     )
     values (
       v_result ->> 'id',
@@ -709,7 +709,7 @@ begin
       comp_name = excluded.comp_name,
       date = excluded.date,
       section = excluded.section,
-      placing = excluded.placing,
+      "placing" = excluded."placing",
       score = excluded.score,
       notes = excluded.notes
     where public.results.child_id = v_child.id;
