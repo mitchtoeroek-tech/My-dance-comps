@@ -7,7 +7,7 @@ export const COMMUNITY_THREAD_LIMIT = 200;
 
 export const GUEST_COMMUNITY_TITLE = "Community unlocks when you sign in";
 export const GUEST_COMMUNITY_BODY =
-  "Sign in to chat with accepted friends. There is no open public chat — only families you have already added as friends.";
+  "Sign in to join your studio chat and to message accepted friends. Studio chat is only for families linked to an approved studio. There is no open public chat.";
 
 const FRIENDSHIP_ID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
