@@ -1,6 +1,7 @@
 import type { AccountProfile } from "./account";
-import { resolveAccountRole } from "./account";
+import { normalizeFamilyCode, resolveAccountRole } from "./account";
 import { friendlyAuthError } from "./auth-errors";
+import { pickUnlinkedInviteChild } from "./family-invite";
 import { getSupabase } from "./supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -235,6 +236,75 @@ export async function unlinkDancer(childId: string): Promise<FamilyActionResult>
   if (error) return { ok: false, error };
   const row = asRecord(data) ?? {};
   return { ok: row.ok !== false, status: asString(row.status) || "unlinked" };
+}
+
+export type DancerInviteApplyResult =
+  | { status: "joined"; childId: string }
+  | { status: "choose"; familyName: string; dancers: FamilyPreviewDancer[] }
+  | { status: "already" }
+  | { status: "error"; error: string };
+
+const inviteApplyInflight = new Map<string, Promise<DancerInviteApplyResult>>();
+
+function alreadyInFamilyMessage(error: string | undefined): boolean {
+  return (error ?? "").toLowerCase().includes("already in a family");
+}
+
+async function applyDancerFamilyInviteOnce(
+  code: string,
+  childId: string,
+): Promise<DancerInviteApplyResult> {
+  const family = normalizeFamilyCode(code);
+  if (!family) {
+    return {
+      status: "error",
+      error:
+        "That family code was not recognised. Check it with your parent and try again.",
+    };
+  }
+  const preview = await previewFamilyCode(family);
+  if (!preview.ok) {
+    return {
+      status: "error",
+      error:
+        preview.error ??
+        "That family code was not recognised. Check it with your parent and try again.",
+    };
+  }
+  const target = pickUnlinkedInviteChild(preview.dancers, childId);
+  if (!target) {
+    return {
+      status: "choose",
+      familyName: preview.familyName,
+      dancers: preview.dancers,
+    };
+  }
+  const joined = await joinFamily(family, target);
+  if (alreadyInFamilyMessage(joined.error)) {
+    return { status: "already" };
+  }
+  if (joined.error || !joined.ok) {
+    return {
+      status: "error",
+      error: joined.error ?? "Could not join that family.",
+    };
+  }
+  return { status: "joined", childId: joined.childId || target };
+}
+
+/** Preview the family, then join the named profile when it is still unlinked. */
+export function applyDancerFamilyInvite(
+  code: string,
+  childId: string,
+): Promise<DancerInviteApplyResult> {
+  const key = `${normalizeFamilyCode(code)}:${childId.trim()}`;
+  const existing = inviteApplyInflight.get(key);
+  if (existing) return existing;
+  const promise = applyDancerFamilyInviteOnce(code, childId).finally(() => {
+    inviteApplyInflight.delete(key);
+  });
+  inviteApplyInflight.set(key, promise);
+  return promise;
 }
 
 export async function leaveFamily(): Promise<FamilyActionResult> {

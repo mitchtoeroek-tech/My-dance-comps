@@ -130,7 +130,7 @@ export function FamilyPanel() {
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           {dancer
             ? "Join your parent's family with their code. You then use the app as yourself — your comps, enrolments, friends and Community."
-            : "Create a family code so a dancer can sign in as themselves and still sit on your My Dancers list. You can keep enrolling for them."}
+            : "Create a family code so a dancer can sign in as themselves and still sit on your My Dancers list. You can keep enrolling for them. Copy a personal invite from each dancer’s page, or use the code here."}
         </p>
       </div>
 
