@@ -48,6 +48,14 @@ export function friendlyFamilyError(
   const message = typeof error === "string" ? error : (error?.message ?? "");
   const lower = message.toLowerCase();
   if (
+    lower.includes("could not find the function") &&
+    (lower.includes("coparent") ||
+      lower.includes("household") ||
+      lower.includes("leave_parent"))
+  ) {
+    return "Co-parent invites are not set up on this project yet. Run the co-parent family SQL in Supabase, then try again.";
+  }
+  if (
     lower.includes("could not find the function") ||
     lower.includes("schema cache") ||
     lower.includes("does not exist") ||
@@ -85,6 +93,36 @@ export function friendlyFamilyError(
   }
   if (lower.includes("not in a family")) {
     return "You are not in a family yet.";
+  }
+  if (lower.includes("co-parent invites are for parent")) {
+    return "Co-parent invites are for a parent account. Dancers use the dancer family code.";
+  }
+  if (lower.includes("co-parent invite was not recognised")) {
+    return "That co-parent invite was not recognised. Check it with the other parent and try again.";
+  }
+  if (lower.includes("already in this family")) {
+    return "That parent is already in this family.";
+  }
+  if (
+    lower.includes("already in another family") ||
+    lower.includes("leave your current family")
+  ) {
+    return "Leave your current family before joining another.";
+  }
+  if (lower.includes("dancer account")) {
+    return "That email is a dancer account. Co-parents need a parent login.";
+  }
+  if (lower.includes("studio account")) {
+    return "That email is a studio account. Co-parents need a parent login.";
+  }
+  if (lower.includes("own email")) {
+    return "That is your own email.";
+  }
+  if (lower.includes("enter the parent")) {
+    return "Enter the parent’s email address.";
+  }
+  if (lower.includes("dancer still has their own login")) {
+    return "A dancer still has their own login in this family. Invite another parent, or remove those logins, before you leave.";
   }
   if (!message) return "Something went wrong. Please try again.";
   return friendlyAuthError(message);
@@ -338,6 +376,141 @@ export function applyDancerFamilyInvite(
 
 export async function leaveFamily(): Promise<FamilyActionResult> {
   const { data, error } = await rpc<unknown>("leave_family");
+  if (error) return { ok: false, error };
+  const row = asRecord(data) ?? {};
+  return { ok: row.ok !== false, status: asString(row.status) || "left" };
+}
+
+export interface FamilyParent {
+  displayName: string;
+  isOwner: boolean;
+  isYou: boolean;
+}
+
+export interface CoparentInvitePreview {
+  ok: boolean;
+  familyName: string;
+  parents: string[];
+  error?: string;
+}
+
+export interface MyCoparentInvite {
+  familyName: string;
+  inviterName: string;
+  code: string;
+}
+
+export async function ensureCoparentInvite(): Promise<FamilyCodeResult> {
+  const { data, error } = await rpc<unknown>("ensure_coparent_invite");
+  if (error) return { ok: false, error };
+  const row = asRecord(data) ?? {};
+  const inviteCode = asString(row.coparent_code);
+  if (!inviteCode) return { ok: false, error: "Could not create a co-parent invite." };
+  return {
+    ok: true,
+    familyId: asString(row.family_id) || undefined,
+    inviteCode,
+  };
+}
+
+export async function listFamilyParents(): Promise<{
+  parents: FamilyParent[];
+  error?: string;
+}> {
+  const { data, error } = await rpc<unknown>("list_family_parents");
+  if (error) return { parents: [], error };
+  const rows = Array.isArray(data) ? data : [];
+  const parents = rows.flatMap((item) => {
+    const row = asRecord(item);
+    const displayName = asString(row?.display_name).trim();
+    if (!displayName) return [];
+    return [
+      {
+        displayName,
+        isOwner: row?.is_owner === true,
+        isYou: row?.is_you === true,
+      },
+    ];
+  });
+  return { parents };
+}
+
+export async function inviteCoparentByEmail(
+  email: string,
+): Promise<FamilyActionResult> {
+  const { data, error } = await rpc<unknown>("invite_coparent_by_email", {
+    p_email: email.trim(),
+  });
+  if (error) return { ok: false, error };
+  const row = asRecord(data) ?? {};
+  return { ok: row.ok !== false, status: asString(row.status) || "pending" };
+}
+
+export async function previewCoparentInvite(
+  code: string,
+): Promise<CoparentInvitePreview> {
+  const { data, error } = await rpc<unknown>("preview_coparent_invite", {
+    p_code: code,
+  });
+  if (error) return { ok: false, familyName: "", parents: [], error };
+  const row = asRecord(data) ?? {};
+  if (row.ok !== true) {
+    return {
+      ok: false,
+      familyName: "",
+      parents: [],
+      error:
+        "That co-parent invite was not recognised. Check it with the other parent and try again.",
+    };
+  }
+  const parents = Array.isArray(row.parents)
+    ? row.parents.filter((name): name is string => typeof name === "string" && name.trim() !== "")
+    : [];
+  return {
+    ok: true,
+    familyName: asString(row.family_name) || "A parent",
+    parents,
+  };
+}
+
+export async function listMyCoparentInvites(): Promise<{
+  invites: MyCoparentInvite[];
+  error?: string;
+}> {
+  const { data, error } = await rpc<unknown>("list_my_coparent_invites");
+  if (error) return { invites: [], error };
+  const rows = Array.isArray(data) ? data : [];
+  const invites = rows.flatMap((item) => {
+    const row = asRecord(item);
+    const code = asString(row?.code);
+    if (!code) return [];
+    return [
+      {
+        code,
+        familyName: asString(row?.family_name) || "A parent",
+        inviterName: asString(row?.inviter_name) || "A parent",
+      },
+    ];
+  });
+  return { invites };
+}
+
+export async function acceptCoparentInvite(
+  code: string,
+): Promise<FamilyActionResult> {
+  const { data, error } = await rpc<unknown>("accept_coparent_invite", {
+    p_code: code,
+  });
+  if (error) return { ok: false, error };
+  const row = asRecord(data) ?? {};
+  return {
+    ok: row.ok !== false,
+    status: asString(row.status) || "joined",
+  };
+}
+
+export async function leaveParentFamily(): Promise<FamilyActionResult> {
+  const { data, error } = await rpc<unknown>("leave_parent_family");
   if (error) return { ok: false, error };
   const row = asRecord(data) ?? {};
   return { ok: row.ok !== false, status: asString(row.status) || "left" };

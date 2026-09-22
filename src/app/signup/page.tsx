@@ -19,7 +19,12 @@ import {
   type AccountRole,
 } from "@/lib/account";
 import { parentSignupName } from "@/lib/chat-label";
-import { familyJoinPath, readDancerInvite } from "@/lib/family-invite";
+import {
+  coparentJoinPath,
+  familyJoinPath,
+  readCoparentInvite,
+  readDancerInvite,
+} from "@/lib/family-invite";
 import { loginPathWithNext, resolveAuthNextPath } from "@/lib/friends";
 
 export default function SignUpPage() {
@@ -43,9 +48,13 @@ function SignUpForm() {
     () => readDancerInvite(searchParams.toString()),
     [searchParams],
   );
+  const coparent = useMemo(
+    () => readCoparentInvite(searchParams.toString()),
+    [searchParams],
+  );
   const { configured, signUp } = useAuth();
   const [roleChoice, setRoleChoice] = useState<AccountRole | null>(null);
-  const role = roleChoice ?? invite?.role ?? "parent";
+  const role = roleChoice ?? (coparent ? "parent" : invite?.role ?? "parent");
   const [loginWithUsername, setLoginWithUsername] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [studioName, setStudioName] = useState("");
@@ -58,9 +67,12 @@ function SignUpForm() {
   const dancer = role === "dancer";
   const studio = role === "studio";
   const usernameLogin = dancer && loginWithUsername;
-  const loginHref = invite
-    ? loginPathWithNext(familyJoinPath(invite.family, invite.childId))
-    : null;
+  const loginHref =
+    coparent && role === "parent"
+      ? loginPathWithNext(coparentJoinPath(coparent.code))
+      : invite
+        ? loginPathWithNext(familyJoinPath(invite.family, invite.childId))
+        : null;
 
   if (!configured) return <AuthUnavailable />;
 
@@ -158,12 +170,20 @@ function SignUpForm() {
             window.location.assign(familyJoinPath(invite.family, invite.childId));
             return;
           }
+          if (coparent && role === "parent") {
+            window.location.assign(coparentJoinPath(coparent.code));
+            return;
+          }
           if (studio) {
             router.push("/studio");
             return;
           }
           const next = resolveAuthNextPath();
-          router.push(next.startsWith("/family/join") ? "/account" : next);
+          if (next.startsWith("/family/join") && !next.includes("coparent=")) {
+            router.push("/account");
+            return;
+          }
+          router.push(next);
         }}
       >
         {invite && dancer ? (
@@ -171,6 +191,13 @@ function SignUpForm() {
             This link is for a dancer login. After you create the account, you
             join the family on the profile your parent chose, if it is still
             free.
+          </p>
+        ) : null}
+        {coparent && role === "parent" ? (
+          <p className="rounded-control bg-primary-soft px-3 py-2 text-sm leading-6 text-primary-ink">
+            This link is for a parent login. After you create the account, you
+            accept the invite and share that family’s dancers, enrolments and
+            results.
           </p>
         ) : null}
         <fieldset>

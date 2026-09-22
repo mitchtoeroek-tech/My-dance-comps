@@ -351,12 +351,67 @@ function asReminderPrefs(value: unknown): ReminderPrefs {
   return normalizeReminderPrefs(value);
 }
 
+export function parseHouseholdScope(
+  raw: unknown,
+  selfId: string,
+): { ownerId: string; familyId: string | null } {
+  const row = asRecord(raw);
+  const ownerId =
+    typeof row?.owner_id === "string" && row.owner_id ? row.owner_id : selfId;
+  const familyId =
+    typeof row?.family_id === "string" && row.family_id ? row.family_id : null;
+  return { ownerId, familyId };
+}
+
+async function loadHouseholdScope(
+  userId: string,
+): Promise<{ ownerId: string; familyId: string | null }> {
+  const supabase = getSupabase();
+  if (!supabase) return { ownerId: userId, familyId: null };
+  const { data, error } = await supabase.rpc("household_scope");
+  if (error) return { ownerId: userId, familyId: null };
+  return parseHouseholdScope(data, userId);
+}
+
+type ScopedError = { message?: string; code?: string } | null;
+
+async function deleteHouseholdRows(
+  familyId: string | null,
+  ownerId: string,
+  selfId: string,
+  run: (familyId: string | null) => PromiseLike<{ error: ScopedError }>,
+): Promise<{ error: ScopedError }> {
+  const first = await run(familyId);
+  if (
+    familyId &&
+    first.error &&
+    isMissingColumn(first.error, "family_id") &&
+    ownerId === selfId
+  ) {
+    return run(null);
+  }
+  return first;
+}
+
+async function scopedRows<T>(
+  familyId: string | null,
+  run: (familyId: string | null) => PromiseLike<{ data: T; error: ScopedError }>,
+): Promise<{ data: T; error: ScopedError }> {
+  const first = await run(familyId);
+  if (familyId && first.error && isMissingColumn(first.error, "family_id")) {
+    return run(null);
+  }
+  return first;
+}
+
 export async function pullFamilyState(
   userId: string,
 ): Promise<FamilyState | null> {
   const supabase = getSupabase();
   if (!supabase) return null;
 
+  const scope = await loadHouseholdScope(userId);
+  const ownerId = scope.ownerId;
   const [
     profileRes,
     childrenRes,
@@ -366,14 +421,40 @@ export async function pullFamilyState(
     resultsRes,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    supabase.from("children").select("*").eq("user_id", userId),
-    supabase.from("enrolled_comps").select("comp_id").eq("user_id", userId),
-    supabase
-      .from("enrolled_by_child")
-      .select("child_id, comp_id")
-      .eq("user_id", userId),
-    supabase.from("enrolled_child_sets").select("child_id").eq("user_id", userId),
-    supabase.from("results").select("*").eq("user_id", userId),
+    scopedRows(scope.familyId, (familyId) => {
+      let query = supabase.from("children").select("*").eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    }),
+    scopedRows(scope.familyId, (familyId) => {
+      let query = supabase
+        .from("enrolled_comps")
+        .select("comp_id")
+        .eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    }),
+    scopedRows(scope.familyId, (familyId) => {
+      let query = supabase
+        .from("enrolled_by_child")
+        .select("child_id, comp_id")
+        .eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    }),
+    scopedRows(scope.familyId, (familyId) => {
+      let query = supabase
+        .from("enrolled_child_sets")
+        .select("child_id")
+        .eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    }),
+    scopedRows(scope.familyId, (familyId) => {
+      let query = supabase.from("results").select("*").eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    }),
   ]);
 
   if (profileRes.error) throw profileRes.error;
@@ -456,6 +537,8 @@ export async function pushFamilyState(
   const supabase = getSupabase();
   if (!supabase) return;
   const next = normalizeFamilyState(state);
+  const scope = await loadHouseholdScope(userId);
+  const ownerId = scope.ownerId;
 
   const profileError = (
     await supabase.from("profiles").upsert({
@@ -469,10 +552,11 @@ export async function pushFamilyState(
   ).error;
   if (profileError) throw profileError;
 
-  const existingChildren = await supabase
-    .from("children")
-    .select("id")
-    .eq("user_id", userId);
+  const existingChildren = await scopedRows(scope.familyId, (familyId) => {
+    let query = supabase.from("children").select("id").eq("user_id", ownerId);
+    if (familyId) query = query.eq("family_id", familyId);
+    return query;
+  });
   if (existingChildren.error) throw existingChildren.error;
   const keepChildren = new Set(next.children.map((child) => child.id));
   const extraChildren = (existingChildren.data ?? [])
@@ -486,7 +570,7 @@ export async function pushFamilyState(
     const upsert = await supabase.from("children").upsert(
       next.children.map((child) => ({
         id: child.id,
-        user_id: userId,
+        user_id: ownerId,
         name: child.name,
         dob: child.dob,
         styles: child.styles,
@@ -499,7 +583,7 @@ export async function pushFamilyState(
       const retry = await supabase.from("children").upsert(
         next.children.map((child) => ({
           id: child.id,
-          user_id: userId,
+          user_id: ownerId,
           name: child.name,
           dob: child.dob,
           styles: child.styles,
@@ -513,10 +597,11 @@ export async function pushFamilyState(
     }
   }
 
-  const existingResults = await supabase
-    .from("results")
-    .select("id")
-    .eq("user_id", userId);
+  const existingResults = await scopedRows(scope.familyId, (familyId) => {
+    let query = supabase.from("results").select("id").eq("user_id", ownerId);
+    if (familyId) query = query.eq("family_id", familyId);
+    return query;
+  });
   if (existingResults.error) throw existingResults.error;
   const keepResults = new Set(next.results.map((result) => result.id));
   const extraResults = (existingResults.data ?? [])
@@ -530,7 +615,7 @@ export async function pushFamilyState(
     const upsert = await supabase.from("results").upsert(
       next.results.map((result) => ({
         id: result.id,
-        user_id: userId,
+        user_id: ownerId,
         child_id: result.childId,
         comp_id: result.compId,
         comp_name: result.compName,
@@ -544,30 +629,45 @@ export async function pushFamilyState(
     if (upsert.error) throw upsert.error;
   }
 
-  const enrolledDelete = await supabase
-    .from("enrolled_comps")
-    .delete()
-    .eq("user_id", userId);
+  const enrolledDelete = await deleteHouseholdRows(
+    scope.familyId,
+    ownerId,
+    userId,
+    (familyId) => {
+      let query = supabase.from("enrolled_comps").delete().eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    },
+  );
   if (enrolledDelete.error) throw enrolledDelete.error;
   if (next.enrolled.length > 0) {
     const insert = await supabase.from("enrolled_comps").insert(
-      next.enrolled.map((compId) => ({ user_id: userId, comp_id: compId })),
+      next.enrolled.map((compId) => ({ user_id: ownerId, comp_id: compId })),
     );
     if (insert.error) throw insert.error;
   }
 
-  const byChildDelete = await supabase
-    .from("enrolled_by_child")
-    .delete()
-    .eq("user_id", userId);
+  const byChildDelete = await deleteHouseholdRows(
+    scope.familyId,
+    ownerId,
+    userId,
+    (familyId) => {
+      let query = supabase
+        .from("enrolled_by_child")
+        .delete()
+        .eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    },
+  );
   if (byChildDelete.error) throw byChildDelete.error;
   const byChildRows: { user_id: string; child_id: string; comp_id: string }[] =
     [];
   const setRows: { user_id: string; child_id: string }[] = [];
   for (const [childId, ids] of Object.entries(next.enrolledByChild ?? {})) {
-    setRows.push({ user_id: userId, child_id: childId });
+    setRows.push({ user_id: ownerId, child_id: childId });
     for (const compId of ids) {
-      byChildRows.push({ user_id: userId, child_id: childId, comp_id: compId });
+      byChildRows.push({ user_id: ownerId, child_id: childId, comp_id: compId });
     }
   }
   if (byChildRows.length > 0) {
@@ -575,10 +675,19 @@ export async function pushFamilyState(
     if (insert.error) throw insert.error;
   }
 
-  const setsDelete = await supabase
-    .from("enrolled_child_sets")
-    .delete()
-    .eq("user_id", userId);
+  const setsDelete = await deleteHouseholdRows(
+    scope.familyId,
+    ownerId,
+    userId,
+    (familyId) => {
+      let query = supabase
+        .from("enrolled_child_sets")
+        .delete()
+        .eq("user_id", ownerId);
+      if (familyId) query = query.eq("family_id", familyId);
+      return query;
+    },
+  );
   if (setsDelete.error) throw setsDelete.error;
   if (setRows.length > 0) {
     const insert = await supabase.from("enrolled_child_sets").insert(setRows);

@@ -12,7 +12,8 @@ import {
   type DancerInviteApplyResult,
   type FamilyPreviewDancer,
 } from "@/lib/family-link";
-import { dancerInvitePath, familyJoinPath, readDancerInvite } from "@/lib/family-invite";
+import { CoparentJoin } from "@/components/CoparentJoin";
+import { dancerInvitePath, familyJoinPath, readCoparentInvite, readDancerInvite } from "@/lib/family-invite";
 import { loginPathWithNext } from "@/lib/friends";
 
 export default function FamilyJoinPage() {
@@ -30,6 +31,16 @@ export default function FamilyJoinPage() {
 }
 
 function FamilyJoinInner() {
+  const searchParams = useSearchParams();
+  const coparent = useMemo(
+    () => readCoparentInvite(searchParams.toString()),
+    [searchParams],
+  );
+  if (coparent) return <CoparentJoin code={coparent.code} />;
+  return <DancerFamilyJoin />;
+}
+
+function DancerFamilyJoin() {
   const searchParams = useSearchParams();
   const invite = useMemo(
     () => readDancerInvite(searchParams.toString()),
