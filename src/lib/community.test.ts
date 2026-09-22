@@ -30,6 +30,7 @@ function friend(partial: Partial<AcceptedFriend> & Pick<AcceptedFriend, "friends
     enrolledCompIds: partial.enrolledCompIds ?? [],
     friendshipId: partial.friendshipId,
     name: partial.name,
+    sibling: partial.sibling,
   };
 }
 
@@ -130,7 +131,28 @@ test("merge conversations is one thread per accepted friendship, newest first", 
   );
   assert.equal(listed[1]?.lastMessage?.body, "later");
   assert.equal(listed[1]?.ownChildName, "Mia");
+  assert.equal(listed[1]?.kind, "child");
   assert.equal(friendChatRelation(listed[1]!), "Friend of Mia");
+});
+
+test("a sibling friendship is labelled Sibling in the inbox", () => {
+  const listed = mergeCommunityConversations(
+    [
+      {
+        ownChildId: "mia",
+        ownChildName: "Mia",
+        friend: friend({
+          friendshipId: threadA,
+          name: "Leo",
+          childId: "leo",
+          sibling: true,
+        }),
+      },
+    ],
+    new Map(),
+  );
+  assert.equal(listed[0]?.kind, "sibling");
+  assert.equal(friendChatRelation(listed[0]!), "Sibling");
 });
 
 test("studio friend threads join the inbox without replacing child chats", () => {

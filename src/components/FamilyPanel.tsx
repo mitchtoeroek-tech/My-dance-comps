@@ -14,6 +14,7 @@ import {
   type FamilyPreviewDancer,
 } from "@/lib/family-link";
 import { copyText } from "@/lib/friends";
+import { SiblingFriendsPanel } from "@/components/SiblingFriendsPanel";
 
 export function FamilyPanel() {
   const { configured, user, account, accountReady, refreshAccount } = useAuth();
@@ -124,6 +125,7 @@ export function FamilyPanel() {
   }
 
   return (
+    <>
     <section className="space-y-3 rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
       <div>
         <h2 className="text-lg font-bold">Family</h2>
@@ -402,5 +404,7 @@ export function FamilyPanel() {
         </div>
       )}
     </section>
+    {dancer && account.linkedChildId ? <SiblingFriendsPanel /> : null}
+    </>
   );
 }

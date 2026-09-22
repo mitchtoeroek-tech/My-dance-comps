@@ -15,10 +15,14 @@ export interface FriendRef {
   friendshipId: string;
   childId: string;
   name: string;
+  /** Same-family dancer pair. Shown on Add sibling, not the studio-friend lists. */
+  sibling?: boolean;
 }
 
 export interface AcceptedFriend extends FriendRef {
   enrolledCompIds: string[];
+  /** Both dancer logins share a family. The chat is between those two accounts. */
+  sibling?: boolean;
 }
 
 export interface FriendsSnapshot {
@@ -176,7 +180,7 @@ export function friendlyFriendsError(
     return "That request is no longer waiting.";
   }
   if (lower.includes("not your request")) {
-    return "Only the other parent can accept or decline that request.";
+    return "Only the other person can accept or decline that request.";
   }
   if (lower.includes("not your friend")) {
     return "Only this family or theirs can remove that friend.";
@@ -195,7 +199,12 @@ function parseFriendRef(raw: unknown): FriendRef | null {
   const childId = asString(row.child_id || row.childId).trim();
   const name = asString(row.name).trim();
   if (!friendshipId || !childId || !name) return null;
-  return { friendshipId, childId, name };
+  return {
+    friendshipId,
+    childId,
+    name,
+    sibling: asBoolean(row.sibling, false) || undefined,
+  };
 }
 
 function parseAcceptedFriend(raw: unknown): AcceptedFriend | null {
@@ -205,7 +214,11 @@ function parseAcceptedFriend(raw: unknown): AcceptedFriend | null {
   const enrolledCompIds = asStringArray(
     row?.enrolled_comp_ids ?? row?.enrolledCompIds,
   );
-  return { ...base, enrolledCompIds };
+  return {
+    ...base,
+    enrolledCompIds,
+    sibling: asBoolean(row?.sibling, false) || undefined,
+  };
 }
 
 export function emptyFriendsSnapshot(): FriendsSnapshot {

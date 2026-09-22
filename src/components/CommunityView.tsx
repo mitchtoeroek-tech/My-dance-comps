@@ -169,7 +169,8 @@ export function CommunityView() {
         </h2>
         <p className="text-sm leading-6 text-muted-foreground">
           Message accepted friends. Add them from a studio chat — parents with
-          parents, dancers with dancers. You will see a name, not an email.
+          parents, dancers with dancers. Siblings with their own dancer logins
+          can add each other from My Info. You will see a name, not an email.
         </p>
 
         {view === "loading" ? (
@@ -213,7 +214,7 @@ export function CommunityView() {
               studios.role === "studio"
                 ? "Friend linking is for parent and dancer accounts at an approved studio."
                 : dancer
-                  ? "Open your studio chat and tap Add to friend another dancer there. Once they accept, the conversation shows up here."
+                  ? "Open your studio chat and tap Add to friend another dancer there, or add a sibling from My Info. Once they accept, the conversation shows up here."
                   : "Open your studio chat and tap Add to friend another parent there. Once they accept, the conversation shows up here."
             }
             action={

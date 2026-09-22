@@ -2,27 +2,24 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { useStudioFriends } from "@/hooks/useStudioFriends";
+import { useAuth } from "@/context/AuthContext";
+import { useSiblingFriends } from "@/hooks/useSiblingFriends";
 import { communityThreadPath } from "@/lib/community";
+import { removeFriendship, respondFriendRequest } from "@/lib/friends";
 import {
-  removeStudioFriend,
-  requestStudioFriend,
-  respondStudioFriend,
-  studioFriendIntro,
-  type StudioFriendPerson,
-} from "@/lib/studio-friends";
+  requestSiblingFriend,
+  type SiblingFriendPerson,
+} from "@/lib/sibling-friends";
 
-export function StudioFriendsPanel({
-  studioId,
-  studioName,
-}: {
-  studioId: string;
-  studioName: string;
-}) {
-  const { view, directory, error, loading, reload } = useStudioFriends(studioId);
+export function SiblingFriendsPanel() {
+  const { account } = useAuth();
+  const dancer = account?.role === "dancer";
+  const linked = Boolean(dancer && account?.familyId && account?.linkedChildId);
+  const { view, directory, error, loading, reload } = useSiblingFriends(linked);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
-  const name = directory?.studioName || studioName;
+
+  if (!dancer) return null;
 
   async function run(
     id: string,
@@ -42,41 +39,45 @@ export function StudioFriendsPanel({
   return (
     <section
       className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
-      aria-labelledby="studio-friends-heading"
+      aria-labelledby="sibling-friends-heading"
     >
-      <h2 id="studio-friends-heading" className="text-lg font-bold">
-        Friends at {name}
+      <h2 id="sibling-friends-heading" className="text-lg font-bold">
+        Add sibling
       </h2>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+        Add a brother or sister who has their own dancer login in this family.
+        When they accept, you can message them in Community — even if you dance
+        at different studios. Parents and dancers still cannot be friends.
+      </p>
 
-      {view === "loading" ? (
-        <p className="mt-2 text-sm font-semibold text-muted-foreground">
-          Loading friends at this studio…
+      {!linked ? (
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          Join your family first. Then a sibling with their own dancer login
+          shows up here.
         </p>
       ) : null}
 
-      {view === "error" ? (
-        <p className="mt-2 rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
-          {error ?? "Friends at this studio could not be loaded."}
+      {linked && view === "loading" ? (
+        <p className="mt-3 text-sm font-semibold text-muted-foreground">
+          Loading siblings…
         </p>
       ) : null}
 
-      {view === "ready" && directory && !directory.canAdd ? (
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {directory.viewerRole === "studio"
-            ? "Friend linking is for parent and dancer logins at this studio. A studio owner is not on that list unless they also have a parent account."
-            : `Add friends here once a parent or dancer login is linked to ${name}.`}
+      {linked && view === "error" ? (
+        <p className="mt-3 rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
+          {error ?? "Siblings could not be loaded."}
         </p>
       ) : null}
 
-      {view === "ready" && directory?.canAdd ? (
-        <div className="mt-2 space-y-4">
-          <p className="text-sm leading-6 text-muted-foreground">
-            {studioFriendIntro(directory.viewerRole, name)}{" "}
-            {directory.viewerRole === "dancer"
-              ? "Same studio only on this list. A sibling in your family can be added from My Info even at another studio."
-              : "Same studio only."}
-          </p>
+      {linked && view === "ready" && directory && !directory.canAdd ? (
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          Sibling friends are for dancer logins that are linked in the same
+          family.
+        </p>
+      ) : null}
 
+      {linked && view === "ready" && directory?.canAdd ? (
+        <div className="mt-3 space-y-4">
           {notice ? (
             <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
               {notice}
@@ -86,7 +87,10 @@ export function StudioFriendsPanel({
           {directory.incoming.length > 0 ? (
             <PersonList title="Waiting for you">
               {directory.incoming.map((person) => (
-                <li key={person.friendshipId ?? person.userId} className="rounded-control bg-accent-soft px-3 py-3 ring-1 ring-border">
+                <li
+                  key={person.friendshipId ?? person.userId}
+                  className="rounded-control bg-accent-soft px-3 py-3 ring-1 ring-border"
+                >
                   <p className="font-bold">{person.label}</p>
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <ActionButton
@@ -94,7 +98,7 @@ export function StudioFriendsPanel({
                       disabled={loading || busyId !== null}
                       onClick={() =>
                         run(person.userId, () =>
-                          respondStudioFriend(person.friendshipId ?? "", true),
+                          respondFriendRequest(person.friendshipId ?? "", true),
                         )
                       }
                     >
@@ -105,7 +109,7 @@ export function StudioFriendsPanel({
                       disabled={loading || busyId !== null}
                       onClick={() =>
                         run(person.userId, () =>
-                          respondStudioFriend(person.friendshipId ?? "", false),
+                          respondFriendRequest(person.friendshipId ?? "", false),
                         )
                       }
                     >
@@ -117,32 +121,23 @@ export function StudioFriendsPanel({
             </PersonList>
           ) : null}
 
-          <PersonList title="Add friends here">
+          <PersonList title="Siblings in your family">
             {directory.suggest.length === 0 ? (
               <li className="text-sm leading-6 text-muted-foreground">
-                {directory.viewerRole === "dancer"
-                  ? "No other dancers to add at this studio right now."
-                  : "No other parents to add at this studio right now."}
+                No other dancer logins in this family yet. A parent can invite
+                them, then they join with the family code.
               </li>
             ) : (
               directory.suggest.map((person) => (
                 <PersonRow key={person.userId} person={person}>
                   <ActionButton
-                    label={
-                      person.sibling
-                        ? `Add sibling ${person.label}`
-                        : `Add ${person.label}`
-                    }
+                    label={`Add sibling ${person.label}`}
                     disabled={loading || busyId !== null}
                     onClick={() =>
-                      run(person.userId, () => requestStudioFriend(studioId, person.userId))
+                      run(person.userId, () => requestSiblingFriend(person.userId))
                     }
                   >
-                    {busyId === person.userId
-                      ? "Adding…"
-                      : person.sibling
-                        ? "Add sibling"
-                        : "Add"}
+                    {busyId === person.userId ? "Adding…" : "Add sibling"}
                   </ActionButton>
                 </PersonRow>
               ))
@@ -157,7 +152,9 @@ export function StudioFriendsPanel({
                     label={`Cancel request to ${person.label}`}
                     disabled={loading || busyId !== null}
                     onClick={() =>
-                      run(person.userId, () => removeStudioFriend(person.friendshipId ?? ""))
+                      run(person.userId, () =>
+                        removeFriendship(person.friendshipId ?? ""),
+                      )
                     }
                   >
                     Cancel
@@ -186,13 +183,13 @@ export function StudioFriendsPanel({
                       onClick={() => {
                         if (
                           !confirm(
-                            `Remove ${person.label} as a friend at ${name}? This chat will close.`,
+                            `Remove ${person.label} as a sibling friend? This chat will close.`,
                           )
                         ) {
                           return;
                         }
                         void run(person.userId, () =>
-                          removeStudioFriend(person.friendshipId ?? ""),
+                          removeFriendship(person.friendshipId ?? ""),
                         );
                       }}
                     >
@@ -209,19 +206,13 @@ export function StudioFriendsPanel({
   );
 }
 
-function PersonList({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function PersonList({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
       <p className="text-xs font-bold uppercase tracking-wide text-primary-ink">
         {title}
       </p>
-      <ul className="mt-2 max-h-64 space-y-2 overflow-y-auto">{children}</ul>
+      <ul className="mt-2 space-y-2">{children}</ul>
     </div>
   );
 }
@@ -230,16 +221,14 @@ function PersonRow({
   person,
   children,
 }: {
-  person: StudioFriendPerson;
+  person: SiblingFriendPerson;
   children: ReactNode;
 }) {
   return (
     <li className="flex items-center justify-between gap-3 rounded-control bg-muted/60 px-3 py-2 ring-1 ring-border">
       <p className="min-w-0 text-sm font-bold text-foreground">
         {person.label}
-        {person.sibling ? (
-          <span className="ml-2 text-xs font-bold text-primary-ink">Sibling</span>
-        ) : null}
+        <span className="ml-2 text-xs font-bold text-primary-ink">Sibling</span>
       </p>
       {children}
     </li>
