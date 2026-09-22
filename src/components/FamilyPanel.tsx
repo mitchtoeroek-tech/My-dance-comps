@@ -150,7 +150,7 @@ export function FamilyPanel() {
           <div className="space-y-2">
             <p className="text-sm font-semibold">
               You are in the family as <span className="font-bold">{linkedName}</span>.
-              Comps, My Comps and friends use your profile. Your parent can still
+              Comps, My Comps and friends use your info. Your parent can still
               enrol you.
             </p>
             <button
@@ -174,7 +174,7 @@ export function FamilyPanel() {
                     return;
                   }
                   setNotice(
-                    "You have left the family. Your profile stays on this login.",
+                    "You have left the family. Your info stays on this login.",
                   );
                   await afterChange();
                 });

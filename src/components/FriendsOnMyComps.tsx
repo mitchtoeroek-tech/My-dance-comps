@@ -6,6 +6,7 @@ import { AddFriendCard } from "@/components/AddFriendCard";
 import { FriendCompsList } from "@/components/FriendCompsList";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useCompsDateSort } from "@/components/DateSortControl";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { useFriendsForChildren } from "@/hooks/useFriends";
 import { useLiveComps } from "@/hooks/useLiveComps";
@@ -20,6 +21,7 @@ export function FriendsOnMyComps({
   filterChildId: string | null;
   filterChild: ChildProfile | null;
 }) {
+  const { account } = useAuth();
   const { state } = useFamily();
   const children = Array.isArray(state.children) ? state.children : [];
   const targetIds = filterChildId
@@ -77,7 +79,9 @@ export function FriendsOnMyComps({
 
       {view === "ready" && children.length === 0 ? (
         <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-          Add a dancer on My Dancers, then you can add friends by email.
+          {account?.role === "dancer"
+            ? "Set up My Info, then you can add friends by email."
+            : "Add a dancer on My Dancers, then you can add friends by email."}
         </p>
       ) : null}
 

@@ -96,6 +96,7 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
             <MyCompsEmpty
               childrenCount={children.length}
               filterChild={filterChild}
+              selfOnly={selfOnly}
             />
           ) : (
             <>
@@ -216,9 +217,11 @@ function MyCompsChildFilter({
 function MyCompsEmpty({
   childrenCount,
   filterChild,
+  selfOnly,
 }: {
   childrenCount: number;
   filterChild: ChildProfile | null;
+  selfOnly: boolean;
 }) {
   if (filterChild) {
     return (
@@ -241,14 +244,18 @@ function MyCompsEmpty({
     return (
       <EmptyState
         title="No enrolled comps yet"
-        body="Add a dancer on the My Dancers tab if you like, then Mark Enrolled on a competition to see it here."
+        body={
+          selfOnly
+            ? "Set up My Info if you like, then Mark Enrolled on a competition to see it here."
+            : "Add a dancer on the My Dancers tab if you like, then Mark Enrolled on a competition to see it here."
+        }
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Link
               href="/kids"
               className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
-              Add a dancer
+              {selfOnly ? "Set up My Info" : "Add a dancer"}
             </Link>
             <Link
               href="/"

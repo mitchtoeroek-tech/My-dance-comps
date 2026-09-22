@@ -8,7 +8,7 @@ import { FamilyPanel } from "@/components/FamilyPanel";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { displayAge } from "@/lib/age";
-import { myDancersLabel } from "@/lib/copy";
+import { kidsSectionLabel } from "@/lib/copy";
 import { SOFT_MAX_KIDS } from "@/lib/storage";
 
 export default function KidsPage() {
@@ -16,7 +16,7 @@ export default function KidsPage() {
   const { state, canAddChild, upsertChild, setSelectedChildId } = useFamily();
   const [showForm, setShowForm] = useState(false);
   const dancer = account?.role === "dancer";
-  const heading = dancer ? "My profile" : myDancersLabel(state.children.length);
+  const heading = kidsSectionLabel(account?.role, state.children.length);
 
   useEffect(() => {
     document.title = `${heading} · My Dance Comps`;
@@ -29,7 +29,7 @@ export default function KidsPage() {
           <h1 className="text-2xl font-bold">{heading}</h1>
           <p className="text-sm text-muted-foreground">
             {dancer
-              ? "This is your dancer profile. Comps and My Comps use it. Join a family from Account if a parent should see you too."
+              ? "This is your info. Comps and My Comps use it. Join a family from Account if a parent should see you too."
               : `${state.children.length} of ${SOFT_MAX_KIDS} dancer profiles. They stay on this device until you sign in. Open a dancer to share a friend invite, or link their own login from Account.`}
           </p>
         </div>
@@ -39,7 +39,7 @@ export default function KidsPage() {
             onClick={() => setShowForm(true)}
             className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
           >
-            {dancer ? "Set up my profile" : "Add a dancer"}
+            {dancer ? "Set up My Info" : "Add a dancer"}
           </button>
         ) : dancer ? null : (
           <p className="max-w-36 text-right text-xs font-semibold text-muted-foreground">
@@ -55,13 +55,13 @@ export default function KidsPage() {
             if (id) setSelectedChildId(id);
           }}
           onCancel={() => setShowForm(false)}
-          submitLabel={dancer ? "Save my profile" : "Add a dancer"}
+          submitLabel={dancer ? "Save My Info" : "Add a dancer"}
         />
       ) : null}
       <FamilyPanel />
       {state.children.length === 0 && !showForm ? (
         <EmptyState
-          title={dancer ? "No profile yet" : "No dancers yet"}
+          title={dancer ? "No info yet" : "No dancers yet"}
           body={
             dancer
               ? "Add your name, date of birth, styles, studio and home state. Then comps can filter for you."
@@ -73,7 +73,7 @@ export default function KidsPage() {
               onClick={() => setShowForm(true)}
               className="min-h-11 rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
-              {dancer ? "Set up my profile" : "Add a dancer"}
+              {dancer ? "Set up My Info" : "Add a dancer"}
             </button>
           }
         />
