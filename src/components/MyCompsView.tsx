@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { ageAsAtCompYear } from "@/lib/age";
 import { selectEnrolledCalendarComps } from "@/lib/calendar";
+import { enrolledDancerFirstNames } from "@/lib/enrolled";
 import { compareCompsByDate } from "@/lib/filter";
 import type { ChildProfile, Competition } from "@/lib/types";
 import { CompCard } from "./CompCard";
@@ -38,6 +39,7 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
       : null;
   const filterChild =
     children.find((child) => child.id === activeFilterId) ?? null;
+  const showEnrolledNames = !selfOnly && !filterChild && children.length > 1;
 
   const enrolledIds = useMemo(() => {
     if (!ready) return [];
@@ -108,6 +110,17 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
                         enrolled={isEnrolled(comp.id, activeFilterId)}
                         onToggleEnrolled={() =>
                           toggleEnrolled(comp.id, activeFilterId)
+                        }
+                        showAddToCalendar
+                        enrolledNames={
+                          showEnrolledNames
+                            ? enrolledDancerFirstNames(
+                                children,
+                                state.enrolled,
+                                state.enrolledByChild,
+                                comp.id,
+                              ).join(", ")
+                            : undefined
                         }
                         ageHint={
                           filterChild && comp.startDate

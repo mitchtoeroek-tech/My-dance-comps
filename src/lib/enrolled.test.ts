@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   dropChildEnrollment,
+  enrolledDancerFirstNames,
   enrolledIdsForChild,
   isCompEnrolled,
   normalizeEnrolledByChild,
@@ -76,6 +77,47 @@ test("toggle with All dancers adds to the family list only", () => {
   const next = toggleEnrollment(["comp-a"], { mia: ["comp-a"] }, "comp-b", null);
   assert.deepEqual(next.enrolled, ["comp-a", "comp-b"]);
   assert.deepEqual(next.enrolledByChild.mia, ["comp-a"]);
+});
+
+test("enrolledDancerFirstNames lists only enrolled dancers, first names, profile order", () => {
+  const children = [
+    { id: "evie", name: "Evie Thompson" },
+    { id: "harriet", name: "Harriet Thompson" },
+    { id: "blank", name: "   " },
+  ];
+  assert.deepEqual(
+    enrolledDancerFirstNames(
+      children,
+      [],
+      { evie: ["comp-a"], harriet: ["comp-b"] },
+      "comp-a",
+    ),
+    ["Evie"],
+  );
+  assert.deepEqual(
+    enrolledDancerFirstNames(
+      children,
+      [],
+      { evie: ["comp-a"], harriet: ["comp-a", "comp-b"] },
+      "comp-a",
+    ),
+    ["Evie", "Harriet"],
+  );
+});
+
+test("enrolledDancerFirstNames uses the family list when a dancer has no own set", () => {
+  const children = [
+    { id: "evie", name: "Evie" },
+    { id: "harriet", name: "Harriet" },
+  ];
+  assert.deepEqual(
+    enrolledDancerFirstNames(children, ["comp-a"], { evie: ["comp-b"] }, "comp-a"),
+    ["Harriet"],
+  );
+  assert.deepEqual(
+    enrolledDancerFirstNames(children, ["comp-a"], {}, "comp-a"),
+    ["Evie", "Harriet"],
+  );
 });
 
 test("dropChildEnrollment removes that dancer's enrolled set", () => {

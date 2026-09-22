@@ -73,6 +73,30 @@ export function enrolledIdsForChild(
   return out;
 }
 
+function dancerFirstName(name: string): string {
+  return name.trim().split(/\s+/)[0] ?? "";
+}
+
+/**
+ * First names of dancers enrolled in one comp, in profile order.
+ * A dancer without their own set still counts via the family-wide list.
+ */
+export function enrolledDancerFirstNames(
+  children: { id: string; name: string }[],
+  enrolled: string[],
+  enrolledByChild: EnrolledByChild | undefined,
+  compId: string,
+): string[] {
+  const names: string[] = [];
+  for (const child of children) {
+    if (!child?.id) continue;
+    if (!isCompEnrolled(enrolled, enrolledByChild, compId, child.id)) continue;
+    const first = dancerFirstName(child.name);
+    if (first) names.push(first);
+  }
+  return names;
+}
+
 export function isCompEnrolled(
   enrolled: string[],
   enrolledByChild: EnrolledByChild | undefined,
