@@ -54,7 +54,7 @@ function SignUpForm() {
   );
   const { configured, signUp } = useAuth();
   const [roleChoice, setRoleChoice] = useState<AccountRole | null>(null);
-  const role = roleChoice ?? (coparent ? "parent" : invite?.role ?? "parent");
+  const role = roleChoice ?? (coparent ? "parent" : invite?.role ?? "dancer");
   const [loginWithUsername, setLoginWithUsername] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [studioName, setStudioName] = useState("");
