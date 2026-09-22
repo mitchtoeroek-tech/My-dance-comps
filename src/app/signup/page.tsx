@@ -26,6 +26,7 @@ export default function SignUpPage() {
   const [role, setRole] = useState<AccountRole>("parent");
   const [loginWithUsername, setLoginWithUsername] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [studioName, setStudioName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +34,7 @@ export default function SignUpPage() {
   const [pending, setPending] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const dancer = role === "dancer";
+  const studio = role === "studio";
   const usernameLogin = dancer && loginWithUsername;
 
   if (!configured) return <AuthUnavailable />;
@@ -54,9 +56,11 @@ export default function SignUpPage() {
     <AuthCard
       title="Create an account"
       subtitle={
-        dancer
-          ? "A dancer login is your own. After you join a family with a parent’s code, comps, My Comps, friends and Community are yours. Your parent can still enrol you."
-          : "A parent account manages the family, enrolments and younger dancers. You can keep browsing as a guest until you sign up."
+        studio
+          ? "A studio account stays private until My Dance Comps approves it. You can add your logo, styles and address while you wait. Dancers can link to you once you are approved."
+          : dancer
+            ? "A dancer login is your own. After you join a family with a parent’s code, comps, My Comps, friends and Community are yours. Your parent can still enrol you."
+            : "A parent account manages the family, enrolments and younger dancers. You can keep browsing as a guest until you sign up."
       }
     >
       <form
@@ -82,12 +86,21 @@ export default function SignUpPage() {
             setError("Add your name so your parent can see who joined.");
             return;
           }
+          const trimmedStudio = studioName.trim();
+          if (studio && trimmedStudio.length < 2) {
+            setError("Add your studio name.");
+            return;
+          }
           setPending(true);
           const result = await signUp(
             loginEmail,
             password,
-            trimmedName,
-            { role, username: dancerUsername },
+            studio ? trimmedStudio : trimmedName,
+            {
+              role,
+              username: dancerUsername,
+              studioName: studio ? trimmedStudio : undefined,
+            },
           );
           setPending(false);
           if (result.error) {
@@ -98,12 +111,12 @@ export default function SignUpPage() {
             setNeedsConfirmation(true);
             return;
           }
-          router.push(resolveAuthNextPath());
+          router.push(studio ? "/studio" : resolveAuthNextPath());
         }}
       >
         <fieldset>
           <legend className="text-sm font-bold text-foreground">I am a</legend>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="mt-2 grid grid-cols-3 gap-2">
             <RoleChoice
               pressed={role === "parent"}
               onClick={() => {
@@ -119,16 +132,36 @@ export default function SignUpPage() {
             >
               Dancer
             </RoleChoice>
+            <RoleChoice
+              pressed={role === "studio"}
+              onClick={() => {
+                setRole("studio");
+                setLoginWithUsername(false);
+              }}
+            >
+              Studio
+            </RoleChoice>
           </div>
         </fieldset>
-        <AuthField
-          id="display-name"
-          label={dancer ? "Your name" : "Your name (optional)"}
-          value={displayName}
-          onChange={setDisplayName}
-          autoComplete="name"
-          required={dancer}
-        />
+        {studio ? (
+          <AuthField
+            id="studio-name"
+            label="Studio name"
+            value={studioName}
+            onChange={setStudioName}
+            autoComplete="organization"
+            required
+          />
+        ) : (
+          <AuthField
+            id="display-name"
+            label={dancer ? "Your name" : "Your name (optional)"}
+            value={displayName}
+            onChange={setDisplayName}
+            autoComplete="name"
+            required={dancer}
+          />
+        )}
         {dancer ? (
           <fieldset>
             <legend className="text-sm font-bold text-foreground">Log in with</legend>
@@ -181,7 +214,7 @@ export default function SignUpPage() {
         />
         <AuthError message={error} />
         <AuthSubmit pending={pending}>
-          {dancer ? "Create dancer login" : "Sign up"}
+          {studio ? "Create studio account" : dancer ? "Create dancer login" : "Sign up"}
         </AuthSubmit>
       </form>
       <div className="mt-4 space-y-2">

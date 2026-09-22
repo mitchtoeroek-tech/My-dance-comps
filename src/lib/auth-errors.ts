@@ -36,6 +36,12 @@ export function friendlyAuthError(
   if (lower.includes("signup is disabled")) {
     return "New accounts are paused. You can still use the app as a guest.";
   }
+  if (
+    lower.includes("profiles_role_check") ||
+    (lower.includes("role") && lower.includes("check constraint"))
+  ) {
+    return "Studio sign-up is not switched on yet. Run the studio accounts SQL in Supabase, then try again.";
+  }
   if (lower.includes("same password")) {
     return "Choose a new password that is different from the current one.";
   }

@@ -9,7 +9,11 @@ import {
   useState,
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import type { AccountProfile, AccountRole } from "@/lib/account";
+import {
+  parseAccountRole,
+  type AccountProfile,
+  type AccountRole,
+} from "@/lib/account";
 import { loginIdentifierToEmail } from "@/lib/account";
 import { friendlyAuthError } from "@/lib/auth-errors";
 import { claimFamilyInvites, loadAccountProfile } from "@/lib/family-link";
@@ -18,6 +22,7 @@ import { authRedirectTo, getSupabase, isSupabaseConfigured } from "@/lib/supabas
 interface SignUpMeta {
   role?: AccountRole;
   username?: string;
+  studioName?: string;
 }
 
 interface AuthContextValue {
@@ -138,8 +143,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ...(displayName?.trim()
               ? { display_name: displayName.trim() }
               : {}),
-            role: meta?.role === "dancer" ? "dancer" : "parent",
+            role: parseAccountRole(meta?.role),
             ...(meta?.username ? { username: meta.username } : {}),
+            ...(meta?.studioName?.trim()
+              ? { studio_name: meta.studioName.trim() }
+              : {}),
           },
         },
       });
