@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AddFriendCard } from "@/components/AddFriendCard";
+import { SiblingFriendsPanel } from "@/components/SiblingFriendsPanel";
 import { FriendCompsList } from "@/components/FriendCompsList";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useAuth } from "@/context/AuthContext";
@@ -66,18 +67,19 @@ export function FriendsPanel({
       <FriendsHeading />
       <p className="text-sm leading-6 text-muted-foreground">
         {dancer
-          ? "Add other dancers from your studio chat. Accepted dancer friends can still share comps they marked Enrolled — not their date of birth."
+          ? "Add other dancers from your studio chat, or add a sibling below if they have their own dancer login in your family. Accepted dancer friends can still share comps they marked Enrolled — not their date of birth."
           : "Add other parents from your studio chat. You only add people at that studio, and never a dancer. Older dancer friendships can still share comps marked Enrolled — not their date of birth."}
       </p>
+      {dancer ? <SiblingFriendsPanel /> : null}
       {error ? (
         <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
           {error}
         </p>
       ) : null}
-      {snapshot.incoming.length > 0 ? (
+      {snapshot.incoming.some((item) => !item.sibling) ? (
         <IncomingList
           childName={childName}
-          incoming={snapshot.incoming}
+          incoming={snapshot.incoming.filter((item) => !item.sibling)}
           busy={loading}
           onRespond={async (id, accept) => {
             const result = await respondFriendRequest(id, accept);
@@ -121,9 +123,9 @@ export function FriendsPanel({
           </div>
         </details>
       ) : null}
-      {snapshot.outgoing.length > 0 ? (
+      {snapshot.outgoing.some((item) => !item.sibling) ? (
         <OutgoingList
-          outgoing={snapshot.outgoing}
+          outgoing={snapshot.outgoing.filter((item) => !item.sibling)}
           busy={loading}
           onCancel={async (id) => {
             const result = await removeFriendship(id);
@@ -143,6 +145,7 @@ export function FriendsPanel({
         }}
       />
       <AcceptedFriends
+        dancer={dancer}
         friends={snapshot.friends}
         comps={comps}
         sortDir={sortDir}
@@ -313,12 +316,14 @@ function ShareEnrolledToggle({
 }
 
 function AcceptedFriends({
+  dancer,
   friends,
   comps,
   sortDir,
   busy,
   onRemove,
 }: {
+  dancer: boolean;
   friends: {
     friendshipId: string;
     name: string;
@@ -334,7 +339,9 @@ function AcceptedFriends({
   if (friends.length === 0) {
     return (
       <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-        No friends yet. Share the invite above, or add a friend by email.
+        {dancer
+          ? "No friends yet. Add a sibling above, or add dancers from your studio chat."
+          : "No friends yet. Add other parents from your studio chat."}
       </p>
     );
   }

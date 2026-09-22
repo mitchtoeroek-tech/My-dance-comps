@@ -54,6 +54,7 @@ test("studio friend directory drops emails and keeps role-locked rows", () => {
   assert.equal(directory.canAdd, true);
   assert.equal(directory.suggest.length, 1);
   assert.equal(directory.suggest[0]?.label, "Parent of Mia and Leo");
+  assert.equal(directory.suggest[0]?.sibling, undefined);
   assert.equal(directory.incoming[0]?.label, "Parent");
   assert.equal(directory.outgoing.length, 0);
   const text = JSON.stringify(directory);
@@ -62,7 +63,19 @@ test("studio friend directory drops emails and keeps role-locked rows", () => {
   assert.equal(text.includes("2014-01-01"), false);
   assert.match(studioFriendIntro("parent", "Mint Studio"), /other parents/);
   assert.match(studioFriendIntro("dancer", "Mint Studio"), /first names/);
+  assert.match(studioFriendIntro("dancer", "Mint Studio"), /My Info/);
   assert.match(studioFriendIntro("studio", "Mint Studio"), /parent and dancer/);
+});
+
+test("a same-family dancer is marked as a sibling on the studio list", () => {
+  const directory = parseStudioFriendDirectory({
+    studio_name: "Mint Studio",
+    viewer_role: "dancer",
+    can_add: true,
+    suggest: [{ user_id: parentA, label: "Leo", sibling: true }],
+  });
+  assert.equal(directory.suggest[0]?.sibling, true);
+  assert.equal(directory.suggest[0]?.label, "Leo");
 });
 
 test("a studio owner cannot add friends from the directory", () => {

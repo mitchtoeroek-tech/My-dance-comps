@@ -6,6 +6,8 @@ export interface StudioFriendPerson {
   userId: string;
   label: string;
   friendshipId: string | null;
+  /** Dancer login in the same family. Still a same-studio friend on this list. */
+  sibling?: boolean;
 }
 
 export interface StudioFriendDirectory {
@@ -113,6 +115,7 @@ function parsePerson(
     userId,
     label: safeFriendLabel(asString(row.label), friendLabelFallback(role)),
     friendshipId: hasFriendship ? friendshipId : null,
+    sibling: asBoolean(row.sibling, false) || undefined,
   };
 }
 
@@ -165,7 +168,7 @@ export function studioFriendIntro(
 ): string {
   const studio = studioName.trim() || "this studio";
   if (role === "dancer") {
-    return `Add other dancers at ${studio}. You will see first names, not email addresses.`;
+    return `Add other dancers at ${studio}. A brother or sister in your family can also be added from My Info, even at another studio. You will see first names, not email addresses.`;
   }
   if (role === "parent") {
     return `Add other parents at ${studio}. You will see "Parent of …", not email addresses.`;

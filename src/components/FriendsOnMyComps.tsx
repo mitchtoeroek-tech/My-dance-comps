@@ -74,7 +74,7 @@ export function FriendsOnMyComps({
       {view === "ready" && children.length === 0 ? (
         <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
           {account?.role === "dancer"
-            ? "Set up My Info, then add other dancers from your studio chat."
+            ? "Set up My Info, then add other dancers from your studio chat or add a sibling in your family."
             : "Add a dancer on My Dancers. To add other parents, open your studio chat."}
         </p>
       ) : null}

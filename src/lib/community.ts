@@ -32,7 +32,7 @@ export interface CommunityConversation {
   ownChildName: string;
   lastMessage: CommunityMessage | null;
   /** Studio-page friendships message the other account, not a child profile. */
-  kind?: "child" | "studio";
+  kind?: "child" | "studio" | "sibling";
   studioName?: string;
 }
 
@@ -153,16 +153,18 @@ export function mergeCommunityConversations(
       ownChildId: row.ownChildId,
       ownChildName: row.ownChildName,
       lastMessage: lastByThread.get(friendshipId) ?? null,
+      kind: row.friend.sibling ? "sibling" : "child",
     });
   }
   return sortCommunityConversations(Array.from(map.values()));
 }
 
 export function friendChatRelation(row: {
-  kind?: "child" | "studio";
+  kind?: "child" | "studio" | "sibling";
   ownChildName: string;
   studioName?: string;
 }): string {
+  if (row.kind === "sibling") return "Sibling";
   if (row.kind === "studio") {
     const studio = row.studioName?.trim() || row.ownChildName.trim() || "your studio";
     return `Friends at ${studio}`;

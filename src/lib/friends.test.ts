@@ -97,6 +97,7 @@ test("parseFriendsSnapshot keeps enrolled ids and drops empty rows", () => {
         child_id: "ava",
         name: "Ava",
         enrolled_comp_ids: ["jazz-open", "tap-classic"],
+        sibling: true,
       },
       { friendship_id: "", child_id: "skip", name: "Skip" },
     ],
@@ -111,6 +112,8 @@ test("parseFriendsSnapshot keeps enrolled ids and drops empty rows", () => {
     "tap-classic",
   ]);
   assert.equal(snapshot.incoming[0]?.name, "Leo");
+  assert.equal(snapshot.friends[0]?.sibling, true);
+  assert.equal(snapshot.incoming[0]?.sibling, undefined);
   assert.deepEqual(emptyFriendsSnapshot().friends, []);
 });
 
