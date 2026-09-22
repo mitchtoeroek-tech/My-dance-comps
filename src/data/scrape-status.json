@@ -1,6 +1,6 @@
 {
-  "lastRunAt": "2026-09-21T20:38:13.523Z",
-  "lastFetchedAt": "2026-09-21T20:38:13.523Z",
+  "lastRunAt": "2026-09-22T20:39:29.752Z",
+  "lastFetchedAt": "2026-09-22T20:39:29.752Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
   "updated": 3,
@@ -13,9 +13,9 @@
     "✓ Dance Hub Australia — NSW: 52 event(s)",
     "✓ Dance Hub Australia — Queensland: 39 event(s)",
     "✓ Dance Hub Australia — Victoria: 2 event(s)",
-    "✗ Follow Your Dreams: fetch failed (1 seed event(s) retained)",
+    "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-09-21T20:38:12.507Z)"
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-09-22T20:39:28.786Z)"
   ]
 }
