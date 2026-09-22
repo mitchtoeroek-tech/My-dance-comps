@@ -130,7 +130,7 @@ export function FamilyPanel() {
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           {dancer
             ? "Join your parent's family with their code. You then use the app as yourself — your comps, enrolments, friends and Community."
-            : "Create a family code so a dancer can sign in as themselves and still sit on your My Dancers list. You can keep enrolling for them."}
+            : "Create a family code so a dancer can sign in as themselves and still sit on your My Dancers list. You can keep enrolling for them. Copy a personal invite from each dancer’s page, or use the code here."}
         </p>
       </div>
 
@@ -150,7 +150,7 @@ export function FamilyPanel() {
           <div className="space-y-2">
             <p className="text-sm font-semibold">
               You are in the family as <span className="font-bold">{linkedName}</span>.
-              Comps, My Comps and friends use your profile. Your parent can still
+              Comps, My Comps and friends use your info. Your parent can still
               enrol you.
             </p>
             <button
@@ -174,7 +174,7 @@ export function FamilyPanel() {
                     return;
                   }
                   setNotice(
-                    "You have left the family. Your profile stays on this login.",
+                    "You have left the family. Your info stays on this login.",
                   );
                   await afterChange();
                 });

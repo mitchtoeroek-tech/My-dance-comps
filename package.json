@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx --yes tsx --test src/lib/client-state.test.ts src/lib/enrolled.test.ts src/lib/filter.test.ts src/lib/datetime.test.ts src/lib/calendar.test.ts src/lib/scrape.test.ts src/lib/reviews.test.ts src/lib/family-sync.test.ts src/lib/friends.test.ts src/lib/copy.test.ts src/lib/community.test.ts src/lib/studio-community.test.ts src/lib/account.test.ts src/lib/studios.test.ts src/lib/organiser-logo.test.ts",
+    "test": "npx --yes tsx --test src/lib/client-state.test.ts src/lib/enrolled.test.ts src/lib/filter.test.ts src/lib/datetime.test.ts src/lib/calendar.test.ts src/lib/scrape.test.ts src/lib/reviews.test.ts src/lib/family-sync.test.ts src/lib/friends.test.ts src/lib/copy.test.ts src/lib/community.test.ts src/lib/studio-community.test.ts src/lib/account.test.ts src/lib/family-invite.test.ts src/lib/studios.test.ts src/lib/studio-link.test.ts src/lib/organiser-logo.test.ts",
     "scrape": "node --experimental-strip-types --no-warnings=ExperimentalWarning scripts/scrape.ts"
   },
   "dependencies": {
