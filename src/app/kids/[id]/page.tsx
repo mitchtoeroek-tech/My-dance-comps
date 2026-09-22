@@ -58,7 +58,16 @@ export default function KidDetailPage({
             Born {child.dob} · Home state {child.homeState}
           </p>
           {child.studio ? (
-            <p className="text-sm font-semibold">{child.studio}</p>
+            child.studioId ? (
+              <Link
+                href={`/studios/${child.studioId}`}
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-primary-ink underline"
+              >
+                {child.studio}
+              </Link>
+            ) : (
+              <p className="text-sm font-semibold">{child.studio}</p>
+            )
           ) : null}
           <p className="mt-2 text-sm">
             {child.styles?.length ? child.styles.join(" · ") : "All styles"}

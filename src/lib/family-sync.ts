@@ -1,4 +1,5 @@
 import type { AccountRole } from "./account";
+import { parseStudioId } from "./studios";
 import { getSupabase } from "./supabase";
 import {
   defaultFamilyState,
@@ -29,6 +30,7 @@ type ChildRow = {
   dob: string | null;
   styles: string[] | null;
   studio: string | null;
+  studio_id?: string | null;
   home_state: string | null;
   linked_user_id?: string | null;
 };
@@ -272,6 +274,7 @@ export function familyStateFromDancerSnapshot(raw: unknown): {
     dob: typeof childRaw?.dob === "string" ? childRaw.dob : "",
     styles: asStringArray(childRaw?.styles) as ChildProfile["styles"],
     studio: typeof childRaw?.studio === "string" ? childRaw.studio : "",
+    studioId: parseStudioId(childRaw?.studio_id),
     homeState: isAuStateCode(childRaw?.home_state) ? childRaw.home_state : "SA",
     ...(linkedUserId ? { linkedUserId } : {}),
   };
@@ -308,6 +311,7 @@ export function dancerPushPayload(
       dob: child.dob,
       styles: child.styles,
       studio: child.studio,
+      studio_id: parseStudioId(child.studioId),
       home_state: child.homeState,
     },
     enrolled_owned: owned,
@@ -330,6 +334,22 @@ export function dancerPushPayload(
         notes: result.notes,
       })),
   };
+}
+
+function isMissingColumn(
+  error: { message?: string; code?: string } | null,
+  column: string,
+): boolean {
+  const message = (error?.message ?? "").toLowerCase();
+  const code = error?.code ?? "";
+  return (
+    code === "PGRST204" ||
+    code === "42703" ||
+    (message.includes(column.toLowerCase()) &&
+      (message.includes("schema cache") ||
+        message.includes("does not exist") ||
+        message.includes("could not find")))
+  );
 }
 
 function asReminderPrefs(value: unknown): ReminderPrefs {
@@ -406,6 +426,7 @@ export async function pullFamilyState(
       dob: row.dob ?? "",
       styles: Array.isArray(row.styles) ? (row.styles as ChildProfile["styles"]) : [],
       studio: row.studio ?? "",
+      studioId: parseStudioId(row.studio_id),
       homeState: isAuStateCode(row.home_state) ? row.home_state : "SA",
       ...(linkedUserId ? { linkedUserId } : {}),
     };
@@ -494,10 +515,26 @@ export async function pushFamilyState(
         dob: child.dob,
         styles: child.styles,
         studio: child.studio,
+        studio_id: parseStudioId(child.studioId),
         home_state: child.homeState,
       })),
     );
-    if (upsert.error) throw upsert.error;
+    if (upsert.error && isMissingColumn(upsert.error, "studio_id")) {
+      const retry = await supabase.from("children").upsert(
+        next.children.map((child) => ({
+          id: child.id,
+          user_id: userId,
+          name: child.name,
+          dob: child.dob,
+          styles: child.styles,
+          studio: child.studio,
+          home_state: child.homeState,
+        })),
+      );
+      if (retry.error) throw retry.error;
+    } else if (upsert.error) {
+      throw upsert.error;
+    }
   }
 
   const existingResults = await supabase

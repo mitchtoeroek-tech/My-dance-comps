@@ -1,6 +1,6 @@
 export const DANCER_LOGIN_DOMAIN = "dancers.mydancecomps.app";
 
-export type AccountRole = "parent" | "dancer";
+export type AccountRole = "parent" | "dancer" | "studio";
 
 export interface AccountProfile {
   role: AccountRole;
@@ -11,15 +11,22 @@ export interface AccountProfile {
 }
 
 export function parseAccountRole(value: unknown): AccountRole {
-  return value === "dancer" ? "dancer" : "parent";
+  if (value === "dancer" || value === "studio") return value;
+  return "parent";
 }
 
-/** Profile column wins once it is parent or dancer. Metadata covers a missing column. */
+/** Profile column wins once it is parent, dancer, or studio. Metadata covers a missing column. */
 export function resolveAccountRole(
   profileRole: unknown,
   metadataRole: unknown,
 ): AccountRole {
-  if (profileRole === "dancer" || profileRole === "parent") return profileRole;
+  if (
+    profileRole === "dancer" ||
+    profileRole === "parent" ||
+    profileRole === "studio"
+  ) {
+    return profileRole;
+  }
   return parseAccountRole(metadataRole);
 }
 

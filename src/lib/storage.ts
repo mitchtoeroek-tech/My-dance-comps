@@ -62,6 +62,16 @@ function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string");
 }
 
+function asStudioId(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    trimmed,
+  )
+    ? trimmed.toLowerCase()
+    : null;
+}
+
 function normalizeHomeState(value: unknown): AuStateCode {
   const code = asString(value, "SA").toUpperCase();
   return (AU_STATE_CODES.has(code) ? code : "SA") as AuStateCode;
@@ -73,12 +83,14 @@ export function normalizeChild(raw: unknown): ChildProfile | null {
   const name = asString(raw.name).trim();
   if (!id || !name) return null;
   const linkedUserId = asString(raw.linkedUserId).trim();
+  const studioId = asStudioId(raw.studioId);
   return {
     id,
     name,
     dob: asString(raw.dob),
     styles: asStringArray(raw.styles) as DanceStyle[],
     studio: asString(raw.studio),
+    studioId,
     homeState: normalizeHomeState(raw.homeState),
     ...(linkedUserId ? { linkedUserId } : {}),
   };
