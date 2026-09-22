@@ -14,6 +14,7 @@ export function CompCard({
   enrolled,
   onToggleEnrolled,
   showAddToCalendar = false,
+  enrolledNames,
   ageHint,
   eyebrow,
 }: {
@@ -22,6 +23,8 @@ export function CompCard({
   onToggleEnrolled?: () => void;
   /** Pastel-red calendar download, hard-right on the action row. My Comps only. */
   showAddToCalendar?: boolean;
+  /** First names enrolled in this comp. Shown beside the state badge. */
+  enrolledNames?: string;
   ageHint?: string;
   eyebrow?: string;
 }) {
@@ -48,6 +51,11 @@ export function CompCard({
             <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
               {comp.isNational ? "National" : comp.state}
             </span>
+            {enrolledNames ? (
+              <span className="rounded-control bg-muted px-2 py-0.5 text-[11px] font-bold text-foreground">
+                {enrolledNames}
+              </span>
+            ) : null}
           </div>
           {eyebrow ? (
             <p className="mb-1 text-xs font-bold uppercase tracking-wide text-primary-ink">
