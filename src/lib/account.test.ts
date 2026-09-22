@@ -8,6 +8,7 @@ import {
   resolveAccountRole,
 } from "./account";
 import { defaultFamilyState } from "./storage";
+import { toggleEnrollment } from "./enrolled";
 import {
   dancerPushPayload,
   familyStateFromDancerSnapshot,
@@ -124,6 +125,20 @@ test("dancerPushPayload marks a per-dancer enrolled set only after one exists", 
   );
   const linkedChild = linkedStudio?.child as { studio_id: string | null };
   assert.equal(linkedChild.studio_id, "11111111-1111-4111-8111-111111111111");
+});
+
+test("dancer push keeps an unenrol instead of the family-wide list", () => {
+  const toggled = toggleEnrollment(["comp-a", "comp-b"], {}, "comp-a", "mia");
+  const payload = dancerPushPayload(
+    family({
+      children: [mia],
+      selectedChildId: "mia",
+      enrolled: toggled.enrolled,
+      enrolledByChild: toggled.enrolledByChild,
+    }),
+  );
+  assert.equal(payload?.enrolled_owned, true);
+  assert.deepEqual(payload?.enrolled_ids, ["comp-b"]);
 });
 
 test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () => {

@@ -4,6 +4,7 @@ import {
   dropChildEnrollment,
   enrolledDancerFirstNames,
   enrolledIdsForChild,
+  enrollmentChildId,
   isCompEnrolled,
   normalizeEnrolledByChild,
   toggleEnrollment,
@@ -117,6 +118,39 @@ test("enrolledDancerFirstNames uses the family list when a dancer has no own set
   assert.deepEqual(
     enrolledDancerFirstNames(children, ["comp-a"], {}, "comp-a"),
     ["Evie", "Harriet"],
+  );
+});
+
+test("a dancer enrolment always targets their own profile", () => {
+  assert.equal(
+    enrollmentChildId({
+      role: "dancer",
+      linkedChildId: "evie",
+      selectedChildId: null,
+      requested: null,
+      childIds: ["harriet", "evie"],
+    }),
+    "evie",
+  );
+  assert.equal(
+    enrollmentChildId({
+      role: "parent",
+      linkedChildId: null,
+      selectedChildId: "evie",
+      requested: null,
+      childIds: ["evie", "harriet"],
+    }),
+    null,
+  );
+  assert.equal(
+    enrollmentChildId({
+      role: "parent",
+      linkedChildId: null,
+      selectedChildId: "evie",
+      requested: undefined,
+      childIds: ["evie"],
+    }),
+    "evie",
   );
 });
 
