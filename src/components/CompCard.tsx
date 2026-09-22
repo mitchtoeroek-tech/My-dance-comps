@@ -7,6 +7,7 @@ import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
 import { CompReviewSummary } from "./CompReviewSummary";
+import { CompLogo } from "./CompLogo";
 
 export function CompCard({
   comp,
@@ -37,7 +38,12 @@ export function CompCard({
       }`}
       data-ended={past ? "true" : "false"}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-3">
+        <CompLogo
+          sourceId={comp.sourceId}
+          organiser={comp.organiser}
+          muted={past}
+        />
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <StatusPill status={status} />
