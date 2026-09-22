@@ -129,13 +129,21 @@ export interface ReviewsState {
   byCompetitionId: Record<string, CompReview>;
 }
 
+/**
+ * In-app reminder toggles. Email is a stored preference: the app only
+ * sends mail when Resend is configured (see `reminder-email.ts`).
+ * Close-date nudges (week before / day before) are no longer used.
+ */
 export interface ReminderPrefs {
+  /** Primary: a matching comp appears in the listings after this device’s watermark. */
+  newlyAnnounced: boolean;
+  /** A matching comp’s registration opens, or its open date is reached. */
   onOpen: boolean;
-  weekBeforeClose: boolean;
-  dayBeforeClose: boolean;
+  /** Also email the signed-in account. Stored even when server email is not connected. */
+  emailEnabled: boolean;
 }
 
-export type ReminderKind = "open" | "week-before-close" | "day-before-close";
+export type ReminderKind = "newly-announced" | "open";
 
 export interface ReminderItem {
   id: string;

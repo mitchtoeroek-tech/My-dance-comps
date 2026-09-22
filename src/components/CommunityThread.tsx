@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { CommunityGuidelines } from "@/components/CommunityGuidelines";
 import { EmptyState } from "@/components/EmptyState";
 import { GuestCommunityUnlock } from "@/components/GuestCommunityUnlock";
 import { useCommunityThread } from "@/hooks/useCommunity";
@@ -113,6 +114,7 @@ export function CommunityThread({ friendshipId }: { friendshipId: string }) {
         <p className="text-sm text-muted-foreground">
           Friend of {ownName}. Only the two of you can see this thread.
         </p>
+        <CommunityGuidelines />
       </div>
 
       {threadError ? (

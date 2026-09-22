@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { CommunityGuidelines } from "@/components/CommunityGuidelines";
 import { EmptyState } from "@/components/EmptyState";
 import { GuestCommunityUnlock } from "@/components/GuestCommunityUnlock";
 import { StudioChatMark } from "@/components/StudioChatMark";
@@ -116,6 +117,7 @@ export function StudioCommunityThread({ studioId }: { studioId: string }) {
             </p>
           </div>
         </div>
+        <CommunityGuidelines />
       </div>
 
       {threadError ? (

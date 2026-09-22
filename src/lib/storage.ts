@@ -24,10 +24,25 @@ export const COMPS_STATUS_FILTER_KEY = "mydancecomps.compsStatusFilter";
 export const SOFT_MAX_KIDS = 20;
 
 export const defaultReminderPrefs: ReminderPrefs = {
+  newlyAnnounced: true,
   onOpen: true,
-  weekBeforeClose: true,
-  dayBeforeClose: true,
+  emailEnabled: false,
 };
+
+export function normalizeReminderPrefs(value: unknown): ReminderPrefs {
+  const reminderRaw = isRecord(value) ? value : {};
+  return {
+    newlyAnnounced: asBoolean(
+      reminderRaw.newlyAnnounced,
+      defaultReminderPrefs.newlyAnnounced,
+    ),
+    onOpen: asBoolean(reminderRaw.onOpen, defaultReminderPrefs.onOpen),
+    emailEnabled: asBoolean(
+      reminderRaw.emailEnabled,
+      defaultReminderPrefs.emailEnabled,
+    ),
+  };
+}
 
 export const defaultFamilyState: FamilyState = {
   version: 1,
@@ -140,7 +155,6 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     children.some((child) => child.id === selectedRaw)
       ? selectedRaw
       : null;
-  const reminderRaw = isRecord(raw.reminderPrefs) ? raw.reminderPrefs : {};
   return {
     version: 1,
     children,
@@ -158,17 +172,7 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
       children,
       selectedChildId,
     }),
-    reminderPrefs: {
-      onOpen: asBoolean(reminderRaw.onOpen, defaultReminderPrefs.onOpen),
-      weekBeforeClose: asBoolean(
-        reminderRaw.weekBeforeClose,
-        defaultReminderPrefs.weekBeforeClose,
-      ),
-      dayBeforeClose: asBoolean(
-        reminderRaw.dayBeforeClose,
-        defaultReminderPrefs.dayBeforeClose,
-      ),
-    },
+    reminderPrefs: normalizeReminderPrefs(raw.reminderPrefs),
     notifiedReminderIds: asStringArray(raw.notifiedReminderIds),
     results: Array.isArray(raw.results)
       ? raw.results

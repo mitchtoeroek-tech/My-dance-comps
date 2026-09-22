@@ -108,6 +108,8 @@ Import this GitHub repo (`main`). Guest mode needs **no** environment variables.
 | `NEXT_PUBLIC_SUPABASE_URL` | Vercel ↔ Supabase integration |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel ↔ Supabase integration |
 | `NEXT_PUBLIC_ADMIN_EMAILS` | Optional. Comma-separated extra admin emails. `mitch@greenefficientliving.com.au` is always included. Add the same address to `admin_allowlist` in Supabase or approval will be refused. |
+| `RESEND_API_KEY` | Optional. Together with `REMINDER_EMAIL_FROM`, lets due reminders be emailed to the signed-in account. If either is missing, the app does not send email. |
+| `REMINDER_EMAIL_FROM` | Optional. From address on a domain verified with Resend, for example `My Dance Comps <reminders@example.com>`. |
 
 Listings refresh themselves every day:
 
@@ -122,7 +124,8 @@ You can also run **Actions → Daily competition scrape → Run workflow** to re
 - `GET /api/comps/:id` — one competition
 - `GET /api/sources` — scrape sources
 - `GET /api/ics?compId=<id>` — calendar file for one comp
-- `GET /api/ics?enrolled=id1,id2` — reminder calendar for enrolled ids
+- `GET /api/ics` — empty calendar. Reminder `.ics` files are downloaded from the Reminders page so they follow dancer styles.
+- `GET /api/reminders/email` — `{ configured: true }` only when `RESEND_API_KEY` and `REMINDER_EMAIL_FROM` are both set. Otherwise email is not sent.
 
 Query params for `/api/comps`:
 
@@ -144,7 +147,7 @@ Query params for `/api/comps`:
 - **Studios** — `/studios` lists approved studios. `/studios/[slug]` is the public page (logo, about, styles, address, phone, email, website). Pending and rejected studios are not listed and are not linkable. The owner can still open their page and see **Awaiting approval**. `/studio` is the owner editor. `/admin` is the approval list (Approve / Reject) for Mitch’s admin email, or any address in `admin_allowlist` / `NEXT_PUBLIC_ADMIN_EMAILS`.
 - **Community** — **Studio chats** for families linked to an approved studio (one open room per studio; dancer name, “Parent of …”, or the studio name — never an email), plus **Friend chats** between signed-in accounts with an accepted dancer friendship. The friend list shows the friend’s dancer name. Guests get a log-in / sign-up unlock. Pending and rejected studios have no chat, and strangers cannot join a studio room. `/saved` redirects home.
 - **Account** — email/password. Header **Log in** when signed out, **Account** when signed in. Guest browsing stays available.
-- **Reminders** — prefs for entries open, 1 week before close, and 1 day before close. In-app list for enrolled comps, `.ics` download, `mailto` list, and browser notifications when the browser allows them (no paid API keys).
+- **Reminders** — two toggles: **newly announced competitions** (primary) and **when entries open**. Both apply only to comps that match at least one dancer’s styles, using the same home-state and interstate rules as the Comps list. A dancer with no styles selected matches every style until styles are set on My Dancers / My Info. The first visit records the current listings (device `localStorage` watermark) so existing comps are not all announced; later listings can. In-app list is the main delivery. Optional browser notifications while the site is open. **Also email me** stores the preference and, when you are signed in, addresses a mail draft to the account email. Server email is sent only when Resend is configured; until then the page says so and does not pretend mail went out. `.ics` download remains.
 
 ## Seed data and daily scrape
 

@@ -105,14 +105,17 @@ export function downloadIcs(filename: string, ics: string) {
   URL.revokeObjectURL(url);
 }
 
-export function mailtoReminders(items: ReminderItem[]): string {
-  const subject = encodeURIComponent("Dance competition registration reminders");
+export function mailtoReminders(items: ReminderItem[], to = ""): string {
+  const address = /^[^\s<>"]+@[^\s<>"]+$/.test(to.trim()) ? to.trim() : "";
+  const listed = items.slice(0, 12);
+  const subject = encodeURIComponent("Dance competition reminders");
   const body = encodeURIComponent(
     [
-      "Here are the upcoming registration reminders from My Dance Comps.",
+      "Reminders from My Dance Comps.",
+      "Only competitions that match your dancers’ styles.",
       "Times are Australia/Adelaide.",
       "",
-      ...items.map((item) => {
+      ...listed.map((item) => {
         const when = new Date(item.fireAt).toLocaleString("en-AU", {
           timeZone: ADELAIDE_TZ,
           dateStyle: "full",
@@ -120,7 +123,12 @@ export function mailtoReminders(items: ReminderItem[]): string {
         });
         return `• ${item.label}\n  ${when}\n  ${item.detail}`;
       }),
-    ].join("\n"),
+      items.length > listed.length
+        ? `\n${items.length - listed.length} more are on the Reminders page.`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
   );
-  return `mailto:?subject=${subject}&body=${body}`;
+  return `mailto:${address}?subject=${subject}&body=${body}`;
 }
