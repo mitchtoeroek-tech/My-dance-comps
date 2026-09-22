@@ -18,6 +18,7 @@ import {
   normalizeDancerUsername,
   type AccountRole,
 } from "@/lib/account";
+import { parentSignupName } from "@/lib/chat-label";
 import { familyJoinPath, readDancerInvite } from "@/lib/family-invite";
 import { loginPathWithNext, resolveAuthNextPath } from "@/lib/friends";
 
@@ -93,7 +94,7 @@ function SignUpForm() {
           ? "A studio account stays private until My Dance Comps approves it. You can add your logo, styles and address while you wait. Dancers can link to you once you are approved."
           : dancer
             ? "A dancer login is your own. After you join a family with a parent’s code, comps, My Comps, friends and Community are yours. Your parent can still enrol you."
-            : "A parent account manages the family, enrolments and younger dancers. You can keep browsing as a guest until you sign up."
+            : "A parent account manages the family, enrolments and younger dancers. Your name is shown in studio chat. You can keep browsing as a guest until you sign up."
       }
     >
       <form
@@ -119,6 +120,15 @@ function SignUpForm() {
             setError("Add your name so your parent can see who joined.");
             return;
           }
+          let parentName = trimmedName;
+          if (!dancer && !studio) {
+            const named = parentSignupName(displayName);
+            if (!named.ok) {
+              setError(named.error);
+              return;
+            }
+            parentName = named.name;
+          }
           const trimmedStudio = studioName.trim();
           if (studio && trimmedStudio.length < 2) {
             setError("Add your studio name.");
@@ -128,7 +138,7 @@ function SignUpForm() {
           const result = await signUp(
             loginEmail,
             password,
-            studio ? trimmedStudio : trimmedName,
+            studio ? trimmedStudio : dancer ? trimmedName : parentName,
             {
               role,
               username: dancerUsername,
@@ -202,14 +212,23 @@ function SignUpForm() {
             required
           />
         ) : (
-          <AuthField
-            id="display-name"
-            label={dancer ? "Your name" : "Your name (optional)"}
-            value={displayName}
-            onChange={setDisplayName}
-            autoComplete="name"
-            required={dancer}
-          />
+          <>
+            <AuthField
+              id="display-name"
+              label={dancer ? "Your name" : "Your name (shown in chat)"}
+              value={displayName}
+              onChange={setDisplayName}
+              autoComplete="name"
+              required
+            />
+            {dancer ? null : (
+              <p className="text-sm leading-6 text-muted-foreground">
+                Required. Studio chat uses your first name with your dancers, for
+                example Sarah, parent of Evie and Harriet. A first name is enough.
+                You can change it later on Account.
+              </p>
+            )}
+          </>
         )}
         {dancer ? (
           <fieldset>

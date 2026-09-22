@@ -1,6 +1,7 @@
 import type { AccountProfile } from "./account";
 import { normalizeFamilyCode, resolveAccountRole } from "./account";
 import { friendlyAuthError } from "./auth-errors";
+import { normalizeChatDisplayName } from "./chat-label";
 import { pickUnlinkedInviteChild } from "./family-invite";
 import { getSupabase } from "./supabase";
 import type { User } from "@supabase/supabase-js";
@@ -103,6 +104,34 @@ async function rpc<T>(
   const { data, error } = await supabase.rpc(name, args);
   if (error) return { data: null, error: friendlyFamilyError(error) };
   return { data: (data as T) ?? null, error: null };
+}
+
+/** Saves the parent name shown in studio chat. Blank is allowed. */
+export async function saveChatDisplayName(
+  raw: string,
+): Promise<{ error: string | null }> {
+  const name = normalizeChatDisplayName(raw);
+  if (name === null) {
+    return { error: "Use your name. Email addresses are hidden in chat." };
+  }
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { error: "Accounts are not connected in this environment yet." };
+  }
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return {
+      error: userError ? friendlyAuthError(userError) : "Sign in to save your name.",
+    };
+  }
+  const { error } = await supabase
+    .from("profiles")
+    .update({ display_name: name })
+    .eq("id", userData.user.id);
+  if (error) return { error: friendlyAuthError(error) };
+  // Profile is what chat reads. Metadata only covers a missing profile row.
+  await supabase.auth.updateUser({ data: { display_name: name } });
+  return { error: null };
 }
 
 export async function loadAccountProfile(user: User): Promise<AccountProfile> {
