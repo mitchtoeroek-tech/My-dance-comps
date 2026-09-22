@@ -3,8 +3,8 @@ import { parseStudioId } from "./studios";
 import { getSupabase } from "./supabase";
 import {
   defaultFamilyState,
-  defaultReminderPrefs,
   normalizeFamilyState,
+  normalizeReminderPrefs,
 } from "./storage";
 import { isAuStateCode } from "./types";
 import type {
@@ -353,22 +353,7 @@ function isMissingColumn(
 }
 
 function asReminderPrefs(value: unknown): ReminderPrefs {
-  if (!value || typeof value !== "object") return defaultReminderPrefs;
-  const raw = value as Record<string, unknown>;
-  return {
-    onOpen:
-      typeof raw.onOpen === "boolean"
-        ? raw.onOpen
-        : defaultReminderPrefs.onOpen,
-    weekBeforeClose:
-      typeof raw.weekBeforeClose === "boolean"
-        ? raw.weekBeforeClose
-        : defaultReminderPrefs.weekBeforeClose,
-    dayBeforeClose:
-      typeof raw.dayBeforeClose === "boolean"
-        ? raw.dayBeforeClose
-        : defaultReminderPrefs.dayBeforeClose,
-  };
+  return normalizeReminderPrefs(value);
 }
 
 export async function pullFamilyState(

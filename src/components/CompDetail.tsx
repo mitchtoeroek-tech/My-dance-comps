@@ -133,8 +133,8 @@ export function CompDetail({ comp }: { comp: Competition }) {
           is stored for that dancer; otherwise it is stored for the whole family.
           Enrolled comps appear on My Comps and get a star on the Calendar tab.
           When you are signed in, friends of that dancer see the enrolment
-          automatically. Saving a comp adds it to Reminders. Always confirm
-          dates on the organiser website.
+          automatically. Reminders follow your dancers’ styles, not the
+          favourite star. Always confirm dates on the organiser website.
         </p>
       </div>
       {completed ? (

@@ -1,99 +1,226 @@
 import { addDays, parseAdelaide } from "./datetime";
+import { matchesHomeState, stylesOverlap } from "./filter";
 import type {
+  ChildProfile,
   Competition,
   ReminderItem,
   ReminderKind,
   ReminderPrefs,
 } from "./types";
 
+/**
+ * Which comps can raise a reminder for this family.
+ *
+ * Styles: overlap with at least one dancer. A dancer with no styles selected
+ * matches every competition style — the same rule as the Comps list
+ * (`stylesOverlap`). The Reminders page asks the family to set styles on
+ * My Dancers / My Info so that dancer stops matching everything.
+ *
+ * Place: the same home-state rule as the Comps list. Interstate comps are
+ * included only when the family has turned that on. National events are
+ * included when the styles match, even if interstate is off.
+ *
+ * Reminders are not keyed off favourites.
+ */
+export interface ReminderScope {
+  children: ChildProfile[];
+  includeInterstate: boolean;
+  /** When this device first trusted the catalogue. Null before that. */
+  baselinedAt: string | null;
+  /** Comp id → ISO time it was first seen after the watermark. */
+  announcedAt: Record<string, string>;
+  /** Comp id → ISO time registration was first observed becoming open, when no open date is stored. */
+  openedAt: Record<string, string>;
+}
+
+export function emptyReminderScope(): ReminderScope {
+  return {
+    children: [],
+    includeInterstate: false,
+    baselinedAt: null,
+    announcedAt: {},
+    openedAt: {},
+  };
+}
+
+const NEWLY_ANNOUNCED_LOOKBACK_DAYS = 30;
+const OPEN_LOOKBACK_DAYS = 14;
+const UPCOMING_HORIZON_DAYS = 120;
+
+export function dancersWithoutStyles(children: ChildProfile[]): ChildProfile[] {
+  return children.filter(
+    (child) => !Array.isArray(child.styles) || child.styles.length === 0,
+  );
+}
+
+export function dancerMatchesComp(
+  child: ChildProfile,
+  comp: Competition,
+  includeInterstate: boolean,
+): boolean {
+  if (!stylesOverlap(child.styles, comp.styles)) return false;
+  return matchesHomeState(comp, child.homeState, includeInterstate);
+}
+
+/** True when any dancer’s styles and home-state rules match this comp. */
+export function familyMatchesComp(
+  comp: Competition,
+  children: ChildProfile[],
+  includeInterstate: boolean,
+): boolean {
+  return children.some((child) =>
+    dancerMatchesComp(child, comp, includeInterstate),
+  );
+}
+
+export function matchingDancerNames(
+  comp: Competition,
+  children: ChildProfile[],
+  includeInterstate: boolean,
+): string[] {
+  return children
+    .filter((child) => dancerMatchesComp(child, comp, includeInterstate))
+    .map((child) => child.name)
+    .filter(Boolean);
+}
+
+function forDancers(names: string[]): string {
+  if (names.length === 0) return "Matches your dancers’ styles.";
+  if (names.length === 1) return `For ${names[0]}.`;
+  if (names.length === 2) return `For ${names[0]} and ${names[1]}.`;
+  return `For ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}.`;
+}
+
 function kindLabel(kind: ReminderKind, name: string): string {
   switch (kind) {
+    case "newly-announced":
+      return `New comp — ${name}`;
     case "open":
       return `Entries open — ${name}`;
-    case "week-before-close":
-      return `One week to enter — ${name}`;
-    case "day-before-close":
-      return `Entries close tomorrow — ${name}`;
   }
 }
 
-function kindDetail(kind: ReminderKind, comp: Competition): string {
+function kindDetail(kind: ReminderKind, comp: Competition, names: string[]): string {
+  const who = forDancers(names);
   switch (kind) {
+    case "newly-announced":
+      return `${comp.name} has just appeared in the listings. ${who}`;
     case "open":
-      return `Registration opens for ${comp.name}. Head to the organiser site to enter.`;
-    case "week-before-close":
-      return `Entries for ${comp.name} close in about a week. Double-check sections and music.`;
-    case "day-before-close":
-      return `Last chance — ${comp.name} entries close tomorrow (Adelaide time).`;
+      return `Registration opens for ${comp.name}. ${who} Head to the organiser site to enter.`;
   }
+}
+
+export function reminderKindLabel(kind: ReminderKind): string {
+  switch (kind) {
+    case "newly-announced":
+      return "Newly announced";
+    case "open":
+      return "Entries open";
+  }
+}
+
+/**
+ * Skip open dates that had already passed before this device started watching.
+ * Future open dates, and opens that fall after the watermark, still remind once.
+ */
+export function openReminderFireAt(
+  comp: Competition,
+  scope: ReminderScope,
+  now = new Date(),
+): string | null {
+  if (comp.registrationOpens) {
+    const fireAt = parseAdelaide(comp.registrationOpens);
+    if (!fireAt) return null;
+    if (
+      scope.baselinedAt &&
+      fireAt.toISOString() < scope.baselinedAt &&
+      fireAt.getTime() < now.getTime()
+    ) {
+      return null;
+    }
+    return fireAt.toISOString();
+  }
+  return scope.openedAt[comp.id] ?? null;
 }
 
 export function remindersForComp(
   comp: Competition,
   prefs: ReminderPrefs,
+  scope: ReminderScope = emptyReminderScope(),
+  now = new Date(),
 ): ReminderItem[] {
+  if (!familyMatchesComp(comp, scope.children, scope.includeInterstate)) {
+    return [];
+  }
+  const names = matchingDancerNames(comp, scope.children, scope.includeInterstate);
   const items: ReminderItem[] = [];
-  if (prefs.onOpen && comp.registrationOpens) {
-    const fireAt = parseAdelaide(comp.registrationOpens);
+
+  if (prefs.newlyAnnounced && scope.announcedAt[comp.id]) {
+    items.push({
+      id: `${comp.id}:newly-announced`,
+      kind: "newly-announced",
+      compId: comp.id,
+      compName: comp.name,
+      fireAt: scope.announcedAt[comp.id],
+      label: kindLabel("newly-announced", comp.name),
+      detail: kindDetail("newly-announced", comp, names),
+    });
+  }
+
+  if (prefs.onOpen) {
+    const fireAt = openReminderFireAt(comp, scope, now);
     if (fireAt) {
       items.push({
         id: `${comp.id}:open`,
         kind: "open",
         compId: comp.id,
         compName: comp.name,
-        fireAt: fireAt.toISOString(),
+        fireAt,
         label: kindLabel("open", comp.name),
-        detail: kindDetail("open", comp),
+        detail: kindDetail("open", comp, names),
       });
     }
   }
-  if (comp.registrationCloses) {
-    const close = parseAdelaide(comp.registrationCloses);
-    if (close) {
-      if (prefs.weekBeforeClose) {
-        const fireAt = addDays(close, -7);
-        items.push({
-          id: `${comp.id}:week-before-close`,
-          kind: "week-before-close",
-          compId: comp.id,
-          compName: comp.name,
-          fireAt: fireAt.toISOString(),
-          label: kindLabel("week-before-close", comp.name),
-          detail: kindDetail("week-before-close", comp),
-        });
-      }
-      if (prefs.dayBeforeClose) {
-        const fireAt = addDays(close, -1);
-        items.push({
-          id: `${comp.id}:day-before-close`,
-          kind: "day-before-close",
-          compId: comp.id,
-          compName: comp.name,
-          fireAt: fireAt.toISOString(),
-          label: kindLabel("day-before-close", comp.name),
-          detail: kindDetail("day-before-close", comp),
-        });
-      }
-    }
-  }
+
   return items;
 }
 
 export function buildReminders(
   comps: Competition[],
   prefs: ReminderPrefs,
-  favouriteIds: string[],
+  scope: ReminderScope,
+  now = new Date(),
 ): ReminderItem[] {
-  const saved = comps.filter((c) => favouriteIds.includes(c.id));
-  return saved
-    .flatMap((comp) => remindersForComp(comp, prefs))
-    .sort((a, b) => a.fireAt.localeCompare(b.fireAt));
+  return comps
+    .flatMap((comp) => remindersForComp(comp, prefs, scope, now))
+    .sort((a, b) => {
+      if (a.kind !== b.kind) return a.kind === "newly-announced" ? -1 : 1;
+      if (a.kind === "newly-announced") return b.fireAt.localeCompare(a.fireAt);
+      return a.fireAt.localeCompare(b.fireAt);
+    });
+}
+
+/** In-app list: recent announcements and upcoming or just-opened entries. */
+export function inAppReminders(
+  items: ReminderItem[],
+  now = new Date(),
+): ReminderItem[] {
+  const horizon = addDays(now, UPCOMING_HORIZON_DAYS).getTime();
+  return items.filter((item) => {
+    const t = new Date(item.fireAt).getTime();
+    if (Number.isNaN(t) || t > horizon) return false;
+    const lookback =
+      item.kind === "newly-announced"
+        ? NEWLY_ANNOUNCED_LOOKBACK_DAYS
+        : OPEN_LOOKBACK_DAYS;
+    return t >= addDays(now, -lookback).getTime();
+  });
 }
 
 export function upcomingReminders(
   items: ReminderItem[],
   now = new Date(),
-  horizonDays = 120,
+  horizonDays = UPCOMING_HORIZON_DAYS,
 ): ReminderItem[] {
   const horizon = addDays(now, horizonDays).getTime();
   return items.filter((item) => {
@@ -107,8 +234,9 @@ export function dueReminders(
   notifiedIds: string[],
   now = new Date(),
 ): ReminderItem[] {
+  const seen = new Set(notifiedIds);
   return items.filter((item) => {
-    if (notifiedIds.includes(item.id)) return false;
+    if (seen.has(item.id)) return false;
     const fire = new Date(item.fireAt).getTime();
     return fire <= now.getTime() && fire >= now.getTime() - 36 * 60 * 60 * 1000;
   });
