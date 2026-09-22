@@ -1,11 +1,8 @@
--- My Dance Comps — public competition reviews
--- Scaffolding only. Public reviews stay off until NEXT_PUBLIC_REVIEWS_PUBLIC=1.
--- Guest MVP on main stores reviews in localStorage
--- (`mydancecomps.reviews.v1`, keyed by competition id).
+-- My Dance Comps — public competition reviews.
+-- Anyone can read them. A signed-in account can publish one review per competition.
+-- Guests are not written here; they sign in to share a rating.
 --
--- Shape matches `CompReview` in src/lib/types.ts:
---   competitionId, userId, displayName, stars 1–5, optional comment,
---   createdAt, updatedAt.
+-- Shape matches `CompReview` in src/lib/types.ts.
 -- One review per user per competition (upsert on competition_id + user_id).
 
 create table if not exists public.reviews (
@@ -14,7 +11,7 @@ create table if not exists public.reviews (
   user_id uuid not null references auth.users (id) on delete cascade,
   display_name text,
   stars smallint not null check (stars between 1 and 5),
-  comment text not null default '',
+  comment text not null default '' check (char_length(comment) <= 500),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (competition_id, user_id)
@@ -37,6 +34,31 @@ drop trigger if exists reviews_set_updated_at on public.reviews;
 create trigger reviews_set_updated_at
   before update on public.reviews
   for each row execute procedure public.set_updated_at();
+
+create or replace function public.sanitize_review_row()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.comment := left(btrim(coalesce(new.comment, '')), 500);
+  if new.display_name is null
+     or btrim(new.display_name) = ''
+     or position('@' in new.display_name) > 0 then
+    new.display_name := 'Member';
+  else
+    new.display_name := left(regexp_replace(btrim(new.display_name), '\s+', ' ', 'g'), 80);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists reviews_sanitize_row on public.reviews;
+create trigger reviews_sanitize_row
+  before insert or update on public.reviews
+  for each row execute procedure public.sanitize_review_row();
+
+revoke all on function public.sanitize_review_row() from public, anon, authenticated;
 
 alter table public.reviews enable row level security;
 

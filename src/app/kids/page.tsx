@@ -5,8 +5,13 @@ import { useEffect, useState } from "react";
 import { ChildForm } from "@/components/ChildForm";
 import { EmptyState } from "@/components/EmptyState";
 import { FamilyPanel } from "@/components/FamilyPanel";
+import { StudioLogo } from "@/components/StudioLogo";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
+import {
+  studioMarkFor,
+  useApprovedStudioMarks,
+} from "@/hooks/useApprovedStudioMarks";
 import { displayAge } from "@/lib/age";
 import { kidsSectionLabel } from "@/lib/copy";
 import { SOFT_MAX_KIDS } from "@/lib/storage";
@@ -19,6 +24,11 @@ export default function KidsPage() {
   const [showForm, setShowForm] = useState(false);
   const dancer = account?.role === "dancer";
   const heading = kidsSectionLabel(account?.role, state.children.length);
+  const studioMarks = useApprovedStudioMarks(
+    state.children.map((child) => child.studioId),
+  );
+  const hasDancers = state.children.length > 0;
+  const familyAfterCards = hasDancers && account?.role !== "dancer";
 
   useEffect(() => {
     document.title = `${heading} · My Dance Comps`;
@@ -60,7 +70,7 @@ export default function KidsPage() {
           submitLabel={dancer ? "Save My Info" : "Add a dancer"}
         />
       ) : null}
-      <FamilyPanel />
+      {familyAfterCards ? null : <FamilyPanel />}
       {state.children.length === 0 && !showForm ? (
         <EmptyState
           title={dancer ? "No info yet" : "No dancers yet"}
@@ -81,31 +91,43 @@ export default function KidsPage() {
         />
       ) : (
         <ul className="space-y-3">
-          {state.children.map((child) => (
-            <li key={child.id}>
-              <Link
-                href={`/kids/${child.id}`}
-                className="block rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
-                onClick={() => setSelectedChildId(child.id)}
-              >
-                <p className="text-lg font-bold">{child.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {displayAge(child.dob)} · {child.homeState}
-                  {child.studio ? ` · ${child.studio}` : ""}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-primary-ink">
-                  {child.styles?.length
-                    ? child.styles.join(" · ")
-                    : "All styles"}
-                </p>
-                <p className="mt-2 text-xs font-bold text-primary-ink">
-                  {dancerCardHint(child, { dancer, parent })}
-                </p>
-              </Link>
-            </li>
-          ))}
+          {state.children.map((child) => {
+            const studioMark = studioMarkFor(studioMarks, child.studioId);
+            return (
+              <li key={child.id}>
+                <Link
+                  href={`/kids/${child.id}`}
+                  className="flex items-start gap-3 rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
+                  onClick={() => setSelectedChildId(child.id)}
+                >
+                  {studioMark ? (
+                    <StudioLogo
+                      name={studioMark.name}
+                      logoUrl={studioMark.logoUrl}
+                    />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-bold">{child.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {displayAge(child.dob)} · {child.homeState}
+                      {child.studio ? ` · ${child.studio}` : ""}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-primary-ink">
+                      {child.styles?.length
+                        ? child.styles.join(" · ")
+                        : "All styles"}
+                    </p>
+                    <p className="mt-2 text-xs font-bold text-primary-ink">
+                      {dancerCardHint(child, { dancer, parent })}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
+      {familyAfterCards ? <FamilyPanel /> : null}
     </div>
   );
 }

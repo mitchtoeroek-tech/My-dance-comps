@@ -4,12 +4,14 @@ import { normalizeChild } from "./storage";
 import { familyStateFromDancerSnapshot } from "./family-sync";
 import {
   adminAllowlist,
+  approvedStudioMark,
   formatStudioAddress,
   friendlyStudioError,
   isAllowlistedAdmin,
   isPublicStudio,
   parseStudioStatus,
   slugifyStudioName,
+  fetchApprovedStudioMarks,
   studioLogoPublicUrl,
   validateStudioDraft,
   validateStudioLogo,
@@ -98,6 +100,80 @@ test("studio draft checks name, postcode and website", () => {
   }
 });
 
+test("dancer cards only take a logo from an approved studio", () => {
+  const url = "https://example.supabase.co";
+  const approved = approvedStudioMark(
+    {
+      id: STUDIO_ID,
+      name: "Mitch Test Studio",
+      status: "approved",
+      logoPath: `${STUDIO_ID}/logo`,
+      updatedAt: "2026-09-22T00:00:00.000Z",
+    },
+    url,
+  );
+  assert.equal(approved?.id, STUDIO_ID);
+  assert.equal(approved?.name, "Mitch Test Studio");
+  assert.equal(
+    approved?.logoUrl,
+    studioLogoPublicUrl(`${STUDIO_ID}/logo`, "2026-09-22T00:00:00.000Z", url),
+  );
+
+  const missingLogo = approvedStudioMark(
+    {
+      id: STUDIO_ID,
+      name: "Mint Studio",
+      status: "approved",
+      logoPath: "  ",
+      updatedAt: null,
+    },
+    url,
+  );
+  assert.equal(missingLogo?.name, "Mint Studio");
+  assert.equal(missingLogo?.logoUrl, null);
+
+  assert.equal(
+    approvedStudioMark(
+      {
+        id: STUDIO_ID,
+        name: "Mint Studio",
+        status: "pending",
+        logoPath: `${STUDIO_ID}/logo`,
+      },
+      url,
+    ),
+    null,
+  );
+  assert.equal(
+    approvedStudioMark(
+      {
+        id: STUDIO_ID,
+        name: "Mint Studio",
+        status: "rejected",
+        logoPath: `${STUDIO_ID}/logo`,
+      },
+      url,
+    ),
+    null,
+  );
+  assert.equal(
+    approvedStudioMark(
+      {
+        id: "Local hall",
+        name: "Local hall",
+        status: "approved",
+        logoPath: `${STUDIO_ID}/logo`,
+      },
+      url,
+    ),
+    null,
+  );
+});
+
+test("studio mark lookup does nothing until accounts are connected", async () => {
+  assert.deepEqual(await fetchApprovedStudioMarks([STUDIO_ID, "Local hall"]), []);
+});
+
 test("logo url and file checks", () => {
   assert.equal(
     studioLogoPublicUrl("abc/logo", "2026-01-01", "https://example.supabase.co"),
@@ -152,7 +228,6 @@ test("dancer cloud snapshot keeps the linked studio id", () => {
     },
     enrolled_owned: false,
     enrolled_ids: [],
-    favourites: [],
     results: [],
   });
   assert.equal(parsed.state?.children[0]?.studioId, STUDIO_ID);

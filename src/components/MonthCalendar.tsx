@@ -42,7 +42,6 @@ export function MonthCalendar({
   enrolledIds,
   isEnrolled,
   toggleEnrolled,
-  isFavourite,
   emptyState,
   emptyMonth,
 }: {
@@ -50,7 +49,6 @@ export function MonthCalendar({
   enrolledIds: string[];
   isEnrolled: (id: string) => boolean;
   toggleEnrolled: (id: string) => void;
-  isFavourite: (id: string) => boolean;
   emptyState?: React.ReactNode;
   emptyMonth?: (info: {
     month: CalendarMonth;
@@ -237,7 +235,6 @@ export function MonthCalendar({
           todayIso={todayIso}
           isEnrolled={isEnrolled}
           toggleEnrolled={toggleEnrolled}
-          isFavourite={isFavourite}
           onClose={() => setSelectedIso(null)}
         />
       ) : null}
@@ -316,7 +313,6 @@ function DaySheet({
   todayIso,
   isEnrolled,
   toggleEnrolled,
-  isFavourite,
   onClose,
 }: {
   iso: string;
@@ -324,7 +320,6 @@ function DaySheet({
   todayIso: string;
   isEnrolled: (id: string) => boolean;
   toggleEnrolled: (id: string) => void;
-  isFavourite: (id: string) => boolean;
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -396,13 +391,8 @@ function DaySheet({
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <StatusPill status={registrationStatus(comp)} />
                   {enrolled ? (
-                    <span className="inline-flex items-center gap-1 rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
+                    <span className="inline-flex items-center gap-1 rounded-control bg-enrolled px-2 py-0.5 text-[11px] font-bold text-enrolled-ink">
                       ★ Enrolled
-                    </span>
-                  ) : null}
-                  {isFavourite(comp.id) ? (
-                    <span className="rounded-control bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
-                      Saved
                     </span>
                   ) : null}
                 </div>

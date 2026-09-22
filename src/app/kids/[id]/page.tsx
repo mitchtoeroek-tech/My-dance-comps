@@ -7,8 +7,13 @@ import { DancerInviteCard } from "@/components/DancerInviteCard";
 import { DancerStudioCard } from "@/components/DancerStudioCard";
 import { FriendsPanel } from "@/components/FriendsPanel";
 import { ResultLog } from "@/components/ResultLog";
+import { StudioLogo } from "@/components/StudioLogo";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
+import {
+  studioMarkFor,
+  useApprovedStudioMarks,
+} from "@/hooks/useApprovedStudioMarks";
 import { kidsSectionLabel } from "@/lib/copy";
 
 export default function KidDetailPage({
@@ -32,6 +37,9 @@ export default function KidDetailPage({
           (!account.linkedChildId || account.linkedChildId === child?.id));
   const [editing, setEditing] = useState(false);
   const backLabel = kidsSectionLabel(account?.role, state.children.length);
+  const studioMarks = useApprovedStudioMarks([child?.studioId]);
+  const studioMark = studioMarkFor(studioMarks, child?.studioId);
+  const studioLabel = child?.studio?.trim() || studioMark?.name || "";
 
   if (!child) {
     return (
@@ -64,13 +72,21 @@ export default function KidDetailPage({
         />
       ) : (
         <section className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
-          <h1 className="text-2xl font-bold">{child.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            Born {child.dob} · Home state {child.homeState}
-          </p>
-          <p className="mt-2 text-sm">
-            {child.styles?.length ? child.styles.join(" · ") : "All styles"}
-          </p>
+          <div className="flex items-start gap-3">
+            {studioMark ? (
+              <StudioLogo name={studioMark.name} logoUrl={studioMark.logoUrl} />
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-bold">{child.name}</h1>
+              <p className="text-sm text-muted-foreground">
+                Born {child.dob} · Home state {child.homeState}
+                {studioLabel ? ` · ${studioLabel}` : ""}
+              </p>
+              <p className="mt-2 text-sm">
+                {child.styles?.length ? child.styles.join(" · ") : "All styles"}
+              </p>
+            </div>
+          </div>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
@@ -107,6 +123,7 @@ export default function KidDetailPage({
             childName={child.name}
             studio={child.studio}
             studioId={child.studioId ?? null}
+            studioMark={studioMark}
             canEdit={canLinkStudio}
             onSave={({ studio, studioId }) => {
               upsertChild({

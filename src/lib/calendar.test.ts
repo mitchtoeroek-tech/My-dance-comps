@@ -134,7 +134,7 @@ describe("selectCalendarComps", () => {
     assert.ok(!ids.includes("nsw-local"));
   });
 
-  it("does not plot out-of-state favourites or enrolled comps", () => {
+  it("does not plot out-of-state comps", () => {
     const ids = selectCalendarComps(catalogue, {
       filters: saFilters,
     }).map((comp) => comp.id);

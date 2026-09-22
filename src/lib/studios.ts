@@ -123,6 +123,47 @@ export function studioLogoPublicUrl(
   return `${url}?v=${encodeURIComponent(version)}`;
 }
 
+/** Logo shown on a dancer card. Only approved studios qualify. */
+export interface ApprovedStudioMark {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+}
+
+/**
+ * A linked studio contributes a mark only when it is approved.
+ * A missing logo still returns the studio so the card can fall back to initials.
+ * A typed studio name (no real id) and pending or rejected studios return null.
+ */
+export function approvedStudioMark(
+  input: {
+    id: unknown;
+    name: unknown;
+    status: unknown;
+    logoPath?: unknown;
+    updatedAt?: unknown;
+  },
+  supabaseUrl?: string,
+): ApprovedStudioMark | null {
+  if (!isPublicStudio(parseStudioStatus(input.status))) return null;
+  const id = parseStudioId(input.id);
+  const name = typeof input.name === "string" ? input.name.trim() : "";
+  if (!id || !name) return null;
+  const logoPath =
+    typeof input.logoPath === "string" && input.logoPath.trim()
+      ? input.logoPath.trim()
+      : null;
+  const updatedAt =
+    typeof input.updatedAt === "string" && input.updatedAt.trim()
+      ? input.updatedAt
+      : null;
+  return {
+    id,
+    name,
+    logoUrl: studioLogoPublicUrl(logoPath, updatedAt, supabaseUrl),
+  };
+}
+
 export function validateStudioDraft(
   draft: StudioDraft,
 ): { ok: true; value: StudioDraft } | { ok: false; error: string } {
@@ -385,6 +426,44 @@ export async function searchApprovedStudios(query: string): Promise<{
     return summary ? [summary] : [];
   });
   return { studios, error: null };
+}
+
+/** Approved studios only. Pending and rejected rows are dropped even if the owner can read them. */
+export async function fetchApprovedStudioMarks(
+  ids: readonly string[],
+): Promise<ApprovedStudioMark[]> {
+  const unique = Array.from(
+    new Set(
+      ids.flatMap((id) => {
+        const parsed = parseStudioId(id);
+        return parsed ? [parsed] : [];
+      }),
+    ),
+  );
+  if (unique.length === 0) return [];
+  const supabase = getSupabase();
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from("studios")
+      .select("id, name, logo_path, status, updated_at")
+      .in("id", unique)
+      .eq("status", "approved");
+    if (error || !data) return [];
+    return data.flatMap((row) => {
+      const record = row as Record<string, unknown>;
+      const mark = approvedStudioMark({
+        id: record.id,
+        name: record.name,
+        status: record.status,
+        logoPath: record.logo_path,
+        updatedAt: record.updated_at,
+      });
+      return mark ? [mark] : [];
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function listApprovedStudios(): Promise<{

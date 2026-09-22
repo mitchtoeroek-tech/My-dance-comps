@@ -4,19 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
+import { useNavBadges } from "@/hooks/useNavBadges";
 import { kidsSectionLabel } from "@/lib/copy";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { account } = useAuth();
   const { state } = useFamily();
+  const { communityUnread, remindersUnread } = useNavBadges();
   const childrenCount = Array.isArray(state.children) ? state.children.length : 0;
   const dancersLabel = kidsSectionLabel(account?.role, childrenCount);
 
   const items = [
     { href: "/", label: "Comps", icon: CompIcon },
     { href: "/my-comps", label: "My Comps", icon: MyCompsIcon },
-    { href: "/calendar", label: "Calendar", icon: CalendarIcon },
     { href: "/kids", label: dancersLabel, icon: KidsIcon },
     { href: "/community", label: "Community", icon: CommunityIcon },
     { href: "/reminders", label: "Reminders", icon: BellIcon },
@@ -28,7 +29,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Main"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-6">
+      <ul className="mx-auto grid max-w-lg grid-cols-5">
         {items.map((item) => {
           const active =
             item.href === "/"
@@ -36,17 +37,41 @@ export function BottomNav() {
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           const longLabel = item.href === "/kids";
+          const unread =
+            item.href === "/community"
+              ? communityUnread
+              : item.href === "/reminders"
+                ? remindersUnread
+                : false;
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
+                aria-label={
+                  unread
+                    ? item.href === "/community"
+                      ? "Community, new messages"
+                      : "Reminders, new reminders"
+                    : undefined
+                }
                 className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 font-bold whitespace-nowrap ${
                   longLabel
                     ? "text-[9px] tracking-normal"
                     : "text-[10px] tracking-wide"
                 } ${active ? "text-primary-ink" : "text-muted-foreground"}`}
               >
-                <Icon active={active} />
+                <span className="relative inline-flex">
+                  <Icon active={active} />
+                  {unread ? (
+                    <span
+                      className="absolute top-0 right-0 h-2 w-2 translate-x-1/2 -translate-y-1/2 rounded-full bg-primary ring-2 ring-surface"
+                      data-nav-unread={
+                        item.href === "/community" ? "community" : "reminders"
+                      }
+                      aria-hidden
+                    />
+                  ) : null}
+                </span>
                 {item.label}
               </Link>
             </li>
@@ -72,13 +97,6 @@ function MyCompsIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2.2 : 1.8}
         strokeLinecap="round"
       />
-      <path
-        d="M12 4.6 13 6.7l2.3.3-1.7 1.6.4 2.3L12 9.8l-2 1.1.4-2.3-1.7-1.6 2.3-.3L12 4.6Z"
-        stroke="currentColor"
-        strokeWidth={active ? 1.8 : 1.5}
-        strokeLinejoin="round"
-        fill={active ? "currentColor" : "none"}
-      />
     </svg>
   );
 }
@@ -98,30 +116,6 @@ function CompIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2.2 : 1.8}
         strokeLinecap="round"
       />
-    </svg>
-  );
-}
-
-function CalendarIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect
-        x="4"
-        y="6"
-        width="16"
-        height="14"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth={active ? 2.2 : 1.8}
-      />
-      <path
-        d="M8 4v4M16 4v4M4 10h16"
-        stroke="currentColor"
-        strokeWidth={active ? 2.2 : 1.8}
-        strokeLinecap="round"
-      />
-      <circle cx="9" cy="14" r="1.1" fill="currentColor" />
-      <circle cx="12.5" cy="14" r="1.1" fill="currentColor" />
     </svg>
   );
 }

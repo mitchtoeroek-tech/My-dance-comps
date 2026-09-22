@@ -8,16 +8,13 @@ import { canReviewCompetition } from "@/lib/reviews";
 import type { Competition } from "@/lib/types";
 import { AddToCalendarButton } from "./AddToCalendarButton";
 import { StatusPill } from "./StatusPill";
-import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
 import { CompReviewSection } from "./CompReviewSection";
 import { CompReviewSummary } from "./CompReviewSummary";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 export function CompDetail({ comp }: { comp: Competition }) {
-  const { isFavourite, toggleFavourite, isEnrolled, toggleEnrolled } =
-    useFamily();
-  const saved = isFavourite(comp.id);
+  const { isEnrolled, toggleEnrolled } = useFamily();
   const enrolled = isEnrolled(comp.id);
   const status = registrationStatus(comp);
   const completed = canReviewCompetition(comp);
@@ -31,8 +28,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
         ← All comps
       </Link>
       <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
+        <div className="min-w-0">
             <div className="mb-2 flex flex-wrap gap-2">
               <StatusPill status={status} />
               <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
@@ -49,14 +45,6 @@ export function CompDetail({ comp }: { comp: Competition }) {
               {formatDateRange(comp.startDate, comp.endDate)}
             </p>
             {completed ? <CompReviewSummary competitionId={comp.id} /> : null}
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <StarButton saved={saved} onClick={() => toggleFavourite(comp.id)} />
-            <EnrolledButton
-              enrolled={enrolled}
-              onClick={() => toggleEnrolled(comp.id)}
-            />
-          </div>
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <Row label="Venue" value={formatCompLocation(comp)} />
@@ -121,14 +109,18 @@ export function CompDetail({ comp }: { comp: Competition }) {
             Organiser info
           </a>
           <AddToCalendarButton comp={comp} />
+          <EnrolledButton
+            enrolled={enrolled}
+            onClick={() => toggleEnrolled(comp.id)}
+          />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Tap Enrolled to store a confirmed entry. If a dancer is selected, it
           is stored for that dancer; otherwise it is stored for the whole family.
-          Enrolled comps appear on My Comps and get a star on the Calendar tab.
+          Enrolled comps appear on My Comps, with a star on that calendar.
           When you are signed in, friends of that dancer see the enrolment
-          automatically. Reminders follow your dancers’ styles, not the
-          favourite star. Always confirm dates on the organiser website.
+          automatically. Reminders follow your dancers’ styles. Always confirm
+          dates on the organiser website.
         </p>
       </div>
       {completed ? (

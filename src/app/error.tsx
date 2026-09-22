@@ -10,7 +10,7 @@ export default function Error({
     <div className="space-y-3 py-8 text-center">
       <h1 className="text-2xl font-bold">This page had a problem</h1>
       <p className="text-sm leading-6 text-muted-foreground">
-        Your dancers, saved comps, enrolled comps and reminder settings stay on
+        Your dancers, enrolled comps and reminder settings stay on
         this device. You can try again without losing them.
       </p>
       <button

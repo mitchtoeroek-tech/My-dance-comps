@@ -41,14 +41,13 @@ test("isEmptyFamily ignores prefs-only guest state", () => {
     isEmptyFamily(family({ includeInterstate: true, preferredState: "SA" })),
     true,
   );
-  assert.equal(isEmptyFamily(family({ favourites: ["comp-1"] })), false);
+  assert.equal(isEmptyFamily(family({ enrolled: ["comp-1"] })), false);
 });
 
-test("mergeFamilyState unions kids, favourites, enrolled and results", () => {
+test("mergeFamilyState unions kids, enrolled and results", () => {
   const local = family({
     children: [mia],
     selectedChildId: "mia",
-    favourites: ["a"],
     enrolled: ["entered-local"],
     enrolledByChild: { mia: ["entered-local"] },
     results: [
@@ -68,7 +67,6 @@ test("mergeFamilyState unions kids, favourites, enrolled and results", () => {
   const remote = family({
     children: [{ ...mia, studio: "Remote Studio" }, leo],
     selectedChildId: "leo",
-    favourites: ["b"],
     enrolled: ["entered-remote"],
     enrolledByChild: { leo: ["entered-remote"] },
     includeInterstate: true,
@@ -90,7 +88,7 @@ test("mergeFamilyState unions kids, favourites, enrolled and results", () => {
   assert.equal(merged.children.length, 2);
   assert.equal(merged.children.find((c) => c.id === "mia")?.studio, "Mint");
   assert.ok(merged.children.some((c) => c.id === "leo"));
-  assert.deepEqual(new Set(merged.favourites), new Set(["a", "b"]));
+  assert.equal("favourites" in merged, false);
   assert.deepEqual(
     new Set(merged.enrolled),
     new Set(["entered-local", "entered-remote"]),
@@ -109,10 +107,10 @@ test("mergeFamilyState unions kids, favourites, enrolled and results", () => {
 });
 
 test("reconcileFamilyState keeps guest data when remote is empty", () => {
-  const local = family({ children: [mia], favourites: ["starred"] });
+  const local = family({ children: [mia], enrolled: ["kept"] });
   const next = reconcileFamilyState(local, null, null, "user-1");
   assert.equal(next.children[0]?.name, "Mia");
-  assert.deepEqual(next.favourites, ["starred"]);
+  assert.deepEqual(next.enrolled, ["kept"]);
 });
 
 test("reconcileFamilyState loads remote when switching accounts", () => {
@@ -124,7 +122,7 @@ test("reconcileFamilyState loads remote when switching accounts", () => {
 });
 
 test("reconcileFamilyState uses remote when local guest family is empty", () => {
-  const remote = family({ children: [leo], favourites: ["cloud"] });
+  const remote = family({ children: [leo], enrolled: ["cloud"] });
   const next = reconcileFamilyState(
     defaultFamilyState,
     remote,
@@ -132,5 +130,5 @@ test("reconcileFamilyState uses remote when local guest family is empty", () => 
     "user-1",
   );
   assert.equal(next.children[0]?.id, "leo");
-  assert.deepEqual(next.favourites, ["cloud"]);
+  assert.deepEqual(next.enrolled, ["cloud"]);
 });

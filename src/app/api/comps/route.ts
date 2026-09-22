@@ -20,9 +20,6 @@ export async function GET(request: NextRequest) {
     .map((s) => s.trim())
     .filter(Boolean) as DanceStyle[];
   const dob = searchParams.get("dob");
-  const favouriteIds = (searchParams.get("saved") ?? "")
-    .split(",")
-    .filter(Boolean);
   const sortDir = searchParams.get("sort") === "desc" ? "desc" : "asc";
   const statuses = (searchParams.get("status") ?? "")
     .split(",")
@@ -49,8 +46,6 @@ export async function GET(request: NextRequest) {
     includeInterstate: child || state ? includeInterstateParam : true,
     child,
     homeState: state,
-    onlyFavourites: favouriteIds.length > 0,
-    favouriteIds,
     sortDir,
     statuses,
   });

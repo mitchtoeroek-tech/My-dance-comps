@@ -189,6 +189,69 @@ export function formatReviewCount(count: number): string {
   return n === 1 ? "1 review" : `${n} reviews`;
 }
 
+/** Name stored on a public review. Never keep an email address. */
+export function reviewDisplayName(input: {
+  displayName?: string | null;
+  email?: string | null;
+}): string {
+  const named = (input.displayName ?? "").replace(/\s+/g, " ").trim();
+  if (named && !named.includes("@")) return named.slice(0, 80);
+  const local = (input.email ?? "")
+    .split("@")[0]
+    ?.replace(/[^a-zA-Z0-9._ -]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (local) return local.slice(0, 80);
+  return "Member";
+}
+
+/** Name shown on the public list. Emails and blanks become Member. */
+export function publicReviewerName(name: string | null | undefined): string {
+  const trimmed = (name ?? "").replace(/\s+/g, " ").trim();
+  if (!trimmed || trimmed.includes("@")) return "Member";
+  return trimmed.slice(0, 80);
+}
+
+export function reviewFromPublicRow(raw: unknown): CompReview | null {
+  if (!isRecord(raw)) return null;
+  const review = normalizeReview({
+    id: raw.id,
+    competitionId: raw.competition_id ?? raw.competitionId,
+    userId: raw.user_id ?? raw.userId,
+    displayName: raw.display_name ?? raw.displayName,
+    stars: raw.stars,
+    comment: raw.comment,
+    createdAt: raw.created_at ?? raw.createdAt,
+    updatedAt: raw.updated_at ?? raw.updatedAt,
+  });
+  if (!review) return null;
+  return { ...review, displayName: publicReviewerName(review.displayName) };
+}
+
+/** Average stars for each competition. Invalid ratings are dropped. */
+export function aggregateStarRows(
+  rows: readonly { competitionId: string; stars: number }[],
+): Record<string, ReviewAggregate> {
+  const grouped = new Map<string, ReviewStars[]>();
+  for (const row of rows) {
+    if (!isReviewStars(row.stars)) continue;
+    const id = row.competitionId.trim();
+    if (!id) continue;
+    const list = grouped.get(id) ?? [];
+    list.push(row.stars);
+    grouped.set(id, list);
+  }
+  const out: Record<string, ReviewAggregate> = {};
+  for (const [id, stars] of grouped) {
+    const sum = stars.reduce((total, value) => total + value, 0);
+    out[id] = {
+      average: Math.round((sum / stars.length) * 10) / 10,
+      count: stars.length,
+    };
+  }
+  return out;
+}
+
 /** Completed comps only: event end date before today in Australia/Adelaide. */
 export function canReviewCompetition(
   comp: Competition,

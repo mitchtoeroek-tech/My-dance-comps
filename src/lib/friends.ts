@@ -7,7 +7,7 @@ export const FRIEND_CODE_LENGTH = 8;
 
 export const GUEST_FRIENDS_TITLE = "Friends unlock when you sign in";
 export const GUEST_FRIENDS_BODY =
-  "Sign in so your dancer can add friends. You will see the comps a friend has marked Enrolled — not their favourites, and not their date of birth.";
+  "Sign in so your dancer can add friends. You will see the comps a friend has marked Enrolled — not their date of birth.";
 
 export type FriendshipStatus = "pending" | "accepted" | "declined" | "removed";
 
@@ -153,6 +153,15 @@ export function friendlyFriendsError(
   }
   if (lower.includes("could not find that dancer")) {
     return "We could not find that dancer. Check the spelling, or ask for their invite code.";
+  }
+  if (lower.includes("add friends from your studio chat")) {
+    return "Add friends from your studio chat. Parents add other parents, and dancers add other dancers.";
+  }
+  if (lower.includes("same studio")) {
+    return "You can only add dancers at the same studio.";
+  }
+  if (lower.includes("studio accounts are not on the friend list")) {
+    return "Studio accounts are not on the friend list. Use a parent or dancer login.";
   }
   if (lower.includes("already friends")) {
     return "Those dancers are already friends.";

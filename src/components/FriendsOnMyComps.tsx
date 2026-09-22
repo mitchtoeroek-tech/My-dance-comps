@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { AddFriendCard } from "@/components/AddFriendCard";
 import { FriendCompsList } from "@/components/FriendCompsList";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useCompsDateSort } from "@/components/DateSortControl";
@@ -30,12 +29,7 @@ export function FriendsOnMyComps({
   const bundle = useFriendsForChildren(targetIds);
   const { comps } = useLiveComps(getComps());
   const { sortDir } = useCompsDateSort();
-  const [addForId, setAddForId] = useState<string | null>(null);
-
-  const addChild =
-    children.find(
-      (child) => child.id === (filterChildId ?? addForId ?? children[0]?.id),
-    ) ?? null;
+  const reviewChild = filterChild ?? children[0] ?? null;
 
   const friends = useMemo(
     () => mergeAcceptedFriends(bundle.friends),
@@ -80,19 +74,19 @@ export function FriendsOnMyComps({
       {view === "ready" && children.length === 0 ? (
         <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
           {account?.role === "dancer"
-            ? "Set up My Info, then you can add friends by email."
-            : "Add a dancer on My Dancers, then you can add friends by email."}
+            ? "Set up My Info, then add other dancers from your studio chat."
+            : "Add a dancer on My Dancers. To add other parents, open your studio chat."}
         </p>
       ) : null}
 
       {view === "ready" && children.length > 0 ? (
         <>
-          {incomingCount > 0 && addChild ? (
+          {incomingCount > 0 && reviewChild ? (
             <p className="rounded-control bg-accent-soft px-3 py-2 text-sm font-semibold">
               {incomingCount === 1
                 ? "1 friend request waiting."
                 : `${incomingCount} friend requests waiting.`}{" "}
-              <Link href={`/kids/${addChild.id}`} className="underline">
+              <Link href={`/kids/${reviewChild.id}`} className="underline">
                 Review
               </Link>
             </p>
@@ -100,9 +94,8 @@ export function FriendsOnMyComps({
 
           {friends.length === 0 ? (
             <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-              {filterChild
-                ? `${filterChild.name} has no friends yet. Add one by the other parent’s email below.`
-                : "No friends yet. Pick which of your dancers this is for, then add a friend by email."}
+              No enrolled comps from dancer friends yet. Add people from your
+              studio chat — parents add parents, dancers add dancers.
             </p>
           ) : (
             <div className="space-y-4">
@@ -122,41 +115,12 @@ export function FriendsOnMyComps({
             </div>
           )}
 
-          {children.length > 1 && !filterChildId ? (
-            <label className="block text-sm font-bold" htmlFor="add-friend-for">
-              This friend is for
-              <select
-                id="add-friend-for"
-                value={addChild?.id ?? ""}
-                onChange={(event) => setAddForId(event.target.value)}
-                className="mt-1 min-h-11 w-full rounded-control border border-border bg-background px-3 text-sm font-medium"
-              >
-                {children.map((child) => (
-                  <option key={child.id} value={child.id}>
-                    {child.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          {addChild ? (
-            <AddFriendCard
-              fromChildId={addChild.id}
-              fromChildName={addChild.name}
-              busy={bundle.loading}
-              onSent={bundle.reload}
-            />
-          ) : null}
-
-          {addChild ? (
-            <p className="text-xs font-semibold text-muted-foreground">
-              Need the invite link?{" "}
-              <Link href={`/kids/${addChild.id}`} className="text-primary-ink underline">
-                Manage friends for {addChild.name}
-              </Link>
-            </p>
-          ) : null}
+          <Link
+            href="/community"
+            className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
+          >
+            Add friends in Community
+          </Link>
         </>
       ) : null}
     </section>
