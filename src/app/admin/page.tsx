@@ -6,6 +6,7 @@ import { AuthUnavailable } from "@/components/AuthCard";
 import { useAuth } from "@/context/AuthContext";
 import {
   claimAdminAccess,
+  deleteStudio,
   isAllowlistedAdmin,
   listStudiosForAdmin,
   setStudioStatus,
@@ -16,19 +17,22 @@ import {
 export default function AdminStudiosPage() {
   const { configured, ready, user } = useAuth();
   const [pendingStudios, setPendingStudios] = useState<StudioRecord[]>([]);
+  const [approvedStudios, setApprovedStudios] = useState<StudioRecord[]>([]);
   const [rejectedStudios, setRejectedStudios] = useState<StudioRecord[]>([]);
   const [gate, setGate] = useState<{ userId: string; allowed: boolean } | null>(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState("");
 
   const load = useCallback(async () => {
-    const [pending, rejected] = await Promise.all([
+    const [pending, approved, rejected] = await Promise.all([
       listStudiosForAdmin("pending"),
+      listStudiosForAdmin("approved"),
       listStudiosForAdmin("rejected"),
     ]);
     setPendingStudios(pending.studios);
+    setApprovedStudios(approved.studios);
     setRejectedStudios(rejected.studios);
-    setError(pending.error || rejected.error || "");
+    setError(pending.error || approved.error || rejected.error || "");
   }, []);
 
   useEffect(() => {
@@ -99,12 +103,32 @@ export default function AdminStudiosPage() {
     await load();
   }
 
+  async function remove(studio: StudioRecord) {
+    const name = studio.name.trim() || "this studio";
+    if (
+      !confirm(
+        `Delete ${name}? Dancers linked to it will be unlinked. Its chat, friend links and logo will be removed, and it will leave Approved studios. This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    setBusyId(studio.id);
+    setError("");
+    const result = await deleteStudio(studio.id);
+    setBusyId("");
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    await load();
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Studio approval</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Approve a studio before its page is public and dancers can link to it. Reject keeps it private.
+          Approve a studio before its page is public and dancers can link to it. Reject keeps it private. Delete unlinks dancers, removes its chat, and takes it off Approved studios.
         </p>
       </div>
       {error ? (
@@ -125,6 +149,24 @@ export default function AdminStudiosPage() {
                 busy={busyId === studio.id}
                 onApprove={() => void decide(studio, "approved")}
                 onReject={() => void decide(studio, "rejected")}
+                onDelete={() => void remove(studio)}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
+      <section className="space-y-2">
+        <h2 className="text-lg font-bold">Approved studios</h2>
+        {approvedStudios.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No approved studios.</p>
+        ) : (
+          <ul className="space-y-2">
+            {approvedStudios.map((studio) => (
+              <StudioDecision
+                key={studio.id}
+                studio={studio}
+                busy={busyId === studio.id}
+                onDelete={() => void remove(studio)}
               />
             ))}
           </ul>
@@ -137,23 +179,13 @@ export default function AdminStudiosPage() {
         ) : (
           <ul className="space-y-2">
             {rejectedStudios.map((studio) => (
-              <li
+              <StudioDecision
                 key={studio.id}
-                className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
-              >
-                <p className="font-bold">{studio.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {[studio.suburb, studio.state].filter(Boolean).join(", ")}
-                </p>
-                <button
-                  type="button"
-                  disabled={busyId === studio.id}
-                  onClick={() => void decide(studio, "approved")}
-                  className="mt-3 inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-                >
-                  Approve
-                </button>
-              </li>
+                studio={studio}
+                busy={busyId === studio.id}
+                onApprove={() => void decide(studio, "approved")}
+                onDelete={() => void remove(studio)}
+              />
             ))}
           </ul>
         )}
@@ -167,11 +199,13 @@ function StudioDecision({
   busy,
   onApprove,
   onReject,
+  onDelete,
 }: {
   studio: StudioRecord;
   busy: boolean;
-  onApprove: () => void;
-  onReject: () => void;
+  onApprove?: () => void;
+  onReject?: () => void;
+  onDelete: () => void;
 }) {
   return (
     <li className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
@@ -191,22 +225,34 @@ function StudioDecision({
       >
         Preview
       </Link>
-      <div className="mt-2 flex gap-2">
+      <div className="mt-2 flex flex-wrap gap-2">
+        {onApprove ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onApprove}
+            className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+          >
+            Approve
+          </button>
+        ) : null}
+        {onReject ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onReject}
+            className="inline-flex min-h-11 items-center rounded-control bg-surface px-4 py-2 text-sm font-bold text-foreground ring-1 ring-border disabled:opacity-60"
+          >
+            Reject
+          </button>
+        ) : null}
         <button
           type="button"
           disabled={busy}
-          onClick={onApprove}
-          className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+          onClick={onDelete}
+          className="inline-flex min-h-11 items-center rounded-control bg-status-closed px-4 py-2 text-sm font-bold text-status-closed-ink ring-1 ring-status-closed-ink disabled:opacity-60"
         >
-          Approve
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={onReject}
-          className="inline-flex min-h-11 items-center rounded-control bg-surface px-4 py-2 text-sm font-bold text-foreground ring-1 ring-border disabled:opacity-60"
-        >
-          Reject
+          Delete
         </button>
       </div>
     </li>

@@ -213,8 +213,16 @@ export function friendlyStudioError(
   if (lower.includes("not available to link")) {
     return "That studio is not public yet, so it cannot be linked.";
   }
+  if (
+    lower.includes("delete_studio") &&
+    (lower.includes("could not find") ||
+      lower.includes("schema cache") ||
+      lower.includes("does not exist"))
+  ) {
+    return "Studio delete is not in the database yet. Run supabase/migrations/20260926_delete_studio.sql in the Supabase SQL editor.";
+  }
   if (lower.includes("only an admin")) {
-    return "Only an admin can approve or reject a studio.";
+    return "Only an admin can approve, reject, or delete a studio.";
   }
   if (
     lower.includes("studio-logos") ||
@@ -541,6 +549,15 @@ export async function setStudioStatus(
     p_id: studioId,
     p_status: status,
   });
+  return { error: error ? friendlyStudioError(error) : null };
+}
+
+export async function deleteStudio(
+  studioId: string,
+): Promise<{ error: string | null }> {
+  const supabase = getSupabase();
+  if (!supabase) return { error: "Accounts are not connected in this environment yet." };
+  const { error } = await supabase.rpc("delete_studio", { p_id: studioId });
   return { error: error ? friendlyStudioError(error) : null };
 }
 
