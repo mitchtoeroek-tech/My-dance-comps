@@ -14,6 +14,7 @@ import {
   type FamilyPreviewDancer,
 } from "@/lib/family-link";
 import { copyText } from "@/lib/friends";
+import { CoparentPanel } from "@/components/CoparentPanel";
 import { SiblingFriendsPanel } from "@/components/SiblingFriendsPanel";
 
 export function FamilyPanel() {
@@ -132,7 +133,7 @@ export function FamilyPanel() {
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           {dancer
             ? "Join your parent's family with their code. You then use the app as yourself — your comps, enrolments, friends and Community."
-            : "Create a family code so a dancer can sign in as themselves and still sit on your My Dancers list. You can keep enrolling for them. Copy a personal invite from each dancer’s page, or use the code here."}
+            : "Create a family code so a dancer can sign in as themselves and still sit on your My Dancers list. You can keep enrolling for them. Copy a personal invite from each dancer’s page, or use the code here. Invite another parent separately, below."}
         </p>
       </div>
 
@@ -398,9 +399,10 @@ export function FamilyPanel() {
             </ul>
           ) : null}
           <p className="text-xs leading-5 text-muted-foreground">
-            One dancer belongs to one family. A second parent on the same family
-            can wait — this code is for the parent account that created it.
+            One dancer belongs to one family. The code above is for a dancer
+            login. A co-parent uses the invite below and joins as a parent.
           </p>
+          <CoparentPanel />
         </div>
       )}
     </section>

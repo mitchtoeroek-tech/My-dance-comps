@@ -26,6 +26,44 @@ export function dancerInviteUrl(
   return `${base}${dancerInvitePath(code, childId)}`;
 }
 
+/** Shareable parent signup URL. Separate from the dancer family code. */
+export function coparentSignupPath(code: string): string {
+  const params = new URLSearchParams({
+    role: "parent",
+    coparent: normalizeFamilyCode(code),
+  });
+  return `/signup?${params.toString()}`;
+}
+
+export function coparentInviteUrl(origin: string, code: string): string {
+  const base = origin.replace(/\/$/, "");
+  return `${base}${coparentSignupPath(code)}`;
+}
+
+/** Where a parent login accepts a co-parent invite. */
+export function coparentJoinPath(code: string): string {
+  const params = new URLSearchParams({
+    coparent: normalizeFamilyCode(code),
+  });
+  return `/family/join?${params.toString()}`;
+}
+
+/** Reads a co-parent signup or login link. Dancer `family` codes are ignored. */
+export function readCoparentInvite(search: string): { code: string } | null {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const params = new URLSearchParams(raw);
+  let code = normalizeFamilyCode(params.get("coparent") ?? "");
+  if (!code) {
+    const next = safeInternalPath(params.get("next"));
+    if (next?.includes("coparent=")) {
+      const nested = next.includes("?") ? next.slice(next.indexOf("?")) : "";
+      code = normalizeFamilyCode(new URLSearchParams(nested).get("coparent") ?? "");
+    }
+  }
+  if (!code) return null;
+  return { code };
+}
+
 /** Where a new or existing dancer login finishes joining the named profile. */
 export function familyJoinPath(code: string, childId: string): string {
   const params = new URLSearchParams({

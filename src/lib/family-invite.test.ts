@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  coparentInviteUrl,
+  coparentJoinPath,
+  coparentSignupPath,
   dancerInvitePath,
   dancerInviteUrl,
   familyJoinPath,
   pickUnlinkedInviteChild,
+  readCoparentInvite,
   readDancerInvite,
 } from "./family-invite";
 
@@ -42,6 +46,29 @@ test("readDancerInvite reads the signup link and a login next path", () => {
   assert.equal(readDancerInvite("?role=parent"), null);
   assert.equal(readDancerInvite("?next=https://evil.example/family/join"), null);
   assert.equal(readDancerInvite("?next=//family/join?family=AB12CD34"), null);
+});
+
+test("co-parent invite is a parent signup link, separate from the dancer code", () => {
+  assert.equal(
+    coparentSignupPath("ab12-cd34"),
+    "/signup?role=parent&coparent=AB12CD34",
+  );
+  assert.equal(
+    coparentJoinPath("ab12cd34"),
+    "/family/join?coparent=AB12CD34",
+  );
+  assert.equal(
+    coparentInviteUrl("https://my-dance-comps.vercel.app/", "ab12cd34"),
+    "https://my-dance-comps.vercel.app/signup?role=parent&coparent=AB12CD34",
+  );
+  assert.deepEqual(readCoparentInvite("?role=parent&coparent=ab12-cd34"), {
+    code: "AB12CD34",
+  });
+  const next = encodeURIComponent("/family/join?coparent=AB12CD34");
+  assert.deepEqual(readCoparentInvite(`next=${next}`), { code: "AB12CD34" });
+  assert.equal(readCoparentInvite("?role=dancer&family=AB12CD34"), null);
+  assert.equal(readCoparentInvite(""), null);
+  assert.equal(readDancerInvite("?role=parent&coparent=AB12CD34"), null);
 });
 
 test("pickUnlinkedInviteChild only selects a free named profile", () => {

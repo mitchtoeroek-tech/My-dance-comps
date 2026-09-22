@@ -4,6 +4,7 @@ import { defaultFamilyState } from "./storage";
 import {
   isEmptyFamily,
   mergeFamilyState,
+  parseHouseholdScope,
   reconcileFamilyState,
 } from "./family-sync";
 import { isSupabaseConfigured } from "./supabase";
@@ -30,6 +31,24 @@ const leo: ChildProfile = {
 function family(partial: Partial<FamilyState>): FamilyState {
   return { ...defaultFamilyState, ...partial };
 }
+
+test("parseHouseholdScope uses the family owner and ignores a missing scope", () => {
+  assert.deepEqual(
+    parseHouseholdScope(
+      { owner_id: "owner-1", family_id: "family-1" },
+      "parent-2",
+    ),
+    { ownerId: "owner-1", familyId: "family-1" },
+  );
+  assert.deepEqual(parseHouseholdScope(null, "parent-1"), {
+    ownerId: "parent-1",
+    familyId: null,
+  });
+  assert.deepEqual(parseHouseholdScope({ owner_id: "", family_id: null }, "parent-1"), {
+    ownerId: "parent-1",
+    familyId: null,
+  });
+});
 
 test("isSupabaseConfigured is false without public env vars", () => {
   assert.equal(isSupabaseConfigured(), false);

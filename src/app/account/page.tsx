@@ -96,7 +96,7 @@ export default function AccountPage() {
             ? "Your studio stays private until My Dance Comps approves it. Add your logo, styles and address, then dancers can link to you once you are approved."
             : account?.role === "dancer"
               ? "Your comps, enrolments, friends and Community follow this login. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
-              : `This family’s dancers, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
+              : `This family’s dancers, enrolled comps and results sync to your account. Invite another parent from Family so you both see the same dancers. Open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
         </p>
         {dancerChatName ? (
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
