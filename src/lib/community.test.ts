@@ -14,6 +14,7 @@ import {
   latestMessageByThread,
   mergeCommunityConversations,
   mergeCommunityMessages,
+  studioFriendConversationRows,
   parseCommunityMessage,
   parseCommunityMessages,
   sanitizeCommunityMessage,
@@ -187,6 +188,44 @@ test("guest copy and missing-SQL errors are plain English", () => {
     friendlyCommunityError("new row violates row-level security policy"),
     /accepted friends/,
   );
+});
+
+test("accepted studio friends become one chat per friendship", () => {
+  const studio = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const user = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const rows = studioFriendConversationRows({
+    role: "parent",
+    studios: [
+      {
+        studioId: studio,
+        studioName: "Mint Studio",
+        people: [
+          {
+            userId: user,
+            label: "Parent of Mia",
+            status: "accepted",
+            friendshipId: threadA,
+            childId: null,
+            enrolledCompIds: [],
+            dancers: [],
+          },
+          {
+            userId: user,
+            label: "Still waiting",
+            status: "pending_in",
+            friendshipId: threadB,
+            childId: null,
+            enrolledCompIds: [],
+            dancers: [],
+          },
+        ],
+      },
+    ],
+  });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0]?.friend.friendshipId, threadA);
+  assert.equal(rows[0]?.ownChildName, "Mint Studio");
+  assert.equal(rows[0]?.friend.name, "Parent of Mia");
 });
 
 test("formatCommunityTime uses Adelaide-local time", () => {

@@ -1,6 +1,6 @@
 import { getSupabase } from "./supabase";
 import { ADELAIDE_TZ } from "./datetime";
-import type { AcceptedFriend } from "./friends";
+import type { AcceptedFriend, StudioFriendsDirectory } from "./friends";
 
 export const COMMUNITY_MESSAGE_MAX = 2000;
 export const COMMUNITY_THREAD_LIMIT = 200;
@@ -160,6 +160,36 @@ export function mergeCommunityConversations(
     if (names !== 0) return names;
     return a.ownChildName.localeCompare(b.ownChildName, "en-AU");
   });
+}
+
+export function studioFriendConversationRows(
+  directory: StudioFriendsDirectory,
+): Array<{
+  ownChildId: string;
+  ownChildName: string;
+  friend: AcceptedFriend;
+}> {
+  const rows: Array<{
+    ownChildId: string;
+    ownChildName: string;
+    friend: AcceptedFriend;
+  }> = [];
+  for (const studio of directory.studios) {
+    for (const person of studio.people) {
+      if (person.status !== "accepted" || !person.friendshipId) continue;
+      rows.push({
+        ownChildId: studio.studioId,
+        ownChildName: studio.studioName,
+        friend: {
+          friendshipId: person.friendshipId,
+          childId: person.childId || person.userId,
+          name: person.label,
+          enrolledCompIds: person.enrolledCompIds,
+        },
+      });
+    }
+  }
+  return rows;
 }
 
 export function mergeCommunityMessages(

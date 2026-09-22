@@ -1,17 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { AddFriendCard } from "@/components/AddFriendCard";
 import { FriendCompsList } from "@/components/FriendCompsList";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useCompsDateSort } from "@/components/DateSortControl";
-import { useAuth } from "@/context/AuthContext";
-import { useFamily } from "@/context/FamilyContext";
-import { useFriendsForChildren } from "@/hooks/useFriends";
+import { useStudioFriends } from "@/hooks/useFriends";
 import { useLiveComps } from "@/hooks/useLiveComps";
 import { getComps } from "@/lib/comps";
-import type { AcceptedFriend } from "@/lib/friends";
+import { enrolledDancersFromDirectory } from "@/lib/friends";
 import type { ChildProfile } from "@/lib/types";
 
 export function FriendsOnMyComps({
@@ -21,43 +18,26 @@ export function FriendsOnMyComps({
   filterChildId: string | null;
   filterChild: ChildProfile | null;
 }) {
-  const { account } = useAuth();
-  const { state } = useFamily();
-  const children = Array.isArray(state.children) ? state.children : [];
-  const targetIds = filterChildId
-    ? [filterChildId]
-    : children.map((child) => child.id);
-  const bundle = useFriendsForChildren(targetIds);
+  const bundle = useStudioFriends();
   const { comps } = useLiveComps(getComps());
   const { sortDir } = useCompsDateSort();
-  const [addForId, setAddForId] = useState<string | null>(null);
-
-  const addChild =
-    children.find(
-      (child) => child.id === (filterChildId ?? addForId ?? children[0]?.id),
-    ) ?? null;
+  const studioId = filterChild?.studioId ?? null;
 
   const friends = useMemo(
-    () => mergeAcceptedFriends(bundle.friends),
-    [bundle.friends],
+    () => enrolledDancersFromDirectory(bundle.directory ?? { role: "none", studios: [] }, studioId),
+    [bundle.directory, studioId],
   );
 
   const view = bundle.view;
-  const incomingCount = bundle.incomingCount;
 
   return (
     <section className="space-y-3 pb-8">
       <div>
         <h2 className="text-lg font-bold">Friends’ comps</h2>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Competitions friends of
-          {filterChild
-            ? ` ${filterChild.name}`
-            : children.length > 0
-              ? " your dancers"
-              : " your family"}{" "}
-          have marked Enrolled. You only see the friend’s dancer name — not
-          their parent’s account.
+          Competitions accepted friends
+          {filterChild ? ` at ${filterChild.studio || "this studio"}` : ""} have
+          marked Enrolled. You see the dancer’s name — not an email address.
         </p>
       </div>
 
@@ -77,32 +57,19 @@ export function FriendsOnMyComps({
         </p>
       ) : null}
 
-      {view === "ready" && children.length === 0 ? (
+      {view === "ready" && !studioId && filterChildId ? (
         <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-          {account?.role === "dancer"
-            ? "Set up My Info, then you can add friends by email."
-            : "Add a dancer on My Dancers, then you can add friends by email."}
+          Link {filterChild?.name ?? "this dancer"} to a studio to see friends’
+          comps from that studio.
         </p>
       ) : null}
 
-      {view === "ready" && children.length > 0 ? (
+      {view === "ready" && (!filterChildId || studioId) ? (
         <>
-          {incomingCount > 0 && addChild ? (
-            <p className="rounded-control bg-accent-soft px-3 py-2 text-sm font-semibold">
-              {incomingCount === 1
-                ? "1 friend request waiting."
-                : `${incomingCount} friend requests waiting.`}{" "}
-              <Link href={`/kids/${addChild.id}`} className="underline">
-                Review
-              </Link>
-            </p>
-          ) : null}
-
           {friends.length === 0 ? (
             <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-              {filterChild
-                ? `${filterChild.name} has no friends yet. Add one by the other parent’s email below.`
-                : "No friends yet. Pick which of your dancers this is for, then add a friend by email."}
+              No enrolled comps from friends yet. Add someone from Friends at
+              your studio.
             </p>
           ) : (
             <div className="space-y-4">
@@ -121,65 +88,13 @@ export function FriendsOnMyComps({
               ))}
             </div>
           )}
-
-          {children.length > 1 && !filterChildId ? (
-            <label className="block text-sm font-bold" htmlFor="add-friend-for">
-              This friend is for
-              <select
-                id="add-friend-for"
-                value={addChild?.id ?? ""}
-                onChange={(event) => setAddForId(event.target.value)}
-                className="mt-1 min-h-11 w-full rounded-control border border-border bg-background px-3 text-sm font-medium"
-              >
-                {children.map((child) => (
-                  <option key={child.id} value={child.id}>
-                    {child.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          {addChild ? (
-            <AddFriendCard
-              fromChildId={addChild.id}
-              fromChildName={addChild.name}
-              busy={bundle.loading}
-              onSent={bundle.reload}
-            />
-          ) : null}
-
-          {addChild ? (
-            <p className="text-xs font-semibold text-muted-foreground">
-              Need the invite link?{" "}
-              <Link href={`/kids/${addChild.id}`} className="text-primary-ink underline">
-                Manage friends for {addChild.name}
-              </Link>
-            </p>
-          ) : null}
+          <p className="text-xs font-semibold text-muted-foreground">
+            <Link href={filterChildId ? `/kids/${filterChildId}` : "/kids"} className="text-primary-ink underline">
+              Manage friends at your studio
+            </Link>
+          </p>
         </>
       ) : null}
     </section>
   );
-}
-
-function mergeAcceptedFriends(friends: AcceptedFriend[]): AcceptedFriend[] {
-  const map = new Map<string, AcceptedFriend>();
-  for (const friend of friends) {
-    const existing = map.get(friend.childId);
-    if (!existing) {
-      map.set(friend.childId, {
-        ...friend,
-        enrolledCompIds: [...friend.enrolledCompIds],
-      });
-      continue;
-    }
-    const ids = new Set(existing.enrolledCompIds);
-    for (const id of friend.enrolledCompIds) ids.add(id);
-    map.set(friend.childId, {
-      ...existing,
-      enrolledCompIds: Array.from(ids),
-    });
-  }
-  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
