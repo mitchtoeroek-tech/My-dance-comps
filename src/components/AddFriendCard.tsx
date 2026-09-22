@@ -50,11 +50,10 @@ export function AddFriendCard({
 
   return (
     <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
-      <p className="text-sm font-bold text-foreground">Add a friend by email</p>
+      <p className="text-sm font-bold text-foreground">Older way to add a dancer</p>
       <p className="mt-1 text-sm leading-6 text-muted-foreground">
-        Enter the other parent’s email and their dancer’s first name. The
-        request is for <strong>{fromChildName}</strong>. You can also use an
-        invite code if they sent you one.
+        This only works for another dancer at the same studio. The request is
+        for <strong>{fromChildName}</strong>. Prefer Add on the studio chat.
       </p>
       <div
         role="tablist"

@@ -12,6 +12,8 @@ import {
   GUEST_COMMUNITY_TITLE,
   isCommunityFriendshipId,
   latestMessageByThread,
+  combineCommunityInboxes,
+  friendChatRelation,
   mergeCommunityConversations,
   mergeCommunityMessages,
   parseCommunityMessage,
@@ -128,6 +130,45 @@ test("merge conversations is one thread per accepted friendship, newest first", 
   );
   assert.equal(listed[1]?.lastMessage?.body, "later");
   assert.equal(listed[1]?.ownChildName, "Mia");
+  assert.equal(friendChatRelation(listed[1]!), "Friend of Mia");
+});
+
+test("studio friend threads join the inbox without replacing child chats", () => {
+  const studioThread = "33333333-3333-4333-8333-333333333333";
+  const listed = combineCommunityInboxes(
+    [
+      {
+        ownChildId: "mia",
+        ownChildName: "Mia",
+        friend: friend({ friendshipId: threadA, name: "Ava", childId: "ava" }),
+      },
+    ],
+    [
+      {
+        friendshipId: studioThread,
+        label: "Parent of Leo",
+        studioName: "Mint Studio",
+      },
+      {
+        friendshipId: threadA,
+        label: "Should not replace Ava",
+        studioName: "Mint Studio",
+      },
+      {
+        friendshipId: "55555555-5555-4555-8555-555555555555",
+        label: "parent@example.com",
+        studioName: "Mint Studio",
+      },
+    ],
+    new Map(),
+  );
+  assert.deepEqual(
+    listed.map((row) => row.friendName),
+    ["Ava", "Parent of Leo"],
+  );
+  assert.equal(listed[1]?.kind, "studio");
+  assert.equal(friendChatRelation(listed[1]!), "Friends at Mint Studio");
+  assert.equal(JSON.stringify(listed).includes("@"), false);
 });
 
 test("mergeCommunityMessages de-dupes and stays chronological", () => {

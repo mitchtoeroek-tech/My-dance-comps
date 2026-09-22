@@ -10,6 +10,7 @@ import {
   COMMUNITY_MESSAGE_MAX,
   communityThreadPath,
   formatCommunityTime,
+  friendChatRelation,
   isCommunityFriendshipId,
 } from "@/lib/community";
 
@@ -104,7 +105,7 @@ export function CommunityThread({ friendshipId }: { friendshipId: string }) {
   }
 
   const friendName = conversation?.friendName ?? "Friend";
-  const ownName = conversation?.ownChildName ?? "your dancer";
+  const studioFriend = conversation?.kind === "studio";
 
   return (
     <div className="flex min-h-[calc(100dvh-10rem)] flex-col gap-3">
@@ -112,7 +113,9 @@ export function CommunityThread({ friendshipId }: { friendshipId: string }) {
         <BackLink />
         <h1 className="mt-2 text-2xl font-bold">{friendName}</h1>
         <p className="text-sm text-muted-foreground">
-          Friend of {ownName}. Only the two of you can see this thread.
+          {conversation
+            ? `${friendChatRelation(conversation)}. Only the two of you can see this thread.`
+            : "Only the two of you can see this thread."}
         </p>
         <CommunityGuidelines />
       </div>
@@ -131,7 +134,9 @@ export function CommunityThread({ friendshipId }: { friendshipId: string }) {
       >
         {messages.length === 0 ? (
           <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-            No messages yet. Say hello to {friendName}’s parent.
+            {studioFriend
+              ? `No messages yet. Say hello to ${friendName}.`
+              : `No messages yet. Say hello to ${friendName}’s parent.`}
           </p>
         ) : (
           messages.map((message) => {

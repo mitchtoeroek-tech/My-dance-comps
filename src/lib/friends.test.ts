@@ -168,4 +168,12 @@ test("guest copy and missing-SQL errors are plain English", () => {
     /friends SQL/,
   );
   assert.equal(friendlyFriendsError("Already friends"), "Those dancers are already friends.");
+  assert.match(
+    friendlyFriendsError("Add friends from your studio chat"),
+    /studio chat/,
+  );
+  assert.match(
+    friendlyFriendsError("You can only add dancers at the same studio"),
+    /same studio/,
+  );
 });
