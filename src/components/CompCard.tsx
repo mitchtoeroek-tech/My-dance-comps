@@ -3,6 +3,7 @@ import { adelaideToday, formatDateRange } from "@/lib/datetime";
 import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import { compHasEnded } from "@/lib/filter";
 import type { Competition } from "@/lib/types";
+import { AddToCalendarButton } from "./AddToCalendarButton";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
@@ -15,6 +16,7 @@ export function CompCard({
   onToggleSave,
   enrolled,
   onToggleEnrolled,
+  showAddToCalendar = false,
   ageHint,
   eyebrow,
 }: {
@@ -23,6 +25,8 @@ export function CompCard({
   onToggleSave?: () => void;
   enrolled?: boolean;
   onToggleEnrolled?: () => void;
+  /** Pastel-red calendar download, hard-right on the action row. My Comps only. */
+  showAddToCalendar?: boolean;
   ageHint?: string;
   eyebrow?: string;
 }) {
@@ -31,6 +35,7 @@ export function CompCard({
   const past = compHasEnded(comp, adelaideToday());
   const showSave = typeof onToggleSave === "function";
   const showEnrolled = enrolled !== undefined;
+  const enrolledInRow = showAddToCalendar && showEnrolled;
   return (
     <article
       className={`relative overflow-hidden rounded-card p-4 shadow-card ring-1 ring-border ${
@@ -84,7 +89,7 @@ export function CompCard({
           </p>
           {past ? <CompReviewSummary competitionId={comp.id} /> : null}
         </div>
-        {showSave || showEnrolled ? (
+        {showSave || (showEnrolled && !enrolledInRow) ? (
           <div className="flex shrink-0 flex-col items-end gap-1.5">
             {showSave ? (
               <StarButton
@@ -92,7 +97,7 @@ export function CompCard({
                 onClick={() => onToggleSave?.()}
               />
             ) : null}
-            {showEnrolled ? (
+            {showEnrolled && !enrolledInRow ? (
               <EnrolledButton
                 enrolled={Boolean(enrolled)}
                 onClick={onToggleEnrolled}
@@ -119,7 +124,7 @@ export function CompCard({
       {ageHint ? (
         <p className="mt-2 text-xs font-medium text-primary-ink">{ageHint}</p>
       ) : null}
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link
           href={`/comps/${comp.id}`}
           className="inline-flex min-h-11 items-center rounded-control bg-primary px-3 py-1.5 text-xs font-bold text-white"
@@ -134,6 +139,15 @@ export function CompCard({
         >
           Register
         </a>
+        {enrolledInRow ? (
+          <EnrolledButton
+            enrolled={Boolean(enrolled)}
+            onClick={onToggleEnrolled}
+          />
+        ) : null}
+        {showAddToCalendar ? (
+          <AddToCalendarButton comp={comp} compact className="ml-auto" />
+        ) : null}
       </div>
     </article>
   );

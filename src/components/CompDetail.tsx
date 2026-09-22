@@ -5,8 +5,8 @@ import { useFamily } from "@/context/FamilyContext";
 import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import { formatDateRange, formatDateTime } from "@/lib/datetime";
 import { canReviewCompetition } from "@/lib/reviews";
-import { competitionToIcs, downloadIcs } from "@/lib/ics";
 import type { Competition } from "@/lib/types";
+import { AddToCalendarButton } from "./AddToCalendarButton";
 import { StatusPill } from "./StatusPill";
 import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
@@ -120,13 +120,7 @@ export function CompDetail({ comp }: { comp: Competition }) {
           >
             Organiser info
           </a>
-          <button
-            type="button"
-            onClick={() => downloadIcs(`${comp.id}.ics`, competitionToIcs(comp))}
-            className="inline-flex min-h-11 items-center rounded-control bg-accent px-4 py-2 text-sm font-bold text-foreground"
-          >
-            Add dates to calendar
-          </button>
+          <AddToCalendarButton comp={comp} />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           Tap Enrolled to store a confirmed entry. If a dancer is selected, it

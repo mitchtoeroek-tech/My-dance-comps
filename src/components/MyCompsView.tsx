@@ -113,6 +113,7 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
                         onToggleEnrolled={() =>
                           toggleEnrolled(comp.id, activeFilterId)
                         }
+                        showAddToCalendar
                         ageHint={
                           filterChild && comp.startDate
                             ? `Age ${ageAsAtCompYear(filterChild.dob, comp.startDate)} as at 1 Jan ${comp.startDate.slice(0, 4)}`
