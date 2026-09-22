@@ -81,6 +81,8 @@ export interface ChildProfile {
   dob: string;
   styles: DanceStyle[];
   studio: string;
+  /** Approved studio account this dancer is linked to. Null when the name is typed only. */
+  studioId?: string | null;
   homeState: AuStateCode;
   /** Set when this dancer has their own login linked by a parent. */
   linkedUserId?: string;

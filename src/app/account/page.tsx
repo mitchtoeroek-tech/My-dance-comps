@@ -7,6 +7,7 @@ import { useFamily } from "@/context/FamilyContext";
 import { AuthUnavailable } from "@/components/AuthCard";
 import { FamilyPanel } from "@/components/FamilyPanel";
 import { myDancersLabel } from "@/lib/copy";
+import { isAllowlistedAdmin } from "@/lib/studios";
 
 export default function AccountPage() {
   const { configured, ready, accountReady, user, account, signOut } = useAuth();
@@ -66,12 +67,18 @@ export default function AccountPage() {
         <p className="text-sm font-semibold text-muted-foreground">Signed in as</p>
         <p className="mt-1 text-lg font-bold text-foreground">{email}</p>
         <p className="mt-1 text-sm font-bold text-primary-ink">
-          {account?.role === "dancer" ? "Dancer account" : "Parent account"}
+          {account?.role === "dancer"
+            ? "Dancer account"
+            : account?.role === "studio"
+              ? "Studio account"
+              : "Parent account"}
         </p>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {account?.role === "dancer"
-            ? "Your comps, enrolments, friends and Community follow this login. Join a family so a parent can see you on My Dancers and enrol you too."
-            : `This family’s dancers, saved comps, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to share an invite. Signing out leaves a copy on this device.`}
+          {account?.role === "studio"
+            ? "Your studio stays private until My Dance Comps approves it. Add your logo, styles and address, then dancers can link to you once you are approved."
+            : account?.role === "dancer"
+              ? "Your comps, enrolments, friends and Community follow this login. Link your studio from your profile. Join a family so a parent can see you on My Dancers and enrol you too."
+              : `This family’s dancers, saved comps, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to share an invite or link their studio. Signing out leaves a copy on this device.`}
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <Stat
@@ -93,6 +100,36 @@ export default function AccountPage() {
       <PasswordOrPinForm />
       <FamilyPanel />
       <div className="flex flex-col items-start gap-1">
+        {account?.role === "studio" ? (
+          <Link
+            href="/studio"
+            className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+          >
+            Edit studio profile
+          </Link>
+        ) : null}
+        {account?.role === "dancer" ? (
+          <Link
+            href="/kids"
+            className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+          >
+            Link your studio
+          </Link>
+        ) : null}
+        {isAllowlistedAdmin(user.email) ? (
+          <Link
+            href="/admin"
+            className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+          >
+            Approve studios
+          </Link>
+        ) : null}
+        <Link
+          href="/studios"
+          className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
+        >
+          Approved studios
+        </Link>
         <Link
           href="/kids"
           className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"

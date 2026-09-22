@@ -47,7 +47,10 @@ test("dancer usernames become a stable login email", () => {
 test("resolveAccountRole keeps an explicit profile role", () => {
   assert.equal(resolveAccountRole("parent", "dancer"), "parent");
   assert.equal(resolveAccountRole("dancer", "parent"), "dancer");
+  assert.equal(resolveAccountRole("studio", "parent"), "studio");
+  assert.equal(resolveAccountRole("parent", "studio"), "parent");
   assert.equal(resolveAccountRole(null, "dancer"), "dancer");
+  assert.equal(resolveAccountRole(null, "studio"), "studio");
   assert.equal(resolveAccountRole(undefined, undefined), "parent");
 });
 
@@ -104,8 +107,22 @@ test("dancerPushPayload marks a per-dancer enrolled set only after one exists", 
   );
   assert.equal(owned?.enrolled_owned, true);
   assert.deepEqual(owned?.enrolled_ids, ["mia-comp"]);
-  const child = owned?.child as { home_state: string };
+  const child = owned?.child as { home_state: string; studio_id: string | null };
   assert.equal(child.home_state, "SA");
+  assert.equal(child.studio_id, null);
+
+  const linkedStudio = dancerPushPayload(
+    family({
+      children: [
+        {
+          ...mia,
+          studioId: "11111111-1111-4111-8111-111111111111",
+        },
+      ],
+    }),
+  );
+  const linkedChild = linkedStudio?.child as { studio_id: string | null };
+  assert.equal(linkedChild.studio_id, "11111111-1111-4111-8111-111111111111");
 });
 
 test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () => {

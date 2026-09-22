@@ -3,12 +3,14 @@
 import { useState } from "react";
 import type { AuStateCode, ChildProfile, DanceStyle } from "@/lib/types";
 import { StyleChecklist, StateSelect } from "./ChildPicker";
+import { StudioLinkField } from "./StudioLinkField";
 
 const empty = {
   name: "",
   dob: "",
   styles: [] as DanceStyle[],
   studio: "",
+  studioId: null as string | null,
   homeState: "SA" as AuStateCode,
 };
 
@@ -30,6 +32,7 @@ export function ChildForm({
           dob: initial.dob,
           styles: initial.styles ?? [],
           studio: initial.studio,
+          studioId: initial.studioId ?? null,
           homeState: initial.homeState,
         }
       : empty,
@@ -51,6 +54,7 @@ export function ChildForm({
           dob: form.dob,
           styles: form.styles,
           studio: form.studio.trim(),
+          studioId: form.studioId,
           homeState: form.homeState,
         });
         if (!initial) setForm(empty);
@@ -91,15 +95,13 @@ export function ChildForm({
           />
         </div>
       </label>
-      <label className="block text-sm font-bold text-foreground">
-        Dance studio
-        <input
-          value={form.studio}
-          onChange={(e) => setForm({ ...form, studio: e.target.value })}
-          className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-medium"
-          placeholder="Optional"
-        />
-      </label>
+      <StudioLinkField
+        studioId={form.studioId}
+        studioName={form.studio}
+        onChange={({ studioId, studioName }) =>
+          setForm({ ...form, studioId, studio: studioName })
+        }
+      />
       <div>
         <p className="mb-2 text-sm font-bold text-foreground">
           Preferred styles

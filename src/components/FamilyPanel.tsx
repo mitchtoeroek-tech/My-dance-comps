@@ -48,6 +48,8 @@ export function FamilyPanel() {
 
   if (!configured || !user) return null;
 
+  if (account?.role === "studio") return null;
+
   if (!accountReady || !account) {
     return (
       <section className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
