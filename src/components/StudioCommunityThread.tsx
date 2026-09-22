@@ -121,11 +121,8 @@ export function StudioCommunityThread({ studioId }: { studioId: string }) {
         <CommunityGuidelines />
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-        <div className="lg:sticky lg:top-4 lg:w-80 lg:shrink-0">
-          <StudioFriendsPanel studioId={id} studioName={name} />
-        </div>
-        <div className="flex min-h-[calc(100dvh-16rem)] min-w-0 flex-1 flex-col gap-3">
+      <StudioFriendsPanel studioId={id} studioName={name} />
+
       {threadError ? (
         <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
           {threadError}
@@ -133,7 +130,7 @@ export function StudioCommunityThread({ studioId }: { studioId: string }) {
       ) : null}
 
       <div
-        className="flex-1 space-y-2 overflow-y-auto rounded-card bg-muted/60 p-3 ring-1 ring-border"
+        className="min-h-48 w-full flex-1 space-y-2 overflow-y-auto rounded-card bg-muted/60 p-3 ring-1 ring-border"
         role="log"
         aria-live="polite"
         aria-relevant="additions"
@@ -206,8 +203,6 @@ export function StudioCommunityThread({ studioId }: { studioId: string }) {
           </button>
         </div>
       </form>
-        </div>
-      </div>
     </div>
   );
 }
