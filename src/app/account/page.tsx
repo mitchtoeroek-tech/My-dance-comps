@@ -29,7 +29,7 @@ export default function AccountPage() {
         <h1 className="text-2xl font-bold">Account</h1>
         <p className="text-sm leading-6 text-muted-foreground">
           You are using <strong className="font-bold text-foreground">guest mode</strong>.
-          Your dancers, saved comps, enrolled comps and results stay on this device.
+          Your dancers, enrolled comps and results stay on this device.
           Sign in to add friends by email and share enrolled comps. Home still
           works as a guest.
         </p>
@@ -78,17 +78,28 @@ export default function AccountPage() {
             ? "Your studio stays private until My Dance Comps approves it. Add your logo, styles and address, then dancers can link to you once you are approved."
             : account?.role === "dancer"
               ? "Your comps, enrolments, friends and Community follow this login. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
-              : `This family’s dancers, saved comps, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to share an invite or link their studio. Signing out leaves a copy on this device.`}
+              : `This family’s dancers, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
         </p>
-        <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+        <nav
+          aria-label="Family summary"
+          className="mt-3 grid grid-cols-2 gap-2 text-sm"
+        >
           <Stat
+            href="/kids"
             label={kidsSectionLabel(account?.role, state.children.length)}
             value={String(state.children.length)}
           />
-          <Stat label="Saved" value={String(state.favourites.length)} />
-          <Stat label="Enrolled" value={String(enrolledCount)} />
-          <Stat label="Results" value={String(state.results.length)} />
-        </dl>
+          <Stat
+            href="/my-comps"
+            label="Enrolled"
+            value={String(enrolledCount)}
+          />
+          <Stat
+            href="/results"
+            label="Results"
+            value={String(state.results.length)}
+          />
+        </nav>
         <button
           type="button"
           onClick={() => void signOut()}
@@ -110,7 +121,11 @@ export default function AccountPage() {
         ) : null}
         {account?.role === "dancer" ? (
           <Link
-            href="/kids"
+            href={
+              account?.linkedChildId
+                ? `/kids/${account.linkedChildId}`
+                : "/kids"
+            }
             className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
           >
             Link your studio
@@ -213,13 +228,33 @@ function PasswordOrPinForm() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-control bg-primary-soft px-3 py-2">
-      <dt className="text-xs font-bold uppercase tracking-wide text-primary-ink">
+function Stat({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const className =
+    "block h-full min-h-11 rounded-control bg-primary-soft px-3 py-2";
+  const body = (
+    <>
+      <span className="block text-xs font-bold uppercase tracking-wide text-primary-ink">
         {label}
-      </dt>
-      <dd className="text-lg font-bold text-foreground">{value}</dd>
-    </div>
+      </span>
+      <span className="block text-lg font-bold text-foreground">{value}</span>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {body}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{body}</div>;
 }
