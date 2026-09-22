@@ -234,7 +234,11 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     acceptCloudPushes = false;
     memory = scoped;
     saveFamilyState(scoped);
-    if (wasClean) baselineState = scoped;
+    // Scoping to this dancer is not an edit. Apply the same cut to the
+    // baseline so a sibling placing is not saved back as a deletion.
+    baselineState = wasClean
+      ? scoped
+      : scopeDancerFamily(baselineState, dancerMode);
     emit();
   }, [authReady, userId, accountReady, accountRole, linkedChildId]);
 

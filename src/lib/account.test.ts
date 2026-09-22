@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
   dancerLoginEmail,
@@ -75,7 +76,18 @@ test("familyStateFromDancerSnapshot keeps family-wide enrolments until owned", (
     enrolled_owned: false,
     enrolled_ids: ["family-comp"],
     favourites: ["star"],
-    results: [],
+    results: [
+      {
+        id: "placing-1",
+        comp_id: "comp-a",
+        comp_name: "Adelaide Classic",
+        date: "2026-08-01",
+        section: "Jazz 8/U",
+        placing: "2nd",
+        score: "Gold",
+        notes: "Strong finish",
+      },
+    ],
     include_interstate: false,
     preferred_state: "SA",
     reminder_prefs: { onOpen: true, weekBeforeClose: false, dayBeforeClose: true },
@@ -88,6 +100,10 @@ test("familyStateFromDancerSnapshot keeps family-wide enrolments until owned", (
   assert.equal(parsed.state && "favourites" in parsed.state, false);
   assert.equal(parsed.state?.enrolledByChild.mia, undefined);
   assert.equal(parsed.state?.selectedChildId, "mia");
+  assert.equal(parsed.state?.results.length, 1);
+  assert.equal(parsed.state?.results[0]?.childId, "mia");
+  assert.equal(parsed.state?.results[0]?.placing, "2nd");
+  assert.equal(parsed.state?.results[0]?.compName, "Adelaide Classic");
 });
 
 test("dancerPushPayload marks a per-dancer enrolled set only after one exists", () => {
@@ -135,10 +151,38 @@ test("dancer push keeps an unenrol instead of the family-wide list", () => {
       selectedChildId: "mia",
       enrolled: toggled.enrolled,
       enrolledByChild: toggled.enrolledByChild,
+      results: [
+        {
+          id: "placing-1",
+          childId: "mia",
+          compId: "comp-b",
+          compName: "Adelaide Classic",
+          date: "2026-08-01",
+          section: "Jazz 8/U",
+          placing: "2nd",
+          score: "",
+          notes: "",
+        },
+        {
+          id: "other-child",
+          childId: "leo",
+          compId: "comp-a",
+          compName: "Other",
+          date: "2026-07-01",
+          section: "",
+          placing: "1st",
+          score: "",
+          notes: "",
+        },
+      ],
     }),
   );
   assert.equal(payload?.enrolled_owned, true);
   assert.deepEqual(payload?.enrolled_ids, ["comp-b"]);
+  const results = payload?.results as { id: string; placing: string }[];
+  assert.equal(results.length, 1);
+  assert.equal(results[0]?.id, "placing-1");
+  assert.equal(results[0]?.placing, "2nd");
 });
 
 test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () => {
@@ -149,7 +193,19 @@ test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () 
   const remote = family({
     children: [mia],
     enrolledByChild: { mia: ["mia-comp"] },
-    results: [],
+    results: [
+      {
+        id: "placing-1",
+        childId: "mia",
+        compId: "comp-b",
+        compName: "Adelaide Classic",
+        date: "2026-08-01",
+        section: "",
+        placing: "2nd",
+        score: "",
+        notes: "",
+      },
+    ],
   });
   const next = reconcileDancerLinkedState(local, remote);
   assert.deepEqual(
@@ -160,6 +216,9 @@ test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () 
   assert.equal("favourites" in next, false);
   assert.deepEqual(next.enrolledByChild.mia, ["mia-comp"]);
   assert.equal(next.enrolled.includes("draft-comp"), false);
+  assert.equal(next.results.length, 1);
+  assert.equal(next.results[0]?.id, "placing-1");
+  assert.equal(next.results[0]?.childId, "mia");
 });
 
 test("scopeDancerFamily locks a linked dancer to their own profile", () => {
@@ -167,6 +226,30 @@ test("scopeDancerFamily locks a linked dancer to their own profile", () => {
     family({
       children: [mia, { ...mia, id: "leo", name: "Leo" }],
       selectedChildId: null,
+      results: [
+        {
+          id: "mia-result",
+          childId: "mia",
+          compId: "comp-a",
+          compName: "Adelaide Classic",
+          date: "2026-08-01",
+          section: "",
+          placing: "2nd",
+          score: "",
+          notes: "",
+        },
+        {
+          id: "leo-result",
+          childId: "leo",
+          compId: "comp-b",
+          compName: "Other",
+          date: "2026-07-01",
+          section: "",
+          placing: "1st",
+          score: "",
+          notes: "",
+        },
+      ],
     }),
     { role: "dancer", linkedChildId: "mia" },
   );
@@ -175,10 +258,27 @@ test("scopeDancerFamily locks a linked dancer to their own profile", () => {
     ["mia"],
   );
   assert.equal(scoped.selectedChildId, "mia");
+  assert.deepEqual(
+    scoped.results.map((result) => result.id),
+    ["mia-result"],
+  );
 
   const untouched = scopeDancerFamily(
     family({ children: [mia, { ...mia, id: "leo", name: "Leo" }] }),
     { role: "parent", linkedChildId: null },
   );
   assert.equal(untouched.children.length, 2);
+});
+
+test("dancer results SQL lets a linked dancer use their own placings", () => {
+  const sql = readFileSync(
+    new URL("../../supabase/migrations/20260927_dancer_results.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /create or replace function public\.dancer_owns_child\(p_child_id text\)/);
+  assert.match(sql, /p\.role = 'dancer'/);
+  assert.match(sql, /c\.linked_user_id = p\.id/);
+  assert.match(sql, /or public\.dancer_owns_child\(child_id\)/);
+  assert.match(sql, /grant execute on function public\.dancer_owns_child\(text\) to authenticated/);
+  assert.doesNotMatch(sql, /grant execute on function public\.dancer_owns_child\(text\) to anon/);
 });

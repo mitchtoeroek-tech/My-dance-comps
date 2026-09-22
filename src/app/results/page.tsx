@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { EmptyState } from "@/components/EmptyState";
+import { ResultLog } from "@/components/ResultLog";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { getComps } from "@/lib/comps";
 import { myDancersLabel } from "@/lib/copy";
@@ -10,12 +12,20 @@ import { formatShortDate } from "@/lib/datetime";
 import type { CompResult } from "@/lib/types";
 
 export default function ResultsPage() {
+  const { account } = useAuth();
   const { state } = useFamily();
+  const dancer = account?.role === "dancer";
+  const dancerChild =
+    state.children.find((child) => child.id === account?.linkedChildId) ??
+    (dancer ? state.children[0] : undefined);
   const knownCompIds = useMemo(
     () => new Set(getComps().map((comp) => comp.id)),
     [],
   );
-  const results = [...state.results]
+  const visible = dancer && dancerChild
+    ? state.results.filter((result) => result.childId === dancerChild.id)
+    : state.results;
+  const results = [...visible]
     .map((result, index) => ({ result, index }))
     .sort((a, b) => {
       const byDate = b.result.date.localeCompare(a.result.date);
@@ -28,10 +38,29 @@ export default function ResultsPage() {
       <div>
         <h1 className="text-2xl font-bold">Results</h1>
         <p className="text-sm leading-6 text-muted-foreground">
-          Placings logged for this family. Open a dancer to add or remove one.
+          {dancer
+            ? "Placings for your comps. Add one after the weekend, or change it here."
+            : "Placings logged for this family. Open a dancer to add or remove one."}
         </p>
       </div>
-      {results.length === 0 ? (
+      {dancer ? (
+        dancerChild ? (
+          <ResultLog childId={dancerChild.id} />
+        ) : (
+          <EmptyState
+            title="No info yet"
+            body="Add your name on My Info first. Results are saved on that profile."
+            action={
+              <Link
+                href="/kids"
+                className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
+              >
+                My Info
+              </Link>
+            }
+          />
+        )
+      ) : results.length === 0 ? (
         <EmptyState
           title="No results yet"
           body="After a competition, open a dancer and add the placing. It shows up here with their name and the comp."

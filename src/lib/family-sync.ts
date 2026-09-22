@@ -336,7 +336,12 @@ export interface DancerFamilyMode {
   linkedChildId: string | null;
 }
 
-/** Linked dancers only see their own profile. Parents keep the household. */
+function resultsForChild(state: FamilyState, childId: string): FamilyState["results"] {
+  const results = Array.isArray(state.results) ? state.results : [];
+  return results.filter((result) => result.childId === childId);
+}
+
+/** Linked dancers only see their own profile and that profile's placings. */
 export function scopeDancerFamily(
   state: FamilyState,
   mode: DancerFamilyMode | null,
@@ -346,10 +351,20 @@ export function scopeDancerFamily(
   if (mode.linkedChildId) {
     const linked = children.find((child) => child.id === mode.linkedChildId);
     if (!linked) return state;
+    const results = resultsForChild(state, linked.id);
+    if (
+      children.length === 1 &&
+      children[0]?.id === linked.id &&
+      state.selectedChildId === linked.id &&
+      results.length === (state.results?.length ?? 0)
+    ) {
+      return state;
+    }
     return {
       ...state,
       children: [linked],
       selectedChildId: linked.id,
+      results,
       preferredState: state.preferredState ?? linked.homeState,
     };
   }
@@ -357,9 +372,17 @@ export function scopeDancerFamily(
   const selected =
     children.find((child) => child.id === state.selectedChildId) ?? children[0];
   if (!selected) return state;
+  const results = resultsForChild(state, selected.id);
+  if (
+    state.selectedChildId === selected.id &&
+    results.length === (state.results?.length ?? 0)
+  ) {
+    return state;
+  }
   return {
     ...state,
     selectedChildId: selected.id,
+    results,
     preferredState: state.preferredState ?? selected.homeState,
   };
 }
@@ -401,6 +424,23 @@ function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string");
 }
 
+function asResultRows(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function asResultId(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return "";
+}
+
 export function familyStateFromDancerSnapshot(raw: unknown): {
   linked: boolean;
   state: FamilyState | null;
@@ -415,14 +455,16 @@ export function familyStateFromDancerSnapshot(raw: unknown): {
     typeof childRaw?.linked_user_id === "string" ? childRaw.linked_user_id : "";
   const owned = row.enrolled_owned === true;
   const ids = asStringArray(row.enrolled_ids);
-  const resultRows = Array.isArray(row.results) ? row.results : [];
+  const resultRows = asResultRows(row.results);
   const results: CompResult[] = [];
   for (const item of resultRows) {
     const result = asRecord(item);
-    if (!result || typeof result.id !== "string") continue;
+    const resultId = asResultId(result?.id);
+    if (!result || !resultId) continue;
+    const rowChildId = asResultId(result.child_id ?? result.childId);
     results.push({
-      id: result.id,
-      childId: id,
+      id: resultId,
+      childId: rowChildId || id,
       compId: typeof result.comp_id === "string" && result.comp_id ? result.comp_id : null,
       compName:
         typeof result.comp_name === "string" && result.comp_name
