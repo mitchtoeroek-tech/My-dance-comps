@@ -30,7 +30,7 @@ export default function JoinFriendPage() {
 
 function JoinFriendInner() {
   const searchParams = useSearchParams();
-  const { configured, ready, user, account } = useAuth();
+  const { configured, ready, user, account, accountReady } = useAuth();
   const { state, selectedChild, setSelectedChildId } = useFamily();
   const urlCode = searchParams.get("code") ?? "";
   const [editedCode, setEditedCode] = useState<string | null>(null);
@@ -48,7 +48,7 @@ function JoinFriendInner() {
       : "/friends/join";
   }, [code]);
 
-  if (!ready) {
+  if (!ready || (user && !accountReady)) {
     return (
       <p className="py-8 text-center text-sm font-semibold text-muted-foreground">
         Loading invite…
@@ -59,7 +59,12 @@ function JoinFriendInner() {
   if (!configured || !user) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Add a dance friend</h1>
+        <h1 className="text-2xl font-bold">Add friends at your studio</h1>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Sign in, open your studio chat, and tap Add. Parents add other parents.
+          Dancers add other dancers. An invite code only works for dancers at the
+          same studio.
+        </p>
         {code ? (
           <p className="rounded-card bg-surface p-4 text-center font-mono text-2xl font-bold tracking-[0.2em] shadow-card ring-1 ring-border">
             {displayFriendCode(code)}
@@ -70,13 +75,37 @@ function JoinFriendInner() {
     );
   }
 
+  if (account?.role === "parent" || account?.role === "studio") {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Add friends at your studio</h1>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Invite codes are no longer the way to add friends. Open your studio
+          chat and tap Add. Parents add other parents. Dancers add other dancers.
+          Same studio only.
+        </p>
+        {code ? (
+          <p className="rounded-card bg-surface p-4 text-center font-mono text-2xl font-bold tracking-[0.2em] shadow-card ring-1 ring-border">
+            {displayFriendCode(code)}
+          </p>
+        ) : null}
+        <Link
+          href="/community"
+          className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
+        >
+          Go to Community
+        </Link>
+      </div>
+    );
+  }
+
   if (sent) {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Request sent</h1>
         <p className="text-sm leading-6 text-muted-foreground">
-          {friendName || "That dancer"} will show as pending until their parent
-          accepts. After that, you can both see enrolled comps.
+          {friendName || "That dancer"} will show as pending until they accept.
+          After that, you can both see enrolled comps.
         </p>
         <Link
           href={child ? `/kids/${child.id}` : "/kids"}
@@ -92,8 +121,8 @@ function JoinFriendInner() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Add a dance friend</h1>
       <p className="text-sm leading-6 text-muted-foreground">
-        This invite is for another family’s dancer. Pick which of your dancers the
-        friendship is for, then send the request. They need to accept.
+        This older invite only works for another dancer at the same studio. The
+        easy way is your studio chat: open Community and tap Add.
       </p>
       <div className="rounded-card bg-surface p-4 text-center shadow-card ring-1 ring-border">
         <label className="block text-xs font-bold uppercase tracking-wide text-primary-ink" htmlFor="join-code">

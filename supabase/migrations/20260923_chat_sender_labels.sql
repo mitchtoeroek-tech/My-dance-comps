@@ -16,7 +16,8 @@
 --
 -- Studio owners still show as the studio name. Emails are never used.
 -- Existing studio messages are relabelled from current profiles and dancers.
--- Friend direct messages do not store a sender_label.
+-- Studio friend directory labels use the same function. Child-friend
+-- threads still have no sender_label column.
 
 create or replace function public.studio_chat_sender_label(
   p_studio_id uuid,
@@ -193,6 +194,37 @@ end;
 $$;
 
 revoke all on function public.studio_chat_sender_label(uuid, uuid) from public, anon, authenticated;
+
+-- Studio friend lists and their DMs call this. Replace it when the
+-- studio friendships SQL has already been applied, and define it if this
+-- file is run first. Re-running studio friendships afterwards keeps this
+-- wording, because that file delegates here too.
+create or replace function public.studio_friend_public_label(
+  p_studio_id uuid,
+  p_user uuid,
+  p_role text
+)
+returns text
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_label text;
+begin
+  v_label := nullif(btrim(public.studio_chat_sender_label(p_studio_id, p_user)), '');
+  if v_label is null or position('@' in v_label) > 0 then
+    if p_role = 'dancer' then
+      return 'Dancer';
+    end if;
+    return 'Parent';
+  end if;
+  return left(v_label, 160);
+end;
+$$;
+
+revoke all on function public.studio_friend_public_label(uuid, uuid, text) from public, anon, authenticated;
 
 -- Dancer sign-ups whose profile row was created first keep role = parent
 -- (the default) because handle_new_user does not overwrite an existing row.

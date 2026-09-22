@@ -31,6 +31,9 @@ export interface CommunityConversation {
   ownChildId: string;
   ownChildName: string;
   lastMessage: CommunityMessage | null;
+  /** Studio-page friendships message the other account, not a child profile. */
+  kind?: "child" | "studio" | "sibling";
+  studioName?: string;
 }
 
 type RpcError = { message?: string; code?: string } | null;
@@ -150,9 +153,64 @@ export function mergeCommunityConversations(
       ownChildId: row.ownChildId,
       ownChildName: row.ownChildName,
       lastMessage: lastByThread.get(friendshipId) ?? null,
+      kind: row.friend.sibling ? "sibling" : "child",
     });
   }
-  return Array.from(map.values()).sort((a, b) => {
+  return sortCommunityConversations(Array.from(map.values()));
+}
+
+export function friendChatRelation(row: {
+  kind?: "child" | "studio" | "sibling";
+  ownChildName: string;
+  studioName?: string;
+}): string {
+  if (row.kind === "sibling") return "Sibling";
+  if (row.kind === "studio") {
+    const studio = row.studioName?.trim() || row.ownChildName.trim() || "your studio";
+    return `Friends at ${studio}`;
+  }
+  return `Friend of ${row.ownChildName}`;
+}
+
+export function combineCommunityInboxes(
+  childRows: Array<{
+    ownChildId: string;
+    ownChildName: string;
+    friend: AcceptedFriend;
+  }>,
+  studioThreads: Array<{
+    friendshipId: string;
+    label: string;
+    studioName: string;
+  }>,
+  lastByThread: Map<string, CommunityMessage>,
+): CommunityConversation[] {
+  const childThreads = mergeCommunityConversations(childRows, lastByThread);
+  const map = new Map<string, CommunityConversation>();
+  for (const row of childThreads) map.set(row.friendshipId, row);
+  for (const thread of studioThreads) {
+    const friendshipId = thread.friendshipId.trim();
+    if (!isCommunityFriendshipId(friendshipId) || map.has(friendshipId)) continue;
+    const label = thread.label.replace(/\s+/g, " ").trim();
+    if (!label || label.includes("@")) continue;
+    map.set(friendshipId, {
+      friendshipId,
+      friendChildId: "",
+      friendName: label,
+      ownChildId: "",
+      ownChildName: thread.studioName,
+      lastMessage: lastByThread.get(friendshipId) ?? null,
+      kind: "studio",
+      studioName: thread.studioName,
+    });
+  }
+  return sortCommunityConversations(Array.from(map.values()));
+}
+
+function sortCommunityConversations(
+  rows: CommunityConversation[],
+): CommunityConversation[] {
+  return rows.slice().sort((a, b) => {
     const aTime = a.lastMessage?.createdAt ?? "";
     const bTime = b.lastMessage?.createdAt ?? "";
     if (aTime !== bTime) return bTime.localeCompare(aTime);

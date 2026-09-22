@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CommunityGuidelines } from "@/components/CommunityGuidelines";
+import { StudioFriendsPanel } from "@/components/StudioFriendsPanel";
 import { EmptyState } from "@/components/EmptyState";
 import { GuestCommunityUnlock } from "@/components/GuestCommunityUnlock";
 import { StudioChatMark } from "@/components/StudioChatMark";
@@ -120,6 +121,8 @@ export function StudioCommunityThread({ studioId }: { studioId: string }) {
         <CommunityGuidelines />
       </div>
 
+      <StudioFriendsPanel studioId={id} studioName={name} />
+
       {threadError ? (
         <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
           {threadError}
@@ -127,7 +130,7 @@ export function StudioCommunityThread({ studioId }: { studioId: string }) {
       ) : null}
 
       <div
-        className="flex-1 space-y-2 overflow-y-auto rounded-card bg-muted/60 p-3 ring-1 ring-border"
+        className="min-h-48 w-full flex-1 space-y-2 overflow-y-auto rounded-card bg-muted/60 p-3 ring-1 ring-border"
         role="log"
         aria-live="polite"
         aria-relevant="additions"

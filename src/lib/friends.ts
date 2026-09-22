@@ -15,10 +15,14 @@ export interface FriendRef {
   friendshipId: string;
   childId: string;
   name: string;
+  /** Same-family dancer pair. Shown on Add sibling, not the studio-friend lists. */
+  sibling?: boolean;
 }
 
 export interface AcceptedFriend extends FriendRef {
   enrolledCompIds: string[];
+  /** Both dancer logins share a family. The chat is between those two accounts. */
+  sibling?: boolean;
 }
 
 export interface FriendsSnapshot {
@@ -154,6 +158,15 @@ export function friendlyFriendsError(
   if (lower.includes("could not find that dancer")) {
     return "We could not find that dancer. Check the spelling, or ask for their invite code.";
   }
+  if (lower.includes("add friends from your studio chat")) {
+    return "Add friends from your studio chat. Parents add other parents, and dancers add other dancers.";
+  }
+  if (lower.includes("same studio")) {
+    return "You can only add dancers at the same studio.";
+  }
+  if (lower.includes("studio accounts are not on the friend list")) {
+    return "Studio accounts are not on the friend list. Use a parent or dancer login.";
+  }
   if (lower.includes("already friends")) {
     return "Those dancers are already friends.";
   }
@@ -167,7 +180,7 @@ export function friendlyFriendsError(
     return "That request is no longer waiting.";
   }
   if (lower.includes("not your request")) {
-    return "Only the other parent can accept or decline that request.";
+    return "Only the other person can accept or decline that request.";
   }
   if (lower.includes("not your friend")) {
     return "Only this family or theirs can remove that friend.";
@@ -186,7 +199,12 @@ function parseFriendRef(raw: unknown): FriendRef | null {
   const childId = asString(row.child_id || row.childId).trim();
   const name = asString(row.name).trim();
   if (!friendshipId || !childId || !name) return null;
-  return { friendshipId, childId, name };
+  return {
+    friendshipId,
+    childId,
+    name,
+    sibling: asBoolean(row.sibling, false) || undefined,
+  };
 }
 
 function parseAcceptedFriend(raw: unknown): AcceptedFriend | null {
@@ -196,7 +214,11 @@ function parseAcceptedFriend(raw: unknown): AcceptedFriend | null {
   const enrolledCompIds = asStringArray(
     row?.enrolled_comp_ids ?? row?.enrolledCompIds,
   );
-  return { ...base, enrolledCompIds };
+  return {
+    ...base,
+    enrolledCompIds,
+    sibling: asBoolean(row?.sibling, false) || undefined,
+  };
 }
 
 export function emptyFriendsSnapshot(): FriendsSnapshot {

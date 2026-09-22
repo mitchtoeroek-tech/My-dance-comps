@@ -97,6 +97,7 @@ test("parseFriendsSnapshot keeps enrolled ids and drops empty rows", () => {
         child_id: "ava",
         name: "Ava",
         enrolled_comp_ids: ["jazz-open", "tap-classic"],
+        sibling: true,
       },
       { friendship_id: "", child_id: "skip", name: "Skip" },
     ],
@@ -111,6 +112,8 @@ test("parseFriendsSnapshot keeps enrolled ids and drops empty rows", () => {
     "tap-classic",
   ]);
   assert.equal(snapshot.incoming[0]?.name, "Leo");
+  assert.equal(snapshot.friends[0]?.sibling, true);
+  assert.equal(snapshot.incoming[0]?.sibling, undefined);
   assert.deepEqual(emptyFriendsSnapshot().friends, []);
 });
 
@@ -168,4 +171,12 @@ test("guest copy and missing-SQL errors are plain English", () => {
     /friends SQL/,
   );
   assert.equal(friendlyFriendsError("Already friends"), "Those dancers are already friends.");
+  assert.match(
+    friendlyFriendsError("Add friends from your studio chat"),
+    /studio chat/,
+  );
+  assert.match(
+    friendlyFriendsError("You can only add dancers at the same studio"),
+    /same studio/,
+  );
 });

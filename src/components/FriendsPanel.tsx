@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AddFriendCard } from "@/components/AddFriendCard";
+import { SiblingFriendsPanel } from "@/components/SiblingFriendsPanel";
 import { FriendCompsList } from "@/components/FriendCompsList";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useAuth } from "@/context/AuthContext";
@@ -10,13 +12,9 @@ import { useLiveComps } from "@/hooks/useLiveComps";
 import { getComps } from "@/lib/comps";
 import { useCompsDateSort } from "@/components/DateSortControl";
 import {
-  copyText,
-  displayFriendCode,
-  friendInviteUrl,
   removeFriendship,
   respondFriendRequest,
   setShareEnrolled,
-  shareFriendInvite,
 } from "@/lib/friends";
 
 export function FriendsPanel({
@@ -69,18 +67,19 @@ export function FriendsPanel({
       <FriendsHeading />
       <p className="text-sm leading-6 text-muted-foreground">
         {dancer
-          ? "Friends are dancers you compete with. You see comps they marked Enrolled — not their date of birth. A parent can still send requests for a younger dancer."
-          : "Friends are between dancers, with you in control. You only see comps they marked Enrolled — not their date of birth."}
+          ? "Add other dancers from your studio chat, or add a sibling below if they have their own dancer login in your family. Accepted dancer friends can still share comps they marked Enrolled — not their date of birth."
+          : "Add other parents from your studio chat. You only add people at that studio, and never a dancer. Older dancer friendships can still share comps marked Enrolled — not their date of birth."}
       </p>
+      {dancer ? <SiblingFriendsPanel /> : null}
       {error ? (
         <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
           {error}
         </p>
       ) : null}
-      {snapshot.incoming.length > 0 ? (
+      {snapshot.incoming.some((item) => !item.sibling) ? (
         <IncomingList
           childName={childName}
-          incoming={snapshot.incoming}
+          incoming={snapshot.incoming.filter((item) => !item.sibling)}
           busy={loading}
           onRespond={async (id, accept) => {
             const result = await respondFriendRequest(id, accept);
@@ -90,19 +89,43 @@ export function FriendsPanel({
           }}
         />
       ) : null}
-      <InviteShareCard
-        childName={childName}
-        code={snapshot.inviteCode}
-      />
-      <AddFriendCard
-        fromChildId={childId}
-        fromChildName={childName}
-        busy={loading}
-        onSent={reload}
-      />
-      {snapshot.outgoing.length > 0 ? (
+      <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
+        <p className="text-sm font-bold text-foreground">Add friends at your studio</p>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Open Community, choose the studio chat, and tap Add. Parents add other
+          parents. Dancers add other dancers. Same studio only, and no email
+          addresses on the list.
+        </p>
+        <Link
+          href="/community"
+          className="mt-3 inline-flex min-h-11 items-center justify-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
+        >
+          Open Community
+        </Link>
+      </div>
+      {dancer ? (
+        <details className="rounded-card bg-muted/50 p-4 ring-1 ring-border">
+          <summary className="cursor-pointer text-sm font-bold text-foreground">
+            Older invite code
+          </summary>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Invite codes only work for another dancer at the same studio. The
+            studio chat list is the easy way.
+          </p>
+          <div className="mt-3">
+            <AddFriendCard
+              fromChildId={childId}
+              fromChildName={childName}
+              busy={loading}
+              onSent={reload}
+              defaultMode="invite"
+            />
+          </div>
+        </details>
+      ) : null}
+      {snapshot.outgoing.some((item) => !item.sibling) ? (
         <OutgoingList
-          outgoing={snapshot.outgoing}
+          outgoing={snapshot.outgoing.filter((item) => !item.sibling)}
           busy={loading}
           onCancel={async (id) => {
             const result = await removeFriendship(id);
@@ -122,6 +145,7 @@ export function FriendsPanel({
         }}
       />
       <AcceptedFriends
+        dancer={dancer}
         friends={snapshot.friends}
         comps={comps}
         sortDir={sortDir}
@@ -146,84 +170,6 @@ export function FriendsPanel({
 
 function FriendsHeading() {
   return <h2 className="text-xl font-bold">Friends</h2>;
-}
-
-function InviteShareCard({
-  childName,
-  code,
-}: {
-  childName: string;
-  code: string;
-}) {
-  const [notice, setNotice] = useState("");
-  const pretty = displayFriendCode(code);
-
-  return (
-    <div className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
-      <p className="text-xs font-bold uppercase tracking-wide text-primary-ink">
-        Share invite
-      </p>
-      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-        Send this to another parent. They tap the link, pick their dancer, then
-        you accept.
-      </p>
-      <p className="mt-3 text-center font-mono text-3xl font-bold tracking-[0.2em] text-foreground">
-        {pretty || "••••-••••"}
-      </p>
-      <div className="mt-3 grid grid-cols-1 gap-2">
-        <button
-          type="button"
-          onClick={async () => {
-            const url = friendInviteUrl(window.location.origin, code);
-            const result = await shareFriendInvite({
-              childName,
-              code,
-              url,
-            });
-            if (result === "cancelled") return;
-            setNotice(
-              result === "shared"
-                ? "Invite ready to send."
-                : result === "copied"
-                  ? "Invite copied."
-                  : "Could not share. Copy the link instead.",
-            );
-          }}
-          className="inline-flex min-h-11 items-center justify-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
-        >
-          Share invite
-        </button>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={async () => {
-              const url = friendInviteUrl(window.location.origin, code);
-              const ok = await copyText(url);
-              setNotice(ok ? "Link copied." : "Could not copy the link.");
-            }}
-            className="inline-flex min-h-11 items-center justify-center rounded-control bg-surface px-3 py-2 text-sm font-bold text-primary-ink ring-1 ring-primary"
-          >
-            Copy link
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              const ok = await copyText(pretty);
-              setNotice(ok ? "Code copied." : "Could not copy the code.");
-            }}
-            className="inline-flex min-h-11 items-center justify-center rounded-control bg-surface px-3 py-2 text-sm font-bold text-primary-ink ring-1 ring-primary"
-          >
-            Copy code
-          </button>
-        </div>
-      </div>
-      {notice ? (
-        <p className="mt-2 text-center text-xs font-semibold text-primary-ink">
-          {notice}
-        </p>
-      ) : null}
-    </div>
-  );
 }
 
 function IncomingList({
@@ -370,12 +316,14 @@ function ShareEnrolledToggle({
 }
 
 function AcceptedFriends({
+  dancer,
   friends,
   comps,
   sortDir,
   busy,
   onRemove,
 }: {
+  dancer: boolean;
   friends: {
     friendshipId: string;
     name: string;
@@ -391,7 +339,9 @@ function AcceptedFriends({
   if (friends.length === 0) {
     return (
       <p className="rounded-card bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground">
-        No friends yet. Share the invite above, or add a friend by email.
+        {dancer
+          ? "No friends yet. Add a sibling above, or add dancers from your studio chat."
+          : "No friends yet. Add other parents from your studio chat."}
       </p>
     );
   }

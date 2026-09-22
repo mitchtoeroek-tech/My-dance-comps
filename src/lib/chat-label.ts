@@ -3,8 +3,8 @@
  * source of truth on send. Keep these rules in step with
  * supabase/migrations/20260923_chat_sender_labels.sql.
  *
- * Friend direct messages do not store a sender_label. They are a private
- * thread between two accounts, so the bubble side is the only speaker cue.
+ * Studio friend lists use studio_friend_public_label, which calls the same
+ * database function. Child-friend threads have no sender_label column.
  */
 
 export interface ChatLabelChild {

@@ -3,6 +3,7 @@ import { adelaideToday, formatDateRange } from "@/lib/datetime";
 import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import { compHasEnded } from "@/lib/filter";
 import type { Competition } from "@/lib/types";
+import { AddToCalendarButton } from "./AddToCalendarButton";
 import { StatusPill } from "./StatusPill";
 import { EnrolledButton } from "./EnrolledButton";
 import { CompReviewSummary } from "./CompReviewSummary";
@@ -12,12 +13,18 @@ export function CompCard({
   comp,
   enrolled,
   onToggleEnrolled,
+  showAddToCalendar = false,
+  enrolledNames,
   ageHint,
   eyebrow,
 }: {
   comp: Competition;
   enrolled?: boolean;
   onToggleEnrolled?: () => void;
+  /** Pastel-red calendar download, hard-right on the action row. My Comps only. */
+  showAddToCalendar?: boolean;
+  /** First names enrolled in this comp. Shown beside the state badge. */
+  enrolledNames?: string;
   ageHint?: string;
   eyebrow?: string;
 }) {
@@ -44,6 +51,11 @@ export function CompCard({
             <span className="rounded-control bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-ink">
               {comp.isNational ? "National" : comp.state}
             </span>
+            {enrolledNames ? (
+              <span className="rounded-control bg-muted px-2 py-0.5 text-[11px] font-bold text-foreground">
+                {enrolledNames}
+              </span>
+            ) : null}
           </div>
           {eyebrow ? (
             <p className="mb-1 text-xs font-bold uppercase tracking-wide text-primary-ink">
@@ -97,7 +109,7 @@ export function CompCard({
       {ageHint ? (
         <p className="mt-2 text-xs font-medium text-primary-ink">{ageHint}</p>
       ) : null}
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link
           href={`/comps/${comp.id}`}
           className="inline-flex min-h-11 items-center rounded-control bg-primary px-3 py-1.5 text-xs font-bold text-white"
@@ -117,6 +129,9 @@ export function CompCard({
             enrolled={Boolean(enrolled)}
             onClick={onToggleEnrolled}
           />
+        ) : null}
+        {showAddToCalendar ? (
+          <AddToCalendarButton comp={comp} compact className="ml-auto" />
         ) : null}
       </div>
     </article>

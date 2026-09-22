@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import {
+  combineCommunityInboxes,
   loadCommunityMessages,
   loadCommunityPreviews,
-  mergeCommunityConversations,
   mergeCommunityMessages,
   parseCommunityMessage,
   sendCommunityMessage,
@@ -17,6 +17,7 @@ import {
   loadFriendsForChild,
   type FriendsSnapshot,
 } from "@/lib/friends";
+import { loadMyStudioFriendThreads } from "@/lib/studio-friends";
 import { getSupabase } from "@/lib/supabase";
 
 export type CommunityViewState =
@@ -40,6 +41,7 @@ export function useCommunityInbox() {
     generation: number;
     conversations: CommunityConversation[];
     incomingCount: number;
+    studioIncomingCount: number;
     error: string | null;
   } | null>(null);
 
@@ -56,24 +58,17 @@ export function useCommunityInbox() {
           return { id: entry.slice(0, idx), name: entry.slice(idx + 1) };
         })
       : [];
-    if (rows.length === 0) {
-      setResult({
-        key: childKey,
-        generation: gen,
-        conversations: [],
-        incomingCount: 0,
-        error: null,
-      });
-      return;
-    }
     let cancelled = false;
     void (async () => {
-      const snapshots = await Promise.all(
-        rows.map(async (row) => {
-          const loaded = await loadFriendsForChild(row.id);
-          return { ...row, loaded };
-        }),
-      );
+      const [snapshots, studioInbox] = await Promise.all([
+        Promise.all(
+          rows.map(async (row) => {
+            const loaded = await loadFriendsForChild(row.id);
+            return { ...row, loaded };
+          }),
+        ),
+        loadMyStudioFriendThreads(),
+      ]);
       if (cancelled) return;
       const accepted: Array<{
         ownChildId: string;
@@ -94,19 +89,28 @@ export function useCommunityInbox() {
           });
         }
       }
-      const previews = await loadCommunityPreviews(
-        accepted.map((row) => row.friend.friendshipId),
+      const studioMissing = Boolean(
+        studioInbox.error?.toLowerCase().includes("not set up"),
       );
+      const studioThreads = studioMissing ? [] : (studioInbox.inbox?.threads ?? []);
+      const previews = await loadCommunityPreviews([
+        ...accepted.map((row) => row.friend.friendshipId),
+        ...studioThreads.map((thread) => thread.friendshipId),
+      ]);
       if (cancelled) return;
       setResult({
         key: childKey,
         generation: gen,
-        conversations: mergeCommunityConversations(
+        conversations: combineCommunityInboxes(
           accepted,
+          studioThreads,
           previews.lastByThread,
         ),
         incomingCount,
-        error: previews.error ?? friendError,
+        studioIncomingCount: studioMissing
+          ? 0
+          : (studioInbox.inbox?.incomingCount ?? 0),
+        error: previews.error ?? friendError ?? (studioMissing ? null : studioInbox.error),
       });
     })();
     return () => {
@@ -137,6 +141,7 @@ export function useCommunityInbox() {
     view,
     conversations: matched?.conversations ?? [],
     incomingCount: matched?.incomingCount ?? 0,
+    studioIncomingCount: matched?.studioIncomingCount ?? 0,
     error: matched?.error ?? null,
     loading,
     reload,
@@ -157,16 +162,18 @@ export function useCommunityThread(friendshipId: string | null) {
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [threadError, setThreadError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [threadKey, setThreadKey] = useState(friendshipId);
+
+  if (threadKey !== friendshipId) {
+    setThreadKey(friendshipId);
+    setMessages([]);
+    setThreadError(null);
+  }
 
   const applyIncoming = useCallback((incoming: CommunityMessage[]) => {
     if (incoming.length === 0) return;
     setMessages((current) => mergeCommunityMessages(current, incoming));
   }, []);
-
-  useEffect(() => {
-    setMessages([]);
-    setThreadError(null);
-  }, [friendshipId]);
 
   useEffect(() => {
     if (!friendshipId || !user) return;
