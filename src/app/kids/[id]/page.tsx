@@ -5,6 +5,7 @@ import { use, useState } from "react";
 import { ChildForm } from "@/components/ChildForm";
 import { FriendsPanel } from "@/components/FriendsPanel";
 import { ResultLog } from "@/components/ResultLog";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { myDancersLabel } from "@/lib/copy";
 
@@ -14,8 +15,11 @@ export default function KidDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { account } = useAuth();
   const { state, upsertChild, removeChild } = useFamily();
   const child = state.children.find((c) => c.id === id);
+  const dancerSelf =
+    account?.role === "dancer" && account.linkedChildId === child?.id;
   const [editing, setEditing] = useState(false);
   const backLabel = myDancersLabel(state.children.length);
 
@@ -67,21 +71,23 @@ export default function KidDetailPage({
             >
               Edit
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (
-                  confirm(
-                    `Remove ${child.name} from this device? Results for them will be deleted too.`,
-                  )
-                ) {
-                  removeChild(child.id);
-                }
-              }}
-              className="min-h-11 rounded-control bg-surface px-4 py-2 text-sm font-bold text-primary-ink ring-1 ring-accent"
-            >
-              Remove
-            </button>
+            {dancerSelf ? null : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Remove ${child.name} from this device? Results for them will be deleted too.`,
+                    )
+                  ) {
+                    removeChild(child.id);
+                  }
+                }}
+                className="min-h-11 rounded-control bg-surface px-4 py-2 text-sm font-bold text-primary-ink ring-1 ring-accent"
+              >
+                Remove
+              </button>
+            )}
           </div>
         </section>
       )}

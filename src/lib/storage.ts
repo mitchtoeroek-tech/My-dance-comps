@@ -72,6 +72,7 @@ export function normalizeChild(raw: unknown): ChildProfile | null {
   const id = asString(raw.id).trim();
   const name = asString(raw.name).trim();
   if (!id || !name) return null;
+  const linkedUserId = asString(raw.linkedUserId).trim();
   return {
     id,
     name,
@@ -79,6 +80,7 @@ export function normalizeChild(raw: unknown): ChildProfile | null {
     styles: asStringArray(raw.styles) as DanceStyle[],
     studio: asString(raw.studio),
     homeState: normalizeHomeState(raw.homeState),
+    ...(linkedUserId ? { linkedUserId } : {}),
   };
 }
 

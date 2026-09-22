@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { AuthUnavailable } from "@/components/AuthCard";
+import { FamilyPanel } from "@/components/FamilyPanel";
 import { myDancersLabel } from "@/lib/copy";
 
 export default function AccountPage() {
-  const { configured, ready, user, signOut } = useAuth();
+  const { configured, ready, accountReady, user, account, signOut } = useAuth();
   const { state, enrolledIdsFor } = useFamily();
 
   if (!configured) return <AuthUnavailable />;
 
-  if (!ready) {
+  if (!ready || (user && !accountReady)) {
     return (
       <p className="py-8 text-center text-sm font-semibold text-muted-foreground">
         Loading account…
@@ -51,7 +53,11 @@ export default function AccountPage() {
     );
   }
 
-  const email = user.email ?? "Signed in";
+  const email = account?.username || user.email || "Signed in";
+  const enrolledCount =
+    account?.role === "dancer"
+      ? enrolledIdsFor(state.children[0]?.id ?? null).length
+      : enrolledIdsFor(null).length;
 
   return (
     <div className="space-y-4">
@@ -59,12 +65,13 @@ export default function AccountPage() {
       <section className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">
         <p className="text-sm font-semibold text-muted-foreground">Signed in as</p>
         <p className="mt-1 text-lg font-bold text-foreground">{email}</p>
+        <p className="mt-1 text-sm font-bold text-primary-ink">
+          {account?.role === "dancer" ? "Dancer account" : "Parent account"}
+        </p>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          This family’s dancers, saved comps, enrolled comps and results sync to
-          your account. Friends live on the account too — open a dancer on{" "}
-          {myDancersLabel(state.children.length)} to share an invite. Signing
-          out leaves a copy of family data on this device so guest use still
-          works.
+          {account?.role === "dancer"
+            ? "Your comps, enrolments, friends and Community follow this login. Join a family so a parent can see you on My Dancers and enrol you too."
+            : `This family’s dancers, saved comps, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to share an invite. Signing out leaves a copy on this device.`}
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <Stat
@@ -72,7 +79,7 @@ export default function AccountPage() {
             value={String(state.children.length)}
           />
           <Stat label="Saved" value={String(state.favourites.length)} />
-          <Stat label="Enrolled" value={String(enrolledIdsFor(null).length)} />
+          <Stat label="Enrolled" value={String(enrolledCount)} />
           <Stat label="Results" value={String(state.results.length)} />
         </dl>
         <button
@@ -83,6 +90,8 @@ export default function AccountPage() {
           Sign out
         </button>
       </section>
+      <PasswordOrPinForm />
+      <FamilyPanel />
       <div className="flex flex-col items-start gap-1">
         <Link
           href="/kids"
@@ -104,6 +113,66 @@ export default function AccountPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function PasswordOrPinForm() {
+  const { updatePassword } = useAuth();
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [pending, setPending] = useState(false);
+
+  return (
+    <form
+      className="space-y-2 rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setError("");
+        setNotice("");
+        setPending(true);
+        const result = await updatePassword(password);
+        setPending(false);
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        setPassword("");
+        setNotice("Password or PIN updated.");
+      }}
+    >
+      <h2 className="text-lg font-bold">Change password or PIN</h2>
+      <label className="block text-sm font-bold" htmlFor="new-password">
+        New password or PIN
+        <input
+          id="new-password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="new-password"
+          required
+          minLength={6}
+          className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 py-2.5 text-sm font-medium"
+        />
+      </label>
+      {error ? (
+        <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
+          {error}
+        </p>
+      ) : null}
+      {notice ? (
+        <p className="rounded-control bg-primary-soft px-3 py-2 text-sm font-semibold text-primary-ink">
+          {notice}
+        </p>
+      ) : null}
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+      >
+        {pending ? "Please wait…" : "Update"}
+      </button>
+    </form>
   );
 }
 

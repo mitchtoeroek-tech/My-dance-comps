@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useState,
   useSyncExternalStore,
 } from "react";
 import { getComps } from "@/lib/comps";
@@ -16,9 +17,14 @@ import {
 } from "@/lib/reminders";
 import { useAuth } from "@/context/AuthContext";
 import {
+  pullDancerLinkedState,
   pullFamilyState,
+  pushDancerLinkedState,
   pushFamilyState,
+  reconcileDancerLinkedState,
   reconcileFamilyState,
+  scopeDancerFamily,
+  type DancerFamilyMode,
 } from "@/lib/family-sync";
 import {
   dropChildEnrollment,
@@ -46,6 +52,8 @@ import type {
 let memory: FamilyState = defaultFamilyState;
 let hydrated = false;
 let cloudUserId: string | null = null;
+let cloudMode: "owner" | "dancer-linked" = "owner";
+let dancerMode: DancerFamilyMode | null = null;
 let acceptCloudPushes = false;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 let lastPushedJson = "";
@@ -69,21 +77,27 @@ function scheduleCloudPush(state: FamilyState) {
   pushTimer = setTimeout(() => {
     const userId = cloudUserId;
     if (!userId) return;
+    const mode = cloudMode;
     const json = JSON.stringify(state);
     if (json === lastPushedJson) return;
     lastPushedJson = json;
-    void pushFamilyState(userId, state).catch(() => {
+    const push =
+      mode === "dancer-linked"
+        ? pushDancerLinkedState(state)
+        : pushFamilyState(userId, state);
+    void push.catch(() => {
       lastPushedJson = "";
     });
   }, 600);
 }
 
 function write(next: FamilyState) {
-  memory = next;
+  const scoped = scopeDancerFamily(next, dancerMode);
+  memory = scoped;
   hydrated = true;
-  saveFamilyState(next);
+  saveFamilyState(scoped);
   emit();
-  scheduleCloudPush(next);
+  scheduleCloudPush(scoped);
 }
 
 function hydrateFromStorage() {
@@ -125,13 +139,21 @@ interface FamilyContextValue {
   addResult: (result: Omit<CompResult, "id">) => void;
   removeResult: (id: string) => void;
   markNotified: (ids: string[]) => void;
+  /** Pull family data again after a family link, invite, or unlink. */
+  refreshCloud: () => void;
 }
 
 const FamilyContext = createContext<FamilyContextValue | null>(null);
 
 export function FamilyProvider({ children }: { children: React.ReactNode }) {
-  const { user, ready: authReady } = useAuth();
+  const { user, ready: authReady, account, accountReady } = useAuth();
   const userId = user?.id ?? null;
+  const [cloudGeneration, setCloudGeneration] = useState(0);
+  const refreshCloud = useCallback(() => {
+    setCloudGeneration((value) => value + 1);
+  }, []);
+  const linkedChildId = account?.linkedChildId ?? null;
+  const accountRole = account?.role ?? "parent";
   const state = useSyncExternalStore(
     subscribe,
     snapshot,
@@ -148,9 +170,26 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!authReady || !hydrated) return;
+    if (!authReady) return;
+    dancerMode =
+      userId && accountReady
+        ? { role: accountRole, linkedChildId }
+        : null;
+    if (!hydrated || dancerMode?.role !== "dancer") return;
+    const scoped = scopeDancerFamily(memory, dancerMode);
+    if (scoped === memory) return;
+    acceptCloudPushes = false;
+    memory = scoped;
+    saveFamilyState(scoped);
+    emit();
+  }, [authReady, userId, accountReady, accountRole, linkedChildId]);
+
+  useEffect(() => {
+    if (!authReady || !hydrated || !accountReady) return;
     if (!userId) {
       cloudUserId = null;
+      cloudMode = "owner";
+      dancerMode = null;
       acceptCloudPushes = false;
       lastPushedJson = "";
       return;
@@ -159,17 +198,24 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     cloudUserId = userId;
     acceptCloudPushes = false;
+    const linked = accountRole === "dancer" && Boolean(linkedChildId);
+    cloudMode = linked ? "dancer-linked" : "owner";
+    dancerMode = { role: accountRole, linkedChildId };
 
     void (async () => {
       try {
-        const remote = await pullFamilyState(userId);
+        const remote = linked
+          ? (await pullDancerLinkedState()).state
+          : await pullFamilyState(userId);
         if (cancelled) return;
-        const next = reconcileFamilyState(
-          snapshot(),
-          remote,
-          loadLastOwnerId(),
-          userId,
-        );
+        const next = linked
+          ? reconcileDancerLinkedState(snapshot(), remote)
+          : reconcileFamilyState(
+              snapshot(),
+              remote,
+              loadLastOwnerId(),
+              userId,
+            );
         saveLastOwnerId(userId);
         acceptCloudPushes = true;
         write(next);
@@ -184,7 +230,15 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authReady, userId, ready]);
+  }, [
+    authReady,
+    accountReady,
+    userId,
+    ready,
+    accountRole,
+    linkedChildId,
+    cloudGeneration,
+  ]);
 
   const selectedChild = useMemo(() => {
     if (!Array.isArray(state.children)) return null;
@@ -193,6 +247,18 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
   const setSelectedChildId = useCallback((id: string | null) => {
     patch((prev) => {
+      if (dancerMode?.role === "dancer") {
+        const only = dancerMode.linkedChildId
+          ? prev.children.find((child) => child.id === dancerMode?.linkedChildId)
+          : prev.children.find((child) => child.id === prev.selectedChildId) ??
+            prev.children[0];
+        if (!only) return prev;
+        return {
+          ...prev,
+          selectedChildId: only.id,
+          preferredState: only.homeState ?? prev.preferredState,
+        };
+      }
       const child = Array.isArray(prev.children)
         ? prev.children.find((c) => c.id === id)
         : undefined;
@@ -218,7 +284,14 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         patch((prev) => ({
           ...prev,
           children: prev.children.map((c) =>
-            c.id === child.id ? { ...c, ...child, id: child.id } : c,
+            c.id === child.id
+              ? {
+                  ...c,
+                  ...child,
+                  id: child.id,
+                  linkedUserId: child.linkedUserId ?? c.linkedUserId,
+                }
+              : c,
           ),
           preferredState:
             prev.selectedChildId === child.id || !prev.preferredState
@@ -229,6 +302,9 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       }
       const id = newId();
       patch((prev) => {
+        if (dancerMode?.role === "dancer") {
+          if (dancerMode.linkedChildId || prev.children.length >= 1) return prev;
+        }
         if (prev.children.length >= SOFT_MAX_KIDS) return prev;
         return {
           ...prev,
@@ -244,6 +320,9 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
   const removeChild = useCallback((id: string) => {
     patch((prev) => {
+      if (dancerMode?.role === "dancer" && dancerMode.linkedChildId) {
+        return prev;
+      }
       const children = prev.children.filter((c) => c.id !== id);
       const selectedChildId =
         prev.selectedChildId === id
@@ -391,12 +470,16 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   const childrenCount = Array.isArray(state.children)
     ? state.children.length
     : 0;
+  const dancerAccount = accountRole === "dancer" && accountReady && Boolean(userId);
+  const canAddChild = dancerAccount
+    ? !linkedChildId && childrenCount === 0
+    : childrenCount < SOFT_MAX_KIDS;
 
   const value: FamilyContextValue = {
     ready,
     state,
     selectedChild,
-    canAddChild: childrenCount < SOFT_MAX_KIDS,
+    canAddChild,
     setSelectedChildId,
     setIncludeInterstate,
     setPreferredState,
@@ -411,6 +494,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     addResult,
     removeResult,
     markNotified,
+    refreshCloud,
   };
 
   return (

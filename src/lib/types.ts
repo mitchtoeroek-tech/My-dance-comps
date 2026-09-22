@@ -82,6 +82,8 @@ export interface ChildProfile {
   styles: DanceStyle[];
   studio: string;
   homeState: AuStateCode;
+  /** Set when this dancer has their own login linked by a parent. */
+  linkedUserId?: string;
 }
 
 export interface CompResult {

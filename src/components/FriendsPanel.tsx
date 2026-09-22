@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AddFriendCard } from "@/components/AddFriendCard";
 import { FriendCompsList } from "@/components/FriendCompsList";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
+import { useAuth } from "@/context/AuthContext";
 import { useFriends } from "@/hooks/useFriends";
 import { useLiveComps } from "@/hooks/useLiveComps";
 import { getComps } from "@/lib/comps";
@@ -25,7 +26,9 @@ export function FriendsPanel({
   childId: string;
   childName: string;
 }) {
+  const { account } = useAuth();
   const { view, snapshot, error, loading, reload } = useFriends(childId);
+  const dancer = account?.role === "dancer";
   const { comps } = useLiveComps(getComps());
   const { sortDir } = useCompsDateSort();
   const nextPath = `/kids/${childId}`;
@@ -65,8 +68,9 @@ export function FriendsPanel({
     <section className="space-y-4">
       <FriendsHeading />
       <p className="text-sm leading-6 text-muted-foreground">
-        Friends are between dancers, with you in control. You only see comps
-        they marked Enrolled — not favourites, and not their date of birth.
+        {dancer
+          ? "Friends are dancers you compete with. You see comps they marked Enrolled — not favourites, and not their date of birth. A parent can still send requests for a younger dancer."
+          : "Friends are between dancers, with you in control. You only see comps they marked Enrolled — not favourites, and not their date of birth."}
       </p>
       {error ? (
         <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">

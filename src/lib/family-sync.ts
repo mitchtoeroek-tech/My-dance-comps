@@ -1,3 +1,4 @@
+import type { AccountRole } from "./account";
 import { getSupabase } from "./supabase";
 import {
   defaultFamilyState,
@@ -29,6 +30,7 @@ type ChildRow = {
   styles: string[] | null;
   studio: string | null;
   home_state: string | null;
+  linked_user_id?: string | null;
 };
 
 type ResultRow = {
@@ -51,6 +53,21 @@ function mergeById<T extends { id: string }>(local: T[], remote: T[]): T[] {
   const map = new Map<string, T>();
   for (const item of remote) map.set(item.id, item);
   for (const item of local) map.set(item.id, item);
+  return Array.from(map.values());
+}
+
+function mergeChildren(local: ChildProfile[], remote: ChildProfile[]): ChildProfile[] {
+  const map = new Map<string, ChildProfile>();
+  for (const item of remote) map.set(item.id, item);
+  for (const item of local) {
+    const prev = map.get(item.id);
+    if (!prev) {
+      map.set(item.id, item);
+      continue;
+    }
+    const linkedUserId = item.linkedUserId ?? prev.linkedUserId;
+    map.set(item.id, linkedUserId ? { ...prev, ...item, linkedUserId } : { ...prev, ...item });
+  }
   return Array.from(map.values());
 }
 
@@ -95,7 +112,7 @@ export function mergeFamilyState(
 ): FamilyState {
   const loc = normalizeFamilyState(local);
   const rem = normalizeFamilyState(remote);
-  const children = mergeById(loc.children, rem.children);
+  const children = mergeChildren(loc.children, rem.children);
   const selectedChildId =
     (loc.selectedChildId &&
     children.some((child) => child.id === loc.selectedChildId)
@@ -142,6 +159,177 @@ export function reconcileFamilyState(
   if (isEmptyFamily(loc)) return rem;
   if (isEmptyFamily(rem)) return loc;
   return mergeFamilyState(loc, rem);
+}
+
+export interface DancerFamilyMode {
+  role: AccountRole;
+  linkedChildId: string | null;
+}
+
+/** Linked dancers only see their own profile. Parents keep the household. */
+export function scopeDancerFamily(
+  state: FamilyState,
+  mode: DancerFamilyMode | null,
+): FamilyState {
+  if (!mode || mode.role !== "dancer") return state;
+  const children = Array.isArray(state.children) ? state.children : [];
+  if (mode.linkedChildId) {
+    const linked = children.find((child) => child.id === mode.linkedChildId);
+    if (!linked) return state;
+    return {
+      ...state,
+      children: [linked],
+      selectedChildId: linked.id,
+      preferredState: state.preferredState ?? linked.homeState,
+    };
+  }
+  if (children.length === 0) return state;
+  const selected =
+    children.find((child) => child.id === state.selectedChildId) ?? children[0];
+  if (!selected) return state;
+  return {
+    ...state,
+    selectedChildId: selected.id,
+    preferredState: state.preferredState ?? selected.homeState,
+  };
+}
+
+/**
+ * After a dancer joins a family, the linked child on the parent account is
+ * the profile they use. Guest drafts and sibling rows stay out of their view.
+ */
+export function reconcileDancerLinkedState(
+  local: FamilyState,
+  remote: FamilyState | null,
+): FamilyState {
+  if (!remote) return normalizeFamilyState(local);
+  const loc = normalizeFamilyState(local);
+  const rem = normalizeFamilyState(remote);
+  if (rem.children.length === 0) return loc;
+  const selected = rem.children[0];
+  return normalizeFamilyState({
+    ...rem,
+    favourites: uniqueStrings(loc.favourites, rem.favourites),
+    includeInterstate: loc.includeInterstate || rem.includeInterstate,
+    preferredState:
+      rem.preferredState ?? loc.preferredState ?? selected?.homeState ?? null,
+    reminderPrefs: loc.reminderPrefs,
+    notifiedReminderIds: uniqueStrings(
+      loc.notifiedReminderIds,
+      rem.notifiedReminderIds,
+    ),
+    selectedChildId: selected?.id ?? null,
+  });
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+export function familyStateFromDancerSnapshot(raw: unknown): {
+  linked: boolean;
+  state: FamilyState | null;
+} {
+  const row = asRecord(raw);
+  if (!row || row.linked !== true) return { linked: false, state: null };
+  const childRaw = asRecord(row.child);
+  const id = typeof childRaw?.id === "string" ? childRaw.id : "";
+  const name = typeof childRaw?.name === "string" ? childRaw.name : "";
+  if (!id || !name) return { linked: false, state: null };
+  const linkedUserId =
+    typeof childRaw?.linked_user_id === "string" ? childRaw.linked_user_id : "";
+  const owned = row.enrolled_owned === true;
+  const ids = asStringArray(row.enrolled_ids);
+  const resultRows = Array.isArray(row.results) ? row.results : [];
+  const results: CompResult[] = [];
+  for (const item of resultRows) {
+    const result = asRecord(item);
+    if (!result || typeof result.id !== "string") continue;
+    results.push({
+      id: result.id,
+      childId: id,
+      compId: typeof result.comp_id === "string" && result.comp_id ? result.comp_id : null,
+      compName:
+        typeof result.comp_name === "string" && result.comp_name
+          ? result.comp_name
+          : "Competition",
+      date: typeof result.date === "string" ? result.date : "",
+      section: typeof result.section === "string" ? result.section : "",
+      placing: typeof result.placing === "string" ? result.placing : "",
+      score: typeof result.score === "string" ? result.score : "",
+      notes: typeof result.notes === "string" ? result.notes : "",
+    });
+  }
+  const child: ChildProfile = {
+    id,
+    name,
+    dob: typeof childRaw?.dob === "string" ? childRaw.dob : "",
+    styles: asStringArray(childRaw?.styles) as ChildProfile["styles"],
+    studio: typeof childRaw?.studio === "string" ? childRaw.studio : "",
+    homeState: isAuStateCode(childRaw?.home_state) ? childRaw.home_state : "SA",
+    ...(linkedUserId ? { linkedUserId } : {}),
+  };
+  return {
+    linked: true,
+    state: normalizeFamilyState({
+      version: 1,
+      children: [child],
+      selectedChildId: id,
+      favourites: asStringArray(row.favourites),
+      enrolled: owned ? [] : ids,
+      enrolledByChild: owned ? { [id]: ids } : {},
+      includeInterstate: row.include_interstate === true,
+      preferredState: row.preferred_state,
+      reminderPrefs: row.reminder_prefs,
+      notifiedReminderIds: asStringArray(row.notified_reminder_ids),
+      results,
+    }),
+  };
+}
+
+export function dancerPushPayload(
+  state: FamilyState,
+): Record<string, unknown> | null {
+  const child = state.children[0];
+  if (!child) return null;
+  const owned = Object.prototype.hasOwnProperty.call(
+    state.enrolledByChild,
+    child.id,
+  );
+  return {
+    child: {
+      name: child.name,
+      dob: child.dob,
+      styles: child.styles,
+      studio: child.studio,
+      home_state: child.homeState,
+    },
+    enrolled_owned: owned,
+    enrolled_ids: owned ? (state.enrolledByChild[child.id] ?? []) : [],
+    favourites: state.favourites,
+    include_interstate: state.includeInterstate,
+    preferred_state: state.preferredState,
+    reminder_prefs: state.reminderPrefs,
+    notified_reminder_ids: state.notifiedReminderIds,
+    results: state.results
+      .filter((result) => result.childId === child.id)
+      .map((result) => ({
+        id: result.id,
+        comp_id: result.compId,
+        comp_name: result.compName,
+        date: result.date,
+        section: result.section,
+        placing: result.placing,
+        score: result.score,
+        notes: result.notes,
+      })),
+  };
 }
 
 function asReminderPrefs(value: unknown): ReminderPrefs {
@@ -209,14 +397,19 @@ export async function pullFamilyState(
 
   const profile = (profileRes.data ?? null) as ProfileRow | null;
   const childRows = (childrenRes.data ?? []) as ChildRow[];
-  const children: ChildProfile[] = childRows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    dob: row.dob ?? "",
-    styles: Array.isArray(row.styles) ? (row.styles as ChildProfile["styles"]) : [],
-    studio: row.studio ?? "",
-    homeState: isAuStateCode(row.home_state) ? row.home_state : "SA",
-  }));
+  const children: ChildProfile[] = childRows.map((row) => {
+    const linkedUserId =
+      typeof row.linked_user_id === "string" ? row.linked_user_id : "";
+    return {
+      id: row.id,
+      name: row.name,
+      dob: row.dob ?? "",
+      styles: Array.isArray(row.styles) ? (row.styles as ChildProfile["styles"]) : [],
+      studio: row.studio ?? "",
+      homeState: isAuStateCode(row.home_state) ? row.home_state : "SA",
+      ...(linkedUserId ? { linkedUserId } : {}),
+    };
+  });
 
   const resultRows = (resultsRes.data ?? []) as ResultRow[];
   const results: CompResult[] = resultRows.map((row) => ({
@@ -387,4 +580,24 @@ export async function pushFamilyState(
     const insert = await supabase.from("enrolled_child_sets").insert(setRows);
     if (insert.error) throw insert.error;
   }
+}
+
+export async function pullDancerLinkedState(): Promise<{
+  linked: boolean;
+  state: FamilyState | null;
+}> {
+  const supabase = getSupabase();
+  if (!supabase) return { linked: false, state: null };
+  const { data, error } = await supabase.rpc("dancer_pull_state");
+  if (error) throw error;
+  return familyStateFromDancerSnapshot(data);
+}
+
+export async function pushDancerLinkedState(state: FamilyState): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  const payload = dancerPushPayload(normalizeFamilyState(state));
+  if (!payload) return;
+  const { error } = await supabase.rpc("dancer_push_state", { p_state: payload });
+  if (error) throw error;
 }

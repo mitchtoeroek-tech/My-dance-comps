@@ -13,17 +13,27 @@ import {
   AuthUnavailable,
 } from "@/components/AuthCard";
 import { useAuth } from "@/context/AuthContext";
+import {
+  dancerLoginEmail,
+  normalizeDancerUsername,
+  type AccountRole,
+} from "@/lib/account";
 import { resolveAuthNextPath } from "@/lib/friends";
 
 export default function SignUpPage() {
   const router = useRouter();
   const { configured, signUp } = useAuth();
+  const [role, setRole] = useState<AccountRole>("parent");
+  const [loginWithUsername, setLoginWithUsername] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const dancer = role === "dancer";
+  const usernameLogin = dancer && loginWithUsername;
 
   if (!configured) return <AuthUnavailable />;
 
@@ -43,15 +53,42 @@ export default function SignUpPage() {
   return (
     <AuthCard
       title="Create an account"
-      subtitle="Optional. You can keep using My Dance Comps as a guest — an account just syncs dancers, saved comps, results and enrolled comps across devices."
+      subtitle={
+        dancer
+          ? "A dancer login is your own. After you join a family with a parent’s code, comps, My Comps, friends and Community are yours. Your parent can still enrol you."
+          : "A parent account manages the family, enrolments and younger dancers. You can keep browsing as a guest until you sign up."
+      }
     >
       <form
         className="space-y-3"
         onSubmit={async (event) => {
           event.preventDefault();
           setError("");
+          const trimmedName = displayName.trim();
+          let loginEmail = email.trim();
+          let dancerUsername: string | undefined;
+          if (usernameLogin) {
+            const normalized = normalizeDancerUsername(username);
+            if (!normalized) {
+              setError(
+                "Usernames are 3–24 characters and use letters, numbers, dots, underscores or hyphens.",
+              );
+              return;
+            }
+            dancerUsername = normalized;
+            loginEmail = dancerLoginEmail(normalized);
+          }
+          if (dancer && !trimmedName) {
+            setError("Add your name so your parent can see who joined.");
+            return;
+          }
           setPending(true);
-          const result = await signUp(email, password, displayName);
+          const result = await signUp(
+            loginEmail,
+            password,
+            trimmedName,
+            { role, username: dancerUsername },
+          );
           setPending(false);
           if (result.error) {
             setError(result.error);
@@ -64,25 +101,77 @@ export default function SignUpPage() {
           router.push(resolveAuthNextPath());
         }}
       >
+        <fieldset>
+          <legend className="text-sm font-bold text-foreground">I am a</legend>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <RoleChoice
+              pressed={role === "parent"}
+              onClick={() => {
+                setRole("parent");
+                setLoginWithUsername(false);
+              }}
+            >
+              Parent
+            </RoleChoice>
+            <RoleChoice
+              pressed={role === "dancer"}
+              onClick={() => setRole("dancer")}
+            >
+              Dancer
+            </RoleChoice>
+          </div>
+        </fieldset>
         <AuthField
           id="display-name"
-          label="Your name (optional)"
+          label={dancer ? "Your name" : "Your name (optional)"}
           value={displayName}
           onChange={setDisplayName}
           autoComplete="name"
+          required={dancer}
         />
-        <AuthField
-          id="email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          autoComplete="email"
-          required
-        />
+        {dancer ? (
+          <fieldset>
+            <legend className="text-sm font-bold text-foreground">Log in with</legend>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <RoleChoice
+                pressed={!loginWithUsername}
+                onClick={() => setLoginWithUsername(false)}
+              >
+                Email
+              </RoleChoice>
+              <RoleChoice
+                pressed={loginWithUsername}
+                onClick={() => setLoginWithUsername(true)}
+              >
+                Username
+              </RoleChoice>
+            </div>
+          </fieldset>
+        ) : null}
+        {usernameLogin ? (
+          <AuthField
+            id="username"
+            label="Username"
+            value={username}
+            onChange={setUsername}
+            autoComplete="username"
+            required
+            minLength={3}
+          />
+        ) : (
+          <AuthField
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+            required
+          />
+        )}
         <AuthField
           id="password"
-          label="Password"
+          label={usernameLogin ? "PIN (at least 6 characters)" : "Password"}
           type="password"
           value={password}
           onChange={setPassword}
@@ -91,7 +180,9 @@ export default function SignUpPage() {
           minLength={6}
         />
         <AuthError message={error} />
-        <AuthSubmit pending={pending}>Sign up</AuthSubmit>
+        <AuthSubmit pending={pending}>
+          {dancer ? "Create dancer login" : "Sign up"}
+        </AuthSubmit>
       </form>
       <div className="mt-4 space-y-2">
         <AuthLinks>
@@ -102,5 +193,30 @@ export default function SignUpPage() {
         </AuthLinks>
       </div>
     </AuthCard>
+  );
+}
+
+function RoleChoice({
+  pressed,
+  onClick,
+  children,
+}: {
+  pressed: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={`min-h-11 rounded-control px-3 py-2 text-sm font-bold ${
+        pressed
+          ? "bg-primary text-white"
+          : "bg-surface text-foreground ring-1 ring-border"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
