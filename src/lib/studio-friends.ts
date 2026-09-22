@@ -171,7 +171,7 @@ export function studioFriendIntro(
     return `Add other dancers at ${studio}. A brother or sister in your family can also be added from My Info, even at another studio. You will see first names, not email addresses.`;
   }
   if (role === "parent") {
-    return `Add other parents at ${studio}. You will see "Parent of …", not email addresses.`;
+    return `Add other parents at ${studio}. You will see their name with their dancers, for example Sarah, parent of Evie, not an email address.`;
   }
   return `Friend linking at ${studio} is for parent and dancer logins.`;
 }

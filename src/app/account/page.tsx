@@ -6,7 +6,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { AuthUnavailable } from "@/components/AuthCard";
 import { FamilyPanel } from "@/components/FamilyPanel";
+import {
+  chatFirstName,
+  parentStudioChatLines,
+  studioChatSenderLabel,
+} from "@/lib/chat-label";
 import { kidsSectionLabel, myDancersLabel } from "@/lib/copy";
+import { saveChatDisplayName } from "@/lib/family-link";
 import { isAllowlistedAdmin } from "@/lib/studios";
 
 export default function AccountPage() {
@@ -59,6 +65,18 @@ export default function AccountPage() {
     account?.role === "dancer"
       ? enrolledIdsFor(state.children[0]?.id ?? null).length
       : enrolledIdsFor(null).length;
+  const dancerChild =
+    state.children.find((child) => child.id === account?.linkedChildId) ??
+    state.children[0];
+  const dancerChatName =
+    account?.role === "dancer"
+      ? studioChatSenderLabel({
+          role: "dancer",
+          displayName: account.displayName,
+          dancerName: dancerChild?.name,
+          linkedDancer: Boolean(account.linkedChildId),
+        })
+      : null;
 
   return (
     <div className="space-y-4">
@@ -80,6 +98,14 @@ export default function AccountPage() {
               ? "Your comps, enrolments, friends and Community follow this login. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
               : `This family’s dancers, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
         </p>
+        {dancerChatName ? (
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            In studio chat you show as{" "}
+            <span className="font-bold text-foreground">{dancerChatName}</span>.
+            That is your first name, plus the initial of your surname when you
+            have one, taken from My Info.
+          </p>
+        ) : null}
         <nav
           aria-label="Family summary"
           className="mt-3 grid grid-cols-2 gap-2 text-sm"
@@ -108,6 +134,7 @@ export default function AccountPage() {
           Sign out
         </button>
       </section>
+      {account?.role === "parent" ? <ChatNameForm /> : null}
       <PasswordOrPinForm />
       <FamilyPanel />
       <div className="flex flex-col items-start gap-1">
@@ -165,6 +192,121 @@ export default function AccountPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+function ChatNameForm() {
+  const { account, refreshAccount } = useAuth();
+  const { state } = useFamily();
+  const saved =
+    account?.displayName && !account.displayName.includes("@")
+      ? account.displayName
+      : "";
+  const [name, setName] = useState(saved);
+  const [baseline, setBaseline] = useState(saved);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [pending, setPending] = useState(false);
+
+  if (saved !== baseline) {
+    setBaseline(saved);
+    setName(saved);
+  }
+
+  const lines = parentStudioChatLines(
+    name.includes("@") ? "" : name,
+    (Array.isArray(state.children) ? state.children : []).map((child) => ({
+      name: child.name,
+      studio: child.studio,
+    })),
+  );
+  const needsName = !chatFirstName(saved);
+
+  return (
+    <form
+      className="space-y-2 rounded-card bg-surface p-4 shadow-card ring-1 ring-border"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setError("");
+        setNotice("");
+        setPending(true);
+        const result = await saveChatDisplayName(name);
+        setPending(false);
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        setNotice("Name saved. New studio messages will use it.");
+        await refreshAccount();
+      }}
+    >
+      <h2 className="text-lg font-bold">Your name</h2>
+      <p id="chat-name-hint" className="text-sm leading-6 text-muted-foreground">
+        Shown in studio chat as your first name with the dancers at that studio.
+        For example, Sarah, parent of Evie and Harriet.
+      </p>
+      {needsName ? (
+        <p className="rounded-control bg-primary-soft px-3 py-2 text-sm font-semibold text-primary-ink">
+          Add your name so studio chat can show who is writing. Until you save
+          one, messages use Parent.
+        </p>
+      ) : null}
+      <label className="block text-sm font-bold" htmlFor="chat-display-name">
+        Your name (shown in chat)
+        <input
+          id="chat-display-name"
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          autoComplete="name"
+          maxLength={80}
+          aria-describedby="chat-name-hint"
+          className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-4 py-2.5 text-sm font-medium"
+        />
+      </label>
+      <div className="text-sm leading-6 text-muted-foreground">
+        {lines.length <= 1 ? (
+          <p>
+            In studio chat you show as{" "}
+            <span className="font-bold text-foreground">
+              {lines[0]?.label ?? "Parent"}
+            </span>
+            .
+          </p>
+        ) : (
+          <>
+            <p>Each studio chat lists only the dancers linked to that studio.</p>
+            <ul className="mt-1 space-y-1">
+              {lines.map((line) => (
+                <li key={line.studio ?? "dancers"}>
+                  <span className="font-bold text-foreground">
+                    {line.studio ?? "No studio yet"}:
+                  </span>{" "}
+                  {line.label}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+      {error ? (
+        <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">
+          {error}
+        </p>
+      ) : null}
+      {notice ? (
+        <p className="rounded-control bg-primary-soft px-3 py-2 text-sm font-semibold text-primary-ink">
+          {notice}
+        </p>
+      ) : null}
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+      >
+        {pending ? "Please wait…" : "Save name"}
+      </button>
+    </form>
   );
 }
 

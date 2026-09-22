@@ -62,6 +62,7 @@ test("studio friend directory drops emails and keeps role-locked rows", () => {
   assert.equal(text.includes("email"), false);
   assert.equal(text.includes("2014-01-01"), false);
   assert.match(studioFriendIntro("parent", "Mint Studio"), /other parents/);
+  assert.match(studioFriendIntro("parent", "Mint Studio"), /Sarah, parent of Evie/);
   assert.match(studioFriendIntro("dancer", "Mint Studio"), /first names/);
   assert.match(studioFriendIntro("dancer", "Mint Studio"), /My Info/);
   assert.match(studioFriendIntro("studio", "Mint Studio"), /parent and dancer/);

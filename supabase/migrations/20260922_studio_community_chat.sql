@@ -10,7 +10,11 @@
 -- is linked to it, or when their dancer login is linked to a child on it
 -- (children.linked_user_id or profiles.linked_child_id). Pending and
 -- rejected studios have no chat. Sender labels are set in the database
--- (dancer name, "Parent of …", or studio name) so emails are never shown.
+-- so emails are never shown. Dancers use first name plus surname initial
+-- (Mitch Test → Mitch T). Parents use "{First name}, parent of {first names}"
+-- from profiles.display_name, or Parent until that name is set. Studio
+-- owners use the studio name. Re-run 20260923_chat_sender_labels.sql after
+-- this file if you need stored messages relabelled.
 
 create table if not exists public.studio_community_messages (
   id uuid primary key default gen_random_uuid(),
@@ -105,11 +109,19 @@ as $$
 declare
   v_role text;
   v_display text;
+  v_linked_child text;
+  v_meta_role text;
   v_studio_name text;
   v_dancer_name text;
+  v_clean text;
+  v_parts text[];
+  v_first text;
+  v_last text;
   v_names text[];
   v_count int;
-  v_label text;
+  v_parent text;
+  v_kids text;
+  v_is_dancer boolean := false;
 begin
   if p_user is null then
     return 'Member';
@@ -128,8 +140,11 @@ begin
     return 'Studio';
   end if;
 
-  select p.role, nullif(btrim(p.display_name), '')
-  into v_role, v_display
+  select
+    p.role,
+    nullif(btrim(p.display_name), ''),
+    nullif(btrim(p.linked_child_id), '')
+  into v_role, v_display, v_linked_child
   from public.profiles p
   where p.id = p_user;
 
@@ -137,75 +152,121 @@ begin
     v_display := null;
   end if;
 
-  if v_role = 'dancer' then
+  v_is_dancer :=
+    v_role = 'dancer'
+    or v_linked_child is not null
+    or exists (
+      select 1
+      from public.children c
+      where c.linked_user_id = p_user
+    );
+
+  if not v_is_dancer then
+    begin
+      select u.raw_user_meta_data ->> 'role'
+      into v_meta_role
+      from auth.users u
+      where u.id = p_user;
+    exception
+      when others then
+        v_meta_role := null;
+    end;
+    if v_meta_role = 'dancer' then
+      v_is_dancer := true;
+    end if;
+  end if;
+
+  if v_is_dancer then
     select nullif(btrim(c.name), '')
     into v_dancer_name
     from public.children c
-    where c.studio_id = p_studio_id
+    where nullif(btrim(c.name), '') is not null
+      and position('@' in c.name) = 0
       and (
         c.linked_user_id = p_user
-        or c.id = (
-          select pr.linked_child_id
-          from public.profiles pr
-          where pr.id = p_user
+        or (v_linked_child is not null and c.id = v_linked_child)
+        or (
+          c.user_id = p_user
+          and c.linked_user_id is null
+          and v_linked_child is null
+          and not exists (
+            select 1
+            from public.children other
+            where other.linked_user_id = p_user
+          )
         )
       )
-      and position('@' in c.name) = 0
-    order by c.created_at
+    order by
+      case when c.studio_id is not distinct from p_studio_id then 0 else 1 end,
+      c.created_at
     limit 1;
 
-    if v_dancer_name is null then
-      select nullif(btrim(c.name), '')
-      into v_dancer_name
-      from public.children c
-      where c.studio_id = p_studio_id
-        and c.user_id = p_user
-        and position('@' in c.name) = 0
-      order by c.created_at
-      limit 1;
+    v_clean := regexp_replace(
+      btrim(coalesce(v_dancer_name, v_display, '')),
+      '\s+',
+      ' ',
+      'g'
+    );
+    if v_clean = '' or position('@' in v_clean) > 0 then
+      return 'Dancer';
     end if;
-
-    if v_dancer_name is not null then
-      return left(v_dancer_name, 80);
+    if position(' ' in v_clean) = 0 then
+      return left(v_clean, 80);
     end if;
-    if v_display is not null then
-      return left(v_display, 80);
+    v_parts := regexp_split_to_array(v_clean, ' ');
+    v_first := v_parts[1];
+    v_last := v_parts[coalesce(cardinality(v_parts), 1)];
+    if coalesce(v_first, '') = '' or coalesce(v_last, '') = '' then
+      return left(v_clean, 80);
     end if;
-    return 'Dancer';
+    return left(v_first || ' ' || upper(left(v_last, 1)), 80);
   end if;
 
   select coalesce(array_agg(n order by n), '{}'::text[])
   into v_names
   from (
-    select distinct left(btrim(c.name), 80) as n
+    select distinct split_part(
+      regexp_replace(btrim(c.name), '\s+', ' ', 'g'),
+      ' ',
+      1
+    ) as n
     from public.children c
     where c.studio_id = p_studio_id
       and c.user_id = p_user
       and nullif(btrim(c.name), '') is not null
       and position('@' in c.name) = 0
-  ) names;
+  ) names
+  where nullif(n, '') is not null;
 
   v_count := coalesce(cardinality(v_names), 0);
+  v_parent := nullif(
+    split_part(
+      regexp_replace(btrim(coalesce(v_display, '')), '\s+', ' ', 'g'),
+      ' ',
+      1
+    ),
+    ''
+  );
+  if v_parent is null or position('@' in v_parent) > 0 then
+    v_parent := 'Parent';
+  end if;
+
   if v_count = 1 then
-    v_label := 'Parent of ' || v_names[1];
+    v_kids := v_names[1];
   elsif v_count = 2 then
-    v_label := 'Parent of ' || v_names[1] || ' and ' || v_names[2];
+    v_kids := v_names[1] || ' and ' || v_names[2];
   elsif v_count > 2 then
-    v_label := 'Parent of '
-      || array_to_string(v_names[1:v_count - 1], ', ')
+    v_kids := array_to_string(v_names[1:v_count - 1], ', ')
       || ' and '
       || v_names[v_count];
   else
-    v_label := null;
+    v_kids := null;
   end if;
 
-  if v_label is not null then
-    return left(v_label, 160);
+  if v_kids is not null then
+    return left(v_parent || ', parent of ' || v_kids, 160);
   end if;
-  if v_display is not null then
-    return left(v_display, 80);
-  end if;
-  return 'Member';
+  return left(v_parent, 80);
 end;
 $$;
 

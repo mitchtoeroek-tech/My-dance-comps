@@ -186,6 +186,9 @@ as $$
     );
 $$;
 
+-- Same wording as studio chat: Mitch T, or Sarah, parent of Evie and Harriet.
+-- studio_chat_sender_label is replaced by 20260923_chat_sender_labels.sql.
+-- Run that file after this one so an older chat function is not reused.
 create or replace function public.studio_friend_public_label(
   p_studio_id uuid,
   p_user uuid,
@@ -198,62 +201,13 @@ security definer
 set search_path = public
 as $$
 declare
-  v_name text;
-  v_names text[];
-  v_count int;
   v_label text;
 begin
-  if p_role = 'dancer' then
-    select nullif(split_part(btrim(c.name), ' ', 1), '')
-    into v_name
-    from public.children c
-    where c.studio_id = p_studio_id
-      and position('@' in c.name) = 0
-      and (
-        c.linked_user_id = p_user
-        or c.user_id = p_user
-        or c.id = (
-          select pr.linked_child_id
-          from public.profiles pr
-          where pr.id = p_user
-        )
-      )
-    order by c.created_at
-    limit 1;
-
-    if v_name is null or position('@' in v_name) > 0 then
+  v_label := nullif(btrim(public.studio_chat_sender_label(p_studio_id, p_user)), '');
+  if v_label is null or position('@' in v_label) > 0 then
+    if p_role = 'dancer' then
       return 'Dancer';
     end if;
-    return left(v_name, 80);
-  end if;
-
-  select coalesce(array_agg(n order by n), '{}'::text[])
-  into v_names
-  from (
-    select distinct left(btrim(c.name), 80) as n
-    from public.children c
-    where c.studio_id = p_studio_id
-      and c.user_id = p_user
-      and nullif(btrim(c.name), '') is not null
-      and position('@' in c.name) = 0
-  ) names
-  where position('@' in n) = 0;
-
-  v_count := coalesce(cardinality(v_names), 0);
-  if v_count = 1 then
-    v_label := 'Parent of ' || v_names[1];
-  elsif v_count = 2 then
-    v_label := 'Parent of ' || v_names[1] || ' and ' || v_names[2];
-  elsif v_count > 2 then
-    v_label := 'Parent of '
-      || array_to_string(v_names[1:v_count - 1], ', ')
-      || ' and '
-      || v_names[v_count];
-  else
-    v_label := 'Parent';
-  end if;
-
-  if position('@' in v_label) > 0 then
     return 'Parent';
   end if;
   return left(v_label, 160);
