@@ -27,6 +27,8 @@ export default function KidsPage() {
   const studioMarks = useApprovedStudioMarks(
     state.children.map((child) => child.studioId),
   );
+  const hasDancers = state.children.length > 0;
+  const familyAfterCards = hasDancers && account?.role !== "dancer";
 
   useEffect(() => {
     document.title = `${heading} · My Dance Comps`;
@@ -68,7 +70,7 @@ export default function KidsPage() {
           submitLabel={dancer ? "Save My Info" : "Add a dancer"}
         />
       ) : null}
-      <FamilyPanel />
+      {familyAfterCards ? null : <FamilyPanel />}
       {state.children.length === 0 && !showForm ? (
         <EmptyState
           title={dancer ? "No info yet" : "No dancers yet"}
@@ -125,6 +127,7 @@ export default function KidsPage() {
           })}
         </ul>
       )}
+      {familyAfterCards ? <FamilyPanel /> : null}
     </div>
   );
 }
