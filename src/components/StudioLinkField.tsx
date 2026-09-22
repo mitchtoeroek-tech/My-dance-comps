@@ -58,7 +58,7 @@ export function StudioLinkField({
           </button>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Only approved studios can be linked. Remove the link to type a name instead.
+          Remove the link if you would rather type a studio name.
         </p>
       </div>
     );
@@ -67,7 +67,7 @@ export function StudioLinkField({
   return (
     <div className="space-y-3">
       <label className="block text-sm font-bold text-foreground" htmlFor="studio-search">
-        Link an approved studio
+        Choose your studio
         <input
           id="studio-search"
           value={query}
@@ -77,13 +77,13 @@ export function StudioLinkField({
           }}
           disabled={!canSearch}
           className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2.5 text-sm font-medium disabled:opacity-60"
-          placeholder={canSearch ? "Search by studio name" : "Sign in to search studios"}
+          placeholder={canSearch ? "Search studios" : "Sign in to search studios"}
           autoComplete="off"
         />
       </label>
       {canSearch ? null : (
         <p className="text-xs text-muted-foreground">
-          Sign in to link an approved studio. You can still type the studio name below.
+          Sign in to choose your studio. You can still type a studio name below.
         </p>
       )}
       {searching ? (

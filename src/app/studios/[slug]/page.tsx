@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LinkStudioPanel } from "@/components/LinkStudioPanel";
 import { StudioProfileCard } from "@/components/StudioProfileCard";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -95,7 +96,15 @@ export default function StudioPublicPage({
             : "Awaiting approval. Only you can see this page until My Dance Comps approves the studio."}
         </p>
       ) : null}
-      <StudioProfileCard studio={studio} />
+      <StudioProfileCard studio={studio}>
+        {isPublicStudio(studio.status) ? (
+          <LinkStudioPanel
+            studioId={studio.id}
+            studioName={studio.name}
+            returnPath={studioPublicPath(studio)}
+          />
+        ) : null}
+      </StudioProfileCard>
     </div>
   );
 }

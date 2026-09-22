@@ -1,8 +1,15 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import type { StudioRecord } from "@/lib/studios";
 import { formatStudioAddress, studioLogoPublicUrl } from "@/lib/studios";
 
-export function StudioProfileCard({ studio }: { studio: StudioRecord }) {
+export function StudioProfileCard({
+  studio,
+  children,
+}: {
+  studio: StudioRecord;
+  children?: ReactNode;
+}) {
   const address = formatStudioAddress(studio);
   const logo = studioLogoPublicUrl(studio.logoPath, studio.updatedAt);
 
@@ -34,6 +41,7 @@ export function StudioProfileCard({ studio }: { studio: StudioRecord }) {
           ) : null}
         </div>
       </div>
+      {children}
       {studio.about ? (
         <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{studio.about}</p>
       ) : null}
