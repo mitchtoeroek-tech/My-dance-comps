@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { GuestFriendsUnlock } from "@/components/GuestFriendsUnlock";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
-import { myDancersLabel } from "@/lib/copy";
+import { kidsSectionLabel } from "@/lib/copy";
 import {
   displayFriendCode,
   lookupFriendByCode,
@@ -30,7 +30,7 @@ export default function JoinFriendPage() {
 
 function JoinFriendInner() {
   const searchParams = useSearchParams();
-  const { configured, ready, user } = useAuth();
+  const { configured, ready, user, account } = useAuth();
   const { state, selectedChild, setSelectedChildId } = useFamily();
   const urlCode = searchParams.get("code") ?? "";
   const [editedCode, setEditedCode] = useState<string | null>(null);
@@ -112,9 +112,11 @@ function JoinFriendInner() {
       </div>
       {state.children.length === 0 ? (
         <p className="rounded-card bg-accent-soft px-4 py-4 text-sm leading-6">
-          Add a dancer on My Dancers first, then come back to this link.
+          {account?.role === "dancer"
+            ? "Set up My Info first, then come back to this link."
+            : "Add a dancer on My Dancers first, then come back to this link."}
           <Link href="/kids" className="mt-2 block font-bold text-primary-ink underline">
-            Add a dancer
+            {account?.role === "dancer" ? "Set up My Info" : "Add a dancer"}
           </Link>
         </p>
       ) : (
@@ -175,7 +177,7 @@ function JoinFriendInner() {
         </>
       )}
       <Link href="/kids" className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline">
-        Back to {myDancersLabel(state.children.length)}
+        Back to {kidsSectionLabel(account?.role, state.children.length)}
       </Link>
     </div>
   );

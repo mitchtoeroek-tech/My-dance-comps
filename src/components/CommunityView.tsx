@@ -3,16 +3,19 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
 import { GuestCommunityUnlock } from "@/components/GuestCommunityUnlock";
+import { useAuth } from "@/context/AuthContext";
 import { useCommunityInbox } from "@/hooks/useCommunity";
 import {
   communityMessagePreview,
   communityThreadPath,
   formatCommunityTime,
 } from "@/lib/community";
-import { myDancersLabel } from "@/lib/copy";
+import { kidsSectionLabel } from "@/lib/copy";
 
 export function CommunityView() {
+  const { account } = useAuth();
   const inbox = useCommunityInbox();
+  const dancer = account?.role === "dancer";
   const { view, conversations, incomingCount, error, childrenCount, firstChildId } =
     inbox;
 
@@ -49,7 +52,7 @@ export function CommunityView() {
             : `${incomingCount} friend requests are waiting.`}{" "}
           Accept on{" "}
           <Link href={`/kids/${firstChildId}`} className="underline">
-            {myDancersLabel(childrenCount)}
+            {kidsSectionLabel(account?.role, childrenCount)}
           </Link>{" "}
           before you can chat.
         </p>
@@ -57,14 +60,18 @@ export function CommunityView() {
 
       {view === "ready" && childrenCount === 0 ? (
         <EmptyState
-          title="Add a dancer first"
-          body="Community chat is for accepted friends of your dancers. Add a profile, then add a friend from My Comps or My Dancers."
+          title={dancer ? "Set up My Info first" : "Add a dancer first"}
+          body={
+            dancer
+              ? "Community chat is for accepted friends. Set up My Info, then add a friend from My Comps."
+              : "Community chat is for accepted friends of your dancers. Add a profile, then add a friend from My Comps or My Dancers."
+          }
           action={
             <Link
               href="/kids"
               className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
             >
-              Add a dancer
+              {dancer ? "Set up My Info" : "Add a dancer"}
             </Link>
           }
         />
@@ -73,7 +80,11 @@ export function CommunityView() {
       {view === "ready" && childrenCount > 0 && conversations.length === 0 ? (
         <EmptyState
           title="No friend chats yet"
-          body="Add a friend from My Comps or My Dancers. Once they accept, the conversation shows up here."
+          body={
+            dancer
+              ? "Add a friend from My Comps or My Info. Once they accept, the conversation shows up here."
+              : "Add a friend from My Comps or My Dancers. Once they accept, the conversation shows up here."
+          }
           action={
             <Link
               href="/my-comps"

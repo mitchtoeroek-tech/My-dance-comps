@@ -9,7 +9,7 @@ import { FriendsPanel } from "@/components/FriendsPanel";
 import { ResultLog } from "@/components/ResultLog";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
-import { myDancersLabel } from "@/lib/copy";
+import { kidsSectionLabel } from "@/lib/copy";
 
 export default function KidDetailPage({
   params,
@@ -31,7 +31,7 @@ export default function KidDetailPage({
         (account?.role === "dancer" &&
           (!account.linkedChildId || account.linkedChildId === child?.id));
   const [editing, setEditing] = useState(false);
-  const backLabel = myDancersLabel(state.children.length);
+  const backLabel = kidsSectionLabel(account?.role, state.children.length);
 
   if (!child) {
     return (
@@ -60,6 +60,7 @@ export default function KidDetailPage({
             setEditing(false);
           }}
           onCancel={() => setEditing(false)}
+          submitLabel={account?.role === "dancer" ? "Save My Info" : "Save dancer"}
         />
       ) : (
         <section className="rounded-card bg-surface p-4 shadow-card ring-1 ring-border">

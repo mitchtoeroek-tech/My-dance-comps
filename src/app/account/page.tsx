@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { AuthUnavailable } from "@/components/AuthCard";
 import { FamilyPanel } from "@/components/FamilyPanel";
-import { myDancersLabel } from "@/lib/copy";
+import { kidsSectionLabel, myDancersLabel } from "@/lib/copy";
 import { isAllowlistedAdmin } from "@/lib/studios";
 
 export default function AccountPage() {
@@ -77,7 +77,7 @@ export default function AccountPage() {
           {account?.role === "studio"
             ? "Your studio stays private until My Dance Comps approves it. Add your logo, styles and address, then dancers can link to you once you are approved."
             : account?.role === "dancer"
-              ? "Your comps, enrolments, friends and Community follow this login. Link your studio from your profile. Join a family so a parent can see you on My Dancers and enrol you too."
+              ? "Your comps, enrolments, friends and Community follow this login. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
               : `This family’s dancers, enrolled comps and results sync to your account. Friends live on the account too — open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
         </p>
         <nav
@@ -86,7 +86,7 @@ export default function AccountPage() {
         >
           <Stat
             href="/kids"
-            label={myDancersLabel(state.children.length)}
+            label={kidsSectionLabel(account?.role, state.children.length)}
             value={String(state.children.length)}
           />
           <Stat
@@ -149,7 +149,7 @@ export default function AccountPage() {
           href="/kids"
           className="inline-flex min-h-11 items-center text-sm font-bold text-primary-ink underline"
         >
-          {myDancersLabel(state.children.length)} and friends
+          {kidsSectionLabel(account?.role, state.children.length)} and friends
         </Link>
         <Link
           href="/community"

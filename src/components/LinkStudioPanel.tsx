@@ -70,11 +70,11 @@ export function LinkStudioPanel({
     return (
       <div className="space-y-2">
         <Link href="/kids" className={primaryButton}>
-          {dancer ? "Set up your profile" : "Add a dancer"}
+          {dancer ? "Set up My Info" : "Add a dancer"}
         </Link>
         <p className="text-sm leading-5 text-muted-foreground">
           {dancer
-            ? "Set up your dancer profile, then you can link this studio."
+            ? "Set up My Info, then you can link this studio."
             : "Add a dancer, then you can link them to this studio."}
         </p>
       </div>
@@ -131,7 +131,7 @@ export function LinkStudioPanel({
             Link this studio
           </button>
           <p className="text-sm leading-5 text-muted-foreground">
-            {account?.role === "dancer" ? "Links your profile." : `Links ${only.name}.`}
+            {account?.role === "dancer" ? "Links your info." : `Links ${only.name}.`}
           </p>
         </div>
       ) : choosing ? (

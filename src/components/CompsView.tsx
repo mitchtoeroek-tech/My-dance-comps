@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { ageAsAtCompYear } from "@/lib/age";
 import { filterComps, resolveHomeState } from "@/lib/filter";
@@ -24,6 +25,7 @@ import { useLiveComps } from "@/hooks/useLiveComps";
 import { formatDateTime } from "@/lib/datetime";
 
 export function CompsView({ initialComps }: { initialComps: Competition[] }) {
+  const { account } = useAuth();
   const {
     ready,
     selectedChild,
@@ -111,7 +113,7 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
                 href="/kids"
                 className="inline-flex min-h-11 items-center rounded-control bg-primary px-4 py-2 text-sm font-bold text-white"
               >
-                Add a dancer
+                {account?.role === "dancer" ? "Set up My Info" : "Add a dancer"}
               </Link>
             ) : undefined
           }
@@ -120,8 +122,9 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
         <>
           {state.children.length === 0 ? (
             <p className="rounded-card bg-accent-soft px-3 py-2 text-xs font-semibold text-foreground">
-              Add a dancer on the My Dancers tab to also filter this list by age (as
-              at 1 January) and preferred styles.
+              {account?.role === "dancer"
+                ? "Set up My Info to also filter this list by age (as at 1 January) and preferred styles."
+                : "Add a dancer on the My Dancers tab to also filter this list by age (as at 1 January) and preferred styles."}
             </p>
           ) : null}
           {comps.length === 0 ? (
