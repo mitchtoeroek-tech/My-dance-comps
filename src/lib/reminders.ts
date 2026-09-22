@@ -19,8 +19,6 @@ import type {
  * Place: the same home-state rule as the Comps list. Interstate comps are
  * included only when the family has turned that on. National events are
  * included when the styles match, even if interstate is off.
- *
- * Reminders are not keyed off favourites.
  */
 export interface ReminderScope {
   children: ChildProfile[];

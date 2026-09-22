@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
   const compId = searchParams.get("compId");
   if (!compId) {
     // Reminder calendars are built on the device from dancer styles.
-    // This route no longer accepts favourite ids.
     return new Response(remindersToIcs([]), {
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",

@@ -30,8 +30,6 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
     ready,
     selectedChild,
     state,
-    toggleFavourite,
-    isFavourite,
     toggleEnrolled,
     isEnrolled,
     setPreferredState,
@@ -139,8 +137,6 @@ export function CompsView({ initialComps }: { initialComps: Competition[] }) {
                   <ErrorBoundary>
                     <CompCard
                       comp={comp}
-                      saved={isFavourite(comp.id)}
-                      onToggleSave={() => toggleFavourite(comp.id)}
                       enrolled={isEnrolled(comp.id)}
                       onToggleEnrolled={() => toggleEnrolled(comp.id)}
                       ageHint={

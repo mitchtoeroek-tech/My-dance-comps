@@ -186,7 +186,6 @@ export function RemindersView() {
           </button>
         )}
       </div>
-
       {!ready ? (
         <p className="text-sm text-muted-foreground">Checking the latest listings…</p>
       ) : state.children.length === 0 ? (

@@ -8,18 +8,19 @@ export function EnrolledButton({
   onClick?: () => void;
 }) {
   const label = enrolled ? "Un-enrol from this competition" : "Mark as enrolled";
+  const tone = enrolled
+    ? "bg-enrolled text-enrolled-ink"
+    : "bg-surface text-primary-ink ring-1 ring-primary";
+  const className = `inline-flex min-h-11 shrink-0 items-center gap-1 rounded-control px-3 py-1.5 text-xs font-bold ${tone}`;
+
   if (!onClick) {
     return (
-      <span
-        className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-3 text-xs font-bold ${
-          enrolled
-            ? "bg-primary text-white"
-            : "bg-surface text-muted-foreground ring-1 ring-border"
-        }`}
-      >
-        <span aria-hidden className="text-[11px] leading-none">
-          ★
-        </span>
+      <span className={className}>
+        {enrolled ? (
+          <span aria-hidden className="text-[11px] leading-none">
+            ✓
+          </span>
+        ) : null}
         Enrolled
       </span>
     );
@@ -31,15 +32,13 @@ export function EnrolledButton({
       onClick={onClick}
       aria-pressed={enrolled}
       aria-label={label}
-      className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-3 text-xs font-bold ${
-        enrolled
-          ? "bg-primary text-white"
-          : "bg-surface text-muted-foreground ring-1 ring-border"
-      }`}
+      className={className}
     >
-      <span aria-hidden className="text-[11px] leading-none">
-        ★
-      </span>
+      {enrolled ? (
+        <span aria-hidden className="text-[11px] leading-none">
+          ✓
+        </span>
+      ) : null}
       Enrolled
     </button>
   );

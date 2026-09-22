@@ -69,8 +69,8 @@ export function FriendsPanel({
       <FriendsHeading />
       <p className="text-sm leading-6 text-muted-foreground">
         {dancer
-          ? "Friends are dancers you compete with. You see comps they marked Enrolled — not favourites, and not their date of birth. A parent can still send requests for a younger dancer."
-          : "Friends are between dancers, with you in control. You only see comps they marked Enrolled — not favourites, and not their date of birth."}
+          ? "Friends are dancers you compete with. You see comps they marked Enrolled — not their date of birth. A parent can still send requests for a younger dancer."
+          : "Friends are between dancers, with you in control. You only see comps they marked Enrolled — not their date of birth."}
       </p>
       {error ? (
         <p className="rounded-control bg-status-closed px-3 py-2 text-sm font-semibold text-status-closed-ink">

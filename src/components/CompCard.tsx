@@ -4,23 +4,18 @@ import { formatCompLocation, registrationStatus } from "@/lib/comps";
 import { compHasEnded } from "@/lib/filter";
 import type { Competition } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
-import { StarButton } from "./StarButton";
 import { EnrolledButton } from "./EnrolledButton";
 import { CompReviewSummary } from "./CompReviewSummary";
 import { CompLogo } from "./CompLogo";
 
 export function CompCard({
   comp,
-  saved,
-  onToggleSave,
   enrolled,
   onToggleEnrolled,
   ageHint,
   eyebrow,
 }: {
   comp: Competition;
-  saved?: boolean;
-  onToggleSave?: () => void;
   enrolled?: boolean;
   onToggleEnrolled?: () => void;
   ageHint?: string;
@@ -29,7 +24,6 @@ export function CompCard({
   const status = registrationStatus(comp);
   const styles = Array.isArray(comp.styles) ? comp.styles : [];
   const past = compHasEnded(comp, adelaideToday());
-  const showSave = typeof onToggleSave === "function";
   const showEnrolled = enrolled !== undefined;
   return (
     <article
@@ -84,22 +78,6 @@ export function CompCard({
           </p>
           {past ? <CompReviewSummary competitionId={comp.id} /> : null}
         </div>
-        {showSave || showEnrolled ? (
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            {showSave ? (
-              <StarButton
-                saved={Boolean(saved)}
-                onClick={() => onToggleSave?.()}
-              />
-            ) : null}
-            {showEnrolled ? (
-              <EnrolledButton
-                enrolled={Boolean(enrolled)}
-                onClick={onToggleEnrolled}
-              />
-            ) : null}
-          </div>
-        ) : null}
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {styles.slice(0, 5).map((style) => (
@@ -134,6 +112,12 @@ export function CompCard({
         >
           Register
         </a>
+        {showEnrolled ? (
+          <EnrolledButton
+            enrolled={Boolean(enrolled)}
+            onClick={onToggleEnrolled}
+          />
+        ) : null}
       </div>
     </article>
   );

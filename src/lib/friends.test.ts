@@ -161,7 +161,8 @@ test("friend enrolled comps are the marked-entered list in date order", () => {
 test("guest copy and missing-SQL errors are plain English", () => {
   assert.equal(GUEST_FRIENDS_TITLE, "Friends unlock when you sign in");
   assert.match(GUEST_FRIENDS_BODY, /marked Enrolled/);
-  assert.match(GUEST_FRIENDS_BODY, /not their favourites/);
+  assert.match(GUEST_FRIENDS_BODY, /not their date of birth/);
+  assert.equal(/favourites/i.test(GUEST_FRIENDS_BODY), false);
   assert.match(
     friendlyFriendsError("Could not find the function public.list_friends_for_child"),
     /friends SQL/,

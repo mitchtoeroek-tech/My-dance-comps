@@ -120,8 +120,6 @@ interface FamilyContextValue {
   setPreferredState: (value: AuStateCode) => void;
   upsertChild: (child: Omit<ChildProfile, "id"> & { id?: string }) => string;
   removeChild: (id: string) => void;
-  toggleFavourite: (compId: string) => void;
-  isFavourite: (compId: string) => boolean;
   /**
    * Toggle Enrolled. Omit `childId` to use the selected dancer.
    * Pass `null` for Everyone / All dancers (family-wide).
@@ -335,23 +333,6 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const toggleFavourite = useCallback((compId: string) => {
-    patch((prev) => {
-      const has = prev.favourites.includes(compId);
-      return {
-        ...prev,
-        favourites: has
-          ? prev.favourites.filter((id) => id !== compId)
-          : [...prev.favourites, compId],
-      };
-    });
-  }, []);
-
-  const isFavourite = useCallback(
-    (compId: string) => state.favourites.includes(compId),
-    [state.favourites],
-  );
-
   const toggleEnrolled = useCallback(
     (compId: string, childId?: string | null) => {
       patch((prev) => {
@@ -439,8 +420,6 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     setPreferredState,
     upsertChild,
     removeChild,
-    toggleFavourite,
-    isFavourite,
     toggleEnrolled,
     isEnrolled,
     enrolledIdsFor,
