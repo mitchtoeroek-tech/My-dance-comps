@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
+import { useNavBadges } from "@/hooks/useNavBadges";
 import { kidsSectionLabel } from "@/lib/copy";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { account } = useAuth();
   const { state } = useFamily();
+  const { communityUnread, remindersUnread } = useNavBadges();
   const childrenCount = Array.isArray(state.children) ? state.children.length : 0;
   const dancersLabel = kidsSectionLabel(account?.role, childrenCount);
 
@@ -35,17 +37,41 @@ export function BottomNav() {
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           const longLabel = item.href === "/kids";
+          const unread =
+            item.href === "/community"
+              ? communityUnread
+              : item.href === "/reminders"
+                ? remindersUnread
+                : false;
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
+                aria-label={
+                  unread
+                    ? item.href === "/community"
+                      ? "Community, new messages"
+                      : "Reminders, new reminders"
+                    : undefined
+                }
                 className={`flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 py-2.5 font-bold whitespace-nowrap ${
                   longLabel
                     ? "text-[9px] tracking-normal"
                     : "text-[10px] tracking-wide"
                 } ${active ? "text-primary-ink" : "text-muted-foreground"}`}
               >
-                <Icon active={active} />
+                <span className="relative inline-flex">
+                  <Icon active={active} />
+                  {unread ? (
+                    <span
+                      className="absolute top-0 right-0 h-2 w-2 translate-x-1/2 -translate-y-1/2 rounded-full bg-primary ring-2 ring-surface"
+                      data-nav-unread={
+                        item.href === "/community" ? "community" : "reminders"
+                      }
+                      aria-hidden
+                    />
+                  ) : null}
+                </span>
                 {item.label}
               </Link>
             </li>
