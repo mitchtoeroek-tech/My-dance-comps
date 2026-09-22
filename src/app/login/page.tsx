@@ -28,7 +28,7 @@ export default function LogInPage() {
   return (
     <AuthCard
       title="Log in"
-      subtitle="Guest mode stays available on the home screen. Logging in syncs this family’s dancers, saved comps, results and enrolled comps."
+      subtitle="Parents use their email. Dancers can use email or the username they signed up with. Guest browsing stays on the home screen."
     >
       <form
         className="space-y-3"
@@ -47,16 +47,15 @@ export default function LogInPage() {
       >
         <AuthField
           id="email"
-          label="Email"
-          type="email"
+          label="Email or dancer username"
           value={email}
           onChange={setEmail}
-          autoComplete="email"
+          autoComplete="username"
           required
         />
         <AuthField
           id="password"
-          label="Password"
+          label="Password or PIN"
           type="password"
           value={password}
           onChange={setPassword}

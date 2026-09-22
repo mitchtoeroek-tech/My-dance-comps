@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { myDancersLabel } from "@/lib/copy";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { account } = useAuth();
   const { state } = useFamily();
   const childrenCount = Array.isArray(state.children) ? state.children.length : 0;
-  const dancersLabel = myDancersLabel(childrenCount);
+  const dancersLabel =
+    account?.role === "dancer" ? "Profile" : myDancersLabel(childrenCount);
 
   const items = [
     { href: "/", label: "Comps", icon: CompIcon },

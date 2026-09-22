@@ -3,10 +3,13 @@
 import { AU_STATES, DANCE_STYLES } from "@/lib/types";
 import type { AuStateCode, ChildProfile } from "@/lib/types";
 import { displayAge } from "@/lib/age";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 
 export function ChildPicker() {
+  const { account } = useAuth();
   const { state, selectedChild, setSelectedChildId } = useFamily();
+  if (account?.role === "dancer") return null;
   if (!Array.isArray(state.children) || state.children.length === 0) return null;
 
   return (

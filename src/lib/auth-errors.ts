@@ -12,6 +12,12 @@ export function friendlyAuthError(
   ) {
     return "That email already has an account. Try logging in.";
   }
+  if (
+    lower.includes("profiles_username") ||
+    (lower.includes("duplicate") && lower.includes("username"))
+  ) {
+    return "That username is taken. Try another.";
+  }
   if (lower.includes("email not confirmed")) {
     return "Please confirm your email from the link we sent, then log in.";
   }

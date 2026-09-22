@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
 import { ageAsAtCompYear } from "@/lib/age";
 import { selectEnrolledCalendarComps } from "@/lib/calendar";
@@ -16,6 +17,7 @@ import { FriendsOnMyComps } from "./FriendsOnMyComps";
 import { useLiveComps } from "@/hooks/useLiveComps";
 
 export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
+  const { account } = useAuth();
   const {
     ready,
     state,
@@ -30,8 +32,10 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
   const [filterChildId, setFilterChildId] = useState<string | null>(null);
 
   const children = Array.isArray(state.children) ? state.children : [];
-  const activeFilterId =
-    filterChildId && children.some((child) => child.id === filterChildId)
+  const selfOnly = account?.role === "dancer";
+  const activeFilterId = selfOnly
+    ? (children[0]?.id ?? null)
+    : filterChildId && children.some((child) => child.id === filterChildId)
       ? filterChildId
       : null;
   const filterChild =
@@ -70,17 +74,19 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
       <div>
         <h1 className="text-2xl font-bold">My Comps</h1>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Competitions you have marked Enrolled. Filter by dancer, or choose
-          All dancers to see every confirmed entry. When you are signed in,
-          friends of that dancer see these enrolments automatically.
+          {selfOnly
+            ? "Competitions you have marked Enrolled. Friends who are accepted can see these when sharing is on."
+            : "Competitions you have marked Enrolled. Filter by dancer, or choose All dancers to see every confirmed entry. When you are signed in, friends of that dancer see these enrolments automatically."}
         </p>
       </div>
 
-      <MyCompsChildFilter
-        dancers={children}
-        value={activeFilterId}
-        onChange={setFilterChildId}
-      />
+      {selfOnly ? null : (
+        <MyCompsChildFilter
+          dancers={children}
+          value={activeFilterId}
+          onChange={setFilterChildId}
+        />
+      )}
 
       {!ready ? (
         <p className="text-sm text-muted-foreground">Loading your family…</p>

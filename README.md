@@ -22,7 +22,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build (what Vercel runs) |
 | `npm start` | Serve the production build |
-| `npm run test` | Filter, calendar, datetime, enrolled, scrape, reviews, client-state, account-sync, friends, copy, and community chat unit tests |
+| `npm run test` | Filter, calendar, datetime, enrolled, scrape, reviews, client-state, account-sync, friends, copy, community chat, and dancer-account unit tests |
 | `npm run scrape` | Fetch organiser calendars and merge into `src/data/comps.json` |
 
 ## Accounts, friends and Community
@@ -46,11 +46,13 @@ The app boots without these keys: auth pages explain that accounts are unavailab
 2. Paste [`supabase/migrations/20260921_family_accounts.sql`](supabase/migrations/20260921_family_accounts.sql) and run it.
 3. Then paste [`supabase/migrations/20260921_kids_friends.sql`](supabase/migrations/20260921_kids_friends.sql) and run it.
 4. Then paste [`supabase/migrations/20260921_community_chat.sql`](supabase/migrations/20260921_community_chat.sql) and run it.
-5. Family accounts create `profiles`, `children`, `favourites`, `results`, `enrolled_comps`, `enrolled_by_child`, and `enrolled_child_sets` with row-level security.
-6. Dancer friends create `child_friend_settings` and `child_friendships`, plus RPCs so parents can add friends by email (or invite code) and see a friend’s **enrolled** comps only (child name + comp ids — not parent email, not favourites, not date of birth).
-7. Community chat creates `community_messages` with row-level security so only the two parent accounts on an **accepted** friendship can read or write that thread. It also adds the table to `supabase_realtime` so new messages can appear without a full reload. There is no public chat room.
+5. Then paste [`supabase/migrations/20260922_dancer_accounts.sql`](supabase/migrations/20260922_dancer_accounts.sql) and run it. This is required for dancer logins and family codes.
+6. Family accounts create `profiles`, `children`, `favourites`, `results`, `enrolled_comps`, `enrolled_by_child`, and `enrolled_child_sets` with row-level security.
+7. Dancer friends create `child_friend_settings` and `child_friendships`, plus RPCs so parents can add friends by email (or invite code) and see a friend’s **enrolled** comps only (child name + comp ids — not parent email, not favourites, not date of birth).
+8. Community chat creates `community_messages` with row-level security so only the two accounts on an **accepted** friendship can read or write that thread (the parent who owns the dancer, or the dancer’s own login when it is linked). It also adds the table to `supabase_realtime` so new messages can appear without a full reload. There is no public chat room.
+9. Dancer accounts add `profiles.role` (`parent` or `dancer`), `profiles.family_id`, `profiles.linked_child_id`, `children.linked_user_id`, a `families` invite code, and email invites. Existing accounts stay parents. Child rows stay owned by the parent until a dancer login is linked. The file is safe to re-run.
 
-If you previously ran an older family-accounts or friends file, run all three files again. They are written to be safe to re-run.
+If you previously ran an older family-accounts, friends, or community file, run all four files again, including `20260922_dancer_accounts.sql`. They are written to be safe to re-run.
 
 ### Supabase Auth settings
 
@@ -67,19 +69,21 @@ If you previously ran an older family-accounts or friends file, run all three fi
      - `https://*-my-dance-comps.vercel.app/reset-password`
      - `https://*-my-dance-comps.vercel.app/account`
      - `https://*-my-dance-comps.vercel.app/friends/join`
-3. Optional: turn off **Confirm email** while testing so sign-up logs in immediately. Leave it on for production if you want confirmation emails.
+3. **Authentication → Providers → Email → Confirm email: OFF.** Leave it off. Dancer and parent sign-up must return a session straight away. The app does not turn confirmation back on.
 
 ### How accounts and friends work
 
 1. Open the app (home loads with no login wall). Add a dancer, star a comp, tap **Enrolled**, log a result.
-2. Header → **Log in** → **Sign up** with a real inbox. Guest family data on that device is merged into the new account.
-3. Confirm the email if required, then **Log in**.
-4. Account shows counts for dancers / saved / enrolled / results. Sign out: the same data stays on the device (guest mode).
-5. **Forgot password** → use the email link → **Reset password** on the branded page.
-6. On another browser (or after clearing site data), log in: dancers, favourites, enrolled comps (family-wide and per-child) and results come back from Supabase.
-7. **Add a friend by email:** My Comps → **Friends’ comps** → parent email + their dancer’s name, and which of *your* dancers the friendship is for. Or open the dancer on **My Dancers** and share an invite link/code. The other parent accepts.
-8. When you tap **Enrolled** for a dancer, that enrolment is shared with that dancer’s friends automatically. Un-enrol removes it from their My Comps friends list. Friends only see the dancer’s name, not the parent account.
-9. **Community** (bottom nav) lists accepted-friend conversations by the friend’s dancer name. Open a thread to send and receive messages. Guests see an unlock prompt to log in / add friends. Messaging is signed-in only.
+2. Header → **Log in** → **Sign up**. Choose **Parent** (email and password) or **Dancer** (email and password, or a username and PIN of at least 6 characters). Guest family data on that device is merged into the new account. With Confirm email off, sign-up logs you in immediately.
+3. Account shows the role, counts for dancers / saved / enrolled / results, and **Family**.
+4. **Parent:** create a family code (or invite a dancer by the email they will sign up with). **Dancer:** enter that code, pick “I’m this dancer” or “add me”, and the parent’s My Dancers list shows **own login**. One dancer belongs to one family. A second parent on the same family is not supported yet.
+5. A signed-in dancer sees comps, My Comps, friends and Community for themselves. They do not get the household “add another dancer” controls. The parent can still mark **Enrolled** for them.
+6. Sign out: the same data stays on the device (guest mode).
+7. **Forgot password** works for a real email. Username logins have no mailbox, so use email for a dancer who may need a reset. While they are signed in, Account → **Change password or PIN** updates it without an email.
+8. On another browser (or after clearing site data), log in: dancers, favourites, enrolled comps (family-wide and per-child) and results come back from Supabase. A linked dancer gets their own profile, not the rest of the household.
+9. **Add a friend by email:** My Comps → **Friends’ comps** → parent email (or the dancer’s own email) + their dancer’s name, and which dancer the friendship is for. Or open the dancer on **My Dancers** and share an invite link/code. The other family accepts. A dancer who is logged in can accept requests for themselves.
+10. When you tap **Enrolled** for a dancer, that enrolment is shared with that dancer’s friends automatically. Un-enrol removes it from their My Comps friends list. Friends only see the dancer’s name, not the parent account.
+11. **Community** (bottom nav) lists accepted-friend conversations by the friend’s dancer name. Open a thread to send and receive messages. Guests see an unlock prompt to log in / add friends. Messaging is signed-in only. A linked dancer sees the threads for their own friendships.
 
 Logged-in writes debounce (~600ms) up to Supabase. Logged-out / guest writes stay local only. Friends and Community chat are account-only — guests see unlock copy instead.
 
@@ -186,4 +190,4 @@ Competition age is **as at 1 January** of the competition year. A dancer born 15
 
 Guests: dancers, saved comps, confirmed entries (`enrolled` / `enrolledByChild`), results, and reviews stay on the device in `localStorage`. They never leave the browser unless you export a calendar, email a reminder list, or **choose** to create an account. Confirmed entries live in `mydancecomps.family.v1`. Reviews use `mydancecomps.reviews.v1`.
 
-Signed-in families: dancers, saved comps, enrolled comps (family-wide and per-child) and results sync to your Supabase project under row-level security. Friends only see a dancer’s **name** and the comps that dancer is enrolled in — not the parent email, not favourites, not date of birth. Community messages are stored in Supabase and are readable only by the two parent accounts on that accepted friendship. Either parent can remove the friend, or turn off sharing enrolled comps, at any time. Passwords are handled by Supabase Auth, not stored in this app.
+Signed-in families: dancers, saved comps, enrolled comps (family-wide and per-child) and results sync to your Supabase project under row-level security. A dancer login reads and updates only their linked profile, enrolments and results; favourites on that login stay theirs. Friends only see a dancer’s **name** and the comps that dancer is enrolled in — not the parent email, not favourites, not date of birth. Community messages are stored in Supabase and are readable only by the accounts on that accepted friendship (the parent who owns the profile, and the dancer when their login is linked). Either side can remove the friend, or turn off sharing enrolled comps, at any time. Passwords and PINs are handled by Supabase Auth, not stored in this app. Username logins use an internal address at `dancers.mydancecomps.app` so they can sign in without a mailbox while Confirm email is off.
