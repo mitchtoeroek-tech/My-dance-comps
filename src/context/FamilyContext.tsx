@@ -9,12 +9,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { getComps } from "@/lib/comps";
-import {
-  buildReminders,
-  dueReminders,
-  upcomingReminders,
-} from "@/lib/reminders";
 import { useAuth } from "@/context/AuthContext";
 import {
   pullDancerLinkedState,
@@ -426,46 +420,6 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       ),
     }));
   }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-
-    const tick = () => {
-      try {
-        const comps = getComps();
-        const items = upcomingReminders(
-          buildReminders(comps, state.reminderPrefs, state.favourites),
-        );
-        const due = dueReminders(items, state.notifiedReminderIds);
-        if (due.length === 0) return;
-        due.forEach((item) => {
-          try {
-            new Notification("My Dance Comps", {
-              body: item.label,
-              tag: item.id,
-            });
-          } catch {
-            /* ignore */
-          }
-        });
-        markNotified(due.map((d) => d.id));
-      } catch {
-        /* never let reminder ticks crash the tree */
-      }
-    };
-
-    tick();
-    const id = window.setInterval(tick, 60_000);
-    return () => window.clearInterval(id);
-  }, [
-    ready,
-    state.favourites,
-    state.reminderPrefs,
-    state.notifiedReminderIds,
-    markNotified,
-  ]);
 
   const childrenCount = Array.isArray(state.children)
     ? state.children.length

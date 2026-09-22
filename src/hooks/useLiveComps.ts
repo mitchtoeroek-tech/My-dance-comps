@@ -9,6 +9,7 @@ export function useLiveComps(initialComps: Competition[]) {
   const [comps, setComps] = useState(seeds);
   const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
   const [live, setLive] = useState(false);
+  const [settled, setSettled] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,11 +27,14 @@ export function useLiveComps(initialComps: Competition[]) {
       })
       .catch(() => {
         /* keep seed listings */
+      })
+      .finally(() => {
+        if (!cancelled) setSettled(true);
       });
     return () => {
       cancelled = true;
     };
   }, [seeds]);
 
-  return { comps, refreshedAt, live };
+  return { comps, refreshedAt, live, settled };
 }

@@ -111,7 +111,8 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
   assert.deepEqual(normalized.enrolled, ["entered", "also"]);
   assert.deepEqual(normalized.enrolledByChild, { ok: ["entered"] });
   assert.equal(normalized.reminderPrefs.onOpen, false);
-  assert.equal(normalized.reminderPrefs.weekBeforeClose, true);
+  assert.equal(normalized.reminderPrefs.newlyAnnounced, true);
+  assert.equal(normalized.reminderPrefs.emailEnabled, false);
   assert.equal(normalized.results.length, 1);
 });
 
