@@ -7,6 +7,7 @@ import {
   communityThreadPath,
   formatCommunityTime,
   friendlyCommunityError,
+  COMMUNITY_GUIDELINES,
   GUEST_COMMUNITY_BODY,
   GUEST_COMMUNITY_TITLE,
   isCommunityFriendshipId,
@@ -161,6 +162,17 @@ test("mergeCommunityMessages de-dupes and stays chronological", () => {
     merged.map((row) => row.id),
     ["m1", "m2"],
   );
+});
+
+test("community guidelines are short, warm, and shared by both chats", () => {
+  const sentences = COMMUNITY_GUIDELINES.split(/(?<=[.!?])\s+/).filter(Boolean);
+  assert.ok(sentences.length >= 2 && sentences.length <= 3);
+  assert.match(COMMUNITY_GUIDELINES, /parents and dancers/);
+  assert.match(COMMUNITY_GUIDELINES, /past and upcoming competitions/);
+  assert.match(COMMUNITY_GUIDELINES, /positive/);
+  assert.match(COMMUNITY_GUIDELINES, /foul language/);
+  assert.match(COMMUNITY_GUIDELINES, /bullying/);
+  assert.match(COMMUNITY_GUIDELINES, /another family/);
 });
 
 test("guest copy and missing-SQL errors are plain English", () => {
