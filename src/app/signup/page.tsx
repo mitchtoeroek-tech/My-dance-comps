@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AuthCard,
   AuthError,
@@ -18,12 +18,33 @@ import {
   normalizeDancerUsername,
   type AccountRole,
 } from "@/lib/account";
-import { resolveAuthNextPath } from "@/lib/friends";
+import { familyJoinPath, readDancerInvite } from "@/lib/family-invite";
+import { loginPathWithNext, resolveAuthNextPath } from "@/lib/friends";
 
 export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <p className="py-8 text-center text-sm font-semibold text-muted-foreground">
+          Loading…
+        </p>
+      }
+    >
+      <SignUpForm />
+    </Suspense>
+  );
+}
+
+function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invite = useMemo(
+    () => readDancerInvite(searchParams.toString()),
+    [searchParams],
+  );
   const { configured, signUp } = useAuth();
-  const [role, setRole] = useState<AccountRole>("parent");
+  const [roleChoice, setRoleChoice] = useState<AccountRole | null>(null);
+  const role = roleChoice ?? invite?.role ?? "parent";
   const [loginWithUsername, setLoginWithUsername] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [studioName, setStudioName] = useState("");
@@ -36,6 +57,9 @@ export default function SignUpPage() {
   const dancer = role === "dancer";
   const studio = role === "studio";
   const usernameLogin = dancer && loginWithUsername;
+  const loginHref = invite
+    ? loginPathWithNext(familyJoinPath(invite.family, invite.childId))
+    : null;
 
   if (!configured) return <AuthUnavailable />;
 
@@ -43,10 +67,19 @@ export default function SignUpPage() {
     return (
       <AuthCard
         title="Check your email"
-        subtitle="We sent a confirmation link. After you tap it, you can log in. Until then, guest mode still works on this device."
+        subtitle={
+          invite
+            ? "We sent a confirmation link. After you confirm, log in and we will finish joining the family. Until then, guest mode still works on this device."
+            : "We sent a confirmation link. After you tap it, you can log in. Until then, guest mode still works on this device."
+        }
       >
         <AuthLinks>
-          Already confirmed? <AuthSwitchLink baseHref="/login">Log in</AuthSwitchLink>
+          Already confirmed?{" "}
+          {loginHref ? (
+            <AuthTextLink href={loginHref}>Log in</AuthTextLink>
+          ) : (
+            <AuthSwitchLink baseHref="/login">Log in</AuthSwitchLink>
+          )}
         </AuthLinks>
       </AuthCard>
     );
@@ -111,16 +144,32 @@ export default function SignUpPage() {
             setNeedsConfirmation(true);
             return;
           }
-          router.push(studio ? "/studio" : resolveAuthNextPath());
+          if (dancer && invite) {
+            window.location.assign(familyJoinPath(invite.family, invite.childId));
+            return;
+          }
+          if (studio) {
+            router.push("/studio");
+            return;
+          }
+          const next = resolveAuthNextPath();
+          router.push(next.startsWith("/family/join") ? "/account" : next);
         }}
       >
+        {invite && dancer ? (
+          <p className="rounded-control bg-primary-soft px-3 py-2 text-sm leading-6 text-primary-ink">
+            This link is for a dancer login. After you create the account, you
+            join the family on the profile your parent chose, if it is still
+            free.
+          </p>
+        ) : null}
         <fieldset>
           <legend className="text-sm font-bold text-foreground">I am a</legend>
           <div className="mt-2 grid grid-cols-3 gap-2">
             <RoleChoice
               pressed={role === "parent"}
               onClick={() => {
-                setRole("parent");
+                setRoleChoice("parent");
                 setLoginWithUsername(false);
               }}
             >
@@ -128,14 +177,14 @@ export default function SignUpPage() {
             </RoleChoice>
             <RoleChoice
               pressed={role === "dancer"}
-              onClick={() => setRole("dancer")}
+              onClick={() => setRoleChoice("dancer")}
             >
               Dancer
             </RoleChoice>
             <RoleChoice
               pressed={role === "studio"}
               onClick={() => {
-                setRole("studio");
+                setRoleChoice("studio");
                 setLoginWithUsername(false);
               }}
             >
@@ -219,7 +268,12 @@ export default function SignUpPage() {
       </form>
       <div className="mt-4 space-y-2">
         <AuthLinks>
-          Already have an account? <AuthSwitchLink baseHref="/login">Log in</AuthSwitchLink>
+          Already have an account?{" "}
+          {loginHref ? (
+            <AuthTextLink href={loginHref}>Log in</AuthTextLink>
+          ) : (
+            <AuthSwitchLink baseHref="/login">Log in</AuthSwitchLink>
+          )}
         </AuthLinks>
         <AuthLinks>
           <AuthTextLink href="/">Continue as guest</AuthTextLink>

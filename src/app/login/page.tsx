@@ -42,7 +42,12 @@ export default function LogInPage() {
             setError(result.error);
             return;
           }
-          router.push(resolveAuthNextPath());
+          const next = resolveAuthNextPath();
+          if (next.startsWith("/family/join")) {
+            window.location.assign(next);
+            return;
+          }
+          router.push(next);
         }}
       >
         <AuthField

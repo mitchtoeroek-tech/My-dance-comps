@@ -10,9 +10,11 @@ import { useFamily } from "@/context/FamilyContext";
 import { displayAge } from "@/lib/age";
 import { myDancersLabel } from "@/lib/copy";
 import { SOFT_MAX_KIDS } from "@/lib/storage";
+import type { ChildProfile } from "@/lib/types";
 
 export default function KidsPage() {
   const { account } = useAuth();
+  const parent = account?.role === "parent";
   const { state, canAddChild, upsertChild, setSelectedChildId } = useFamily();
   const [showForm, setShowForm] = useState(false);
   const dancer = account?.role === "dancer";
@@ -30,7 +32,7 @@ export default function KidsPage() {
           <p className="text-sm text-muted-foreground">
             {dancer
               ? "This is your dancer profile. Comps and My Comps use it. Join a family from Account if a parent should see you too."
-              : `${state.children.length} of ${SOFT_MAX_KIDS} dancer profiles. They stay on this device until you sign in. Open a dancer to share a friend invite, or link their own login from Account.`}
+              : `${state.children.length} of ${SOFT_MAX_KIDS} dancer profiles. They stay on this device until you sign in. Open a dancer to invite their own login, link a studio, or share a friend invite.`}
           </p>
         </div>
         {canAddChild ? (
@@ -97,8 +99,7 @@ export default function KidsPage() {
                     : "All styles"}
                 </p>
                 <p className="mt-2 text-xs font-bold text-primary-ink">
-                  {child.linkedUserId ? "Own login · " : ""}
-                  Friends and invite →
+                  {dancerCardHint(child, { dancer, parent })}
                 </p>
               </Link>
             </li>
@@ -107,4 +108,17 @@ export default function KidsPage() {
       )}
     </div>
   );
+}
+
+function dancerCardHint(
+  child: ChildProfile,
+  viewer: { dancer: boolean; parent: boolean },
+): string {
+  const bits: string[] = [];
+  if (viewer.parent) {
+    bits.push(child.linkedUserId ? "Own login" : "Invite login");
+  }
+  if (!child.studio && !child.studioId) bits.push("Link studio");
+  bits.push("Friends →");
+  return bits.join(" · ");
 }
