@@ -3,17 +3,22 @@ import { describe, it } from "node:test";
 import {
   canReviewCompetition,
   defaultReviewsState,
+  aggregateStarRows,
   formatAverage,
   formatReviewCount,
   isReviewStars,
   MAX_REVIEW_COMMENT,
   normalizeReview,
   normalizeReviewsState,
+  publicReviewerName,
   reviewAggregate,
+  reviewDisplayName,
+  reviewFromPublicRow,
   reviewsForCompetition,
   sanitizeReviewComment,
   upsertReviewInState,
 } from "./reviews";
+import { friendlyReviewError } from "./reviews-backend";
 import type { Competition } from "./types";
 
 function makeComp(partial: Partial<Competition> & Pick<Competition, "id">): Competition {
@@ -153,6 +158,63 @@ describe("normalizeReviewsState", () => {
     assert.equal("extra" in normalized, false);
     assert.equal(Object.keys(normalized.byCompetitionId).length, 1);
     assert.equal(normalized.byCompetitionId.ok?.stars, 5);
+  });
+});
+
+describe("public review names", () => {
+  it("keeps a display name and never publishes an email", () => {
+    assert.equal(reviewDisplayName({ displayName: "  Mia T  " }), "Mia T");
+    assert.equal(
+      reviewDisplayName({ displayName: "parent@example.com", email: "parent@example.com" }),
+      "parent",
+    );
+    assert.equal(reviewDisplayName({}), "Member");
+    assert.equal(publicReviewerName("parent@example.com"), "Member");
+    assert.equal(publicReviewerName("  "), "Member");
+    assert.equal(publicReviewerName("Studio Mum"), "Studio Mum");
+  });
+
+  it("reads a public reviews row and hides an email name", () => {
+    const review = reviewFromPublicRow({
+      id: "11111111-1111-4111-8111-111111111111",
+      competition_id: "comp-1",
+      user_id: "22222222-2222-4222-8222-222222222222",
+      display_name: "secret@example.com",
+      stars: 5,
+      comment: "  Great day  ",
+      created_at: "2026-09-21T00:00:00.000Z",
+      updated_at: "2026-09-22T00:00:00.000Z",
+    });
+    assert.equal(review?.competitionId, "comp-1");
+    assert.equal(review?.displayName, "Member");
+    assert.equal(review?.comment, "Great day");
+    assert.equal(review?.stars, 5);
+    assert.equal(reviewFromPublicRow({ competition_id: "comp-1", stars: 9 }), null);
+  });
+
+  it("averages public stars per competition", () => {
+    assert.deepEqual(
+      aggregateStarRows([
+        { competitionId: "comp-1", stars: 4 },
+        { competitionId: "comp-1", stars: 5 },
+        { competitionId: "comp-2", stars: 2 },
+        { competitionId: "comp-2", stars: 9 },
+      ]),
+      {
+        "comp-1": { average: 4.5, count: 2 },
+        "comp-2": { average: 2, count: 1 },
+      },
+    );
+  });
+});
+
+describe("friendlyReviewError", () => {
+  it("points at the reviews SQL when the table is missing", () => {
+    assert.match(
+      friendlyReviewError("Could not find the table public.reviews in the schema cache"),
+      /20260921_reviews\.sql/,
+    );
+    assert.match(friendlyReviewError("new row violates row-level security"), /Sign in/);
   });
 });
 
