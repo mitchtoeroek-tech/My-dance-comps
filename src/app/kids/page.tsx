@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ChildForm } from "@/components/ChildForm";
 import { EmptyState } from "@/components/EmptyState";
 import { FamilyPanel } from "@/components/FamilyPanel";
+import { ResultLog } from "@/components/ResultLog";
 import { StudioLogo } from "@/components/StudioLogo";
 import { useAuth } from "@/context/AuthContext";
 import { useFamily } from "@/context/FamilyContext";
@@ -23,6 +24,9 @@ export default function KidsPage() {
   const { state, canAddChild, upsertChild, setSelectedChildId } = useFamily();
   const [showForm, setShowForm] = useState(false);
   const dancer = account?.role === "dancer";
+  const dancerChild =
+    state.children.find((child) => child.id === account?.linkedChildId) ??
+    (dancer ? state.children[0] : undefined);
   const heading = kidsSectionLabel(account?.role, state.children.length);
   const studioMarks = useApprovedStudioMarks(
     state.children.map((child) => child.studioId),
@@ -118,7 +122,13 @@ export default function KidsPage() {
                         : "All styles"}
                     </p>
                     <p className="mt-2 text-xs font-bold text-primary-ink">
-                      {dancerCardHint(child, { dancer, parent })}
+                      {dancerCardHint(child, {
+                        dancer,
+                        parent,
+                        resultCount: state.results.filter(
+                          (result) => result.childId === child.id,
+                        ).length,
+                      })}
                     </p>
                   </div>
                 </Link>
@@ -127,6 +137,7 @@ export default function KidsPage() {
           })}
         </ul>
       )}
+      {dancer && dancerChild ? <ResultLog childId={dancerChild.id} /> : null}
       {familyAfterCards ? <FamilyPanel /> : null}
     </div>
   );
@@ -134,13 +145,14 @@ export default function KidsPage() {
 
 function dancerCardHint(
   child: ChildProfile,
-  viewer: { dancer: boolean; parent: boolean },
+  viewer: { dancer: boolean; parent: boolean; resultCount: number },
 ): string {
   const bits: string[] = [];
   if (viewer.parent) {
     bits.push(child.linkedUserId ? "Own login" : "Invite login");
   }
   if (!child.studio && !child.studioId) bits.push("Link studio");
+  bits.push(viewer.resultCount === 1 ? "1 result" : `${viewer.resultCount} results`);
   bits.push("Friends →");
   return bits.join(" · ");
 }

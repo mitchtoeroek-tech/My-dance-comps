@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { normalizeChild } from "./storage";
 import { familyStateFromDancerSnapshot } from "./family-sync";
@@ -187,11 +188,32 @@ test("logo url and file checks", () => {
 
 test("friendly studio errors point at approval and the SQL file", () => {
   assert.match(friendlyStudioError("That studio is not available to link"), /not public yet/);
-  assert.match(friendlyStudioError("Only an admin can change studio approval"), /Only an admin/);
+  assert.match(friendlyStudioError("Only an admin can change studio approval"), /approve, reject, or delete/);
   assert.match(
     friendlyStudioError("Could not find the table public.studios in the schema cache"),
     /20260922_studio_accounts\.sql/,
   );
+  assert.match(
+    friendlyStudioError("Could not find the function public.delete_studio(p_id) in the schema cache"),
+    /20260926_delete_studio\.sql/,
+  );
+});
+
+test("delete studio SQL unlinks dancers and stays admin-only", () => {
+  const sql = readFileSync(
+    new URL("../../supabase/migrations/20260926_delete_studio.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /create or replace function public\.delete_studio\(p_id uuid\)/);
+  assert.match(sql, /if not public\.is_app_admin\(\)/);
+  assert.match(sql, /set studio_id = null/);
+  assert.match(sql, /delete from public\.studio_friendships/);
+  assert.match(sql, /delete from public\.studio_community_messages/);
+  assert.match(sql, /delete from public\.community_messages/);
+  assert.match(sql, /delete from storage\.objects/);
+  assert.match(sql, /delete from public\.studios/);
+  assert.match(sql, /grant execute on function public\.delete_studio\(uuid\) to authenticated/);
+  assert.doesNotMatch(sql, /grant execute on function public\.delete_studio\(uuid\) to anon/);
 });
 
 test("dancer profiles keep a linked studio id and ignore a typed-only name", () => {

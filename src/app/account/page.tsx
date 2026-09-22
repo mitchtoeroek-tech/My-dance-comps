@@ -61,13 +61,17 @@ export default function AccountPage() {
   }
 
   const email = account?.username || user.email || "Signed in";
-  const enrolledCount =
-    account?.role === "dancer"
-      ? enrolledIdsFor(state.children[0]?.id ?? null).length
-      : enrolledIdsFor(null).length;
   const dancerChild =
     state.children.find((child) => child.id === account?.linkedChildId) ??
     state.children[0];
+  const enrolledCount =
+    account?.role === "dancer"
+      ? enrolledIdsFor(dancerChild?.id ?? null).length
+      : enrolledIdsFor(null).length;
+  const resultCount =
+    account?.role === "dancer"
+      ? state.results.filter((result) => result.childId === dancerChild?.id).length
+      : state.results.length;
   const dancerChatName =
     account?.role === "dancer"
       ? studioChatSenderLabel({
@@ -95,7 +99,7 @@ export default function AccountPage() {
           {account?.role === "studio"
             ? "Your studio stays private until My Dance Comps approves it. Add your logo, styles and address, then dancers can link to you once you are approved."
             : account?.role === "dancer"
-              ? "Your comps, enrolments, friends and Community follow this login. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
+              ? "Your comps, enrolments, results, friends and Community follow this login. Add placings from Results or My Info. Link your studio from My Info. Join a family so a parent can see you on My Dancers and enrol you too."
               : `This family’s dancers, enrolled comps and results sync to your account. Invite another parent from Family so you both see the same dancers. Open a dancer on ${myDancersLabel(state.children.length)} to invite their own login, link a studio, or share a friend invite. Signing out leaves a copy on this device.`}
         </p>
         {dancerChatName ? (
@@ -123,7 +127,7 @@ export default function AccountPage() {
           <Stat
             href="/results"
             label="Results"
-            value={String(state.results.length)}
+            value={String(resultCount)}
           />
         </nav>
         <button

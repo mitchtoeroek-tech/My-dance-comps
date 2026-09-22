@@ -5,6 +5,7 @@ import {
   isEmptyFamily,
   mergeFamilyState,
   parseHouseholdScope,
+  rebaseHouseholdEdits,
   reconcileFamilyState,
 } from "./family-sync";
 import { isSupabaseConfigured } from "./supabase";
@@ -150,4 +151,100 @@ test("reconcileFamilyState uses remote when local guest family is empty", () => 
   );
   assert.equal(next.children[0]?.id, "leo");
   assert.deepEqual(next.enrolled, ["cloud"]);
+});
+
+const MITCH_STUDIO = "11111111-1111-4111-8111-111111111111";
+const CREATIVE_STUDIO = "22222222-2222-4222-8222-222222222222";
+
+test("a known account keeps the cloud studio and does not union removed enrolments", () => {
+  const local = family({
+    children: [
+      {
+        ...mia,
+        studio: "Mitch Test Studio",
+        studioId: MITCH_STUDIO,
+      },
+    ],
+    selectedChildId: "mia",
+    enrolled: ["comp-a", "comp-b"],
+    enrolledByChild: { mia: ["comp-a", "comp-b"] },
+  });
+  const remote = family({
+    children: [
+      {
+        ...mia,
+        studio: "Creative Ground",
+        studioId: CREATIVE_STUDIO,
+      },
+    ],
+    selectedChildId: "mia",
+    enrolled: [],
+    enrolledByChild: { mia: [] },
+  });
+  const next = reconcileFamilyState(local, remote, "user-1", "user-1");
+  assert.equal(next.children[0]?.studio, "Creative Ground");
+  assert.equal(next.children[0]?.studioId, CREATIVE_STUDIO);
+  assert.deepEqual(next.enrolledByChild.mia, []);
+  assert.deepEqual(next.enrolled, []);
+});
+
+test("rebase keeps a studio edit and an unenrol made during this session", () => {
+  const baseline = family({
+    children: [
+      {
+        ...mia,
+        studio: "Mitch Test Studio",
+        studioId: MITCH_STUDIO,
+      },
+    ],
+    selectedChildId: "mia",
+    enrolled: ["comp-a"],
+    enrolledByChild: { mia: ["comp-a"] },
+  });
+  const edited = family({
+    children: [
+      {
+        ...mia,
+        studio: "Creative Ground",
+        studioId: CREATIVE_STUDIO,
+      },
+    ],
+    selectedChildId: "mia",
+    enrolled: ["comp-a"],
+    enrolledByChild: { mia: [] },
+  });
+  const remote = family({
+    children: [
+      {
+        ...mia,
+        studio: "Mitch Test Studio",
+        studioId: MITCH_STUDIO,
+      },
+    ],
+    selectedChildId: "mia",
+    enrolled: ["comp-a"],
+    enrolledByChild: { mia: ["comp-a"] },
+  });
+  const next = rebaseHouseholdEdits(baseline, edited, remote);
+  assert.equal(next.children[0]?.studio, "Creative Ground");
+  assert.equal(next.children[0]?.studioId, CREATIVE_STUDIO);
+  assert.deepEqual(next.enrolledByChild.mia, []);
+});
+
+test("rebase does not put a stale cached comp back when the cloud removed it", () => {
+  const cached = family({
+    children: [mia],
+    selectedChildId: "mia",
+    enrolled: ["comp-a", "comp-b"],
+    enrolledByChild: { mia: ["comp-a", "comp-b"] },
+  });
+  const remote = family({
+    children: [mia],
+    selectedChildId: "mia",
+    enrolled: ["comp-b"],
+    enrolledByChild: { mia: ["comp-b"] },
+  });
+  const next = rebaseHouseholdEdits(cached, cached, remote);
+  assert.deepEqual(next.enrolledByChild.mia, ["comp-b"]);
+  assert.deepEqual(next.enrolled, ["comp-b"]);
 });

@@ -11,10 +11,13 @@ import {
 } from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
+  familyStatesEqual,
+  isEmptyFamily,
   pullDancerLinkedState,
   pullFamilyState,
   pushDancerLinkedState,
   pushFamilyState,
+  rebaseHouseholdEdits,
   reconcileDancerLinkedState,
   reconcileFamilyState,
   scopeDancerFamily,
@@ -23,6 +26,7 @@ import {
 import {
   dropChildEnrollment,
   enrolledIdsForChild,
+  enrollmentChildId,
   isCompEnrolled,
   toggleEnrollment,
 } from "@/lib/enrolled";
@@ -44,13 +48,17 @@ import type {
 } from "@/lib/types";
 
 let memory: FamilyState = defaultFamilyState;
+let baselineState: FamilyState = defaultFamilyState;
 let hydrated = false;
 let cloudUserId: string | null = null;
+let revisionUserId: string | null = null;
 let cloudMode: "owner" | "dancer-linked" = "owner";
 let dancerMode: DancerFamilyMode | null = null;
 let acceptCloudPushes = false;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
+let pushTail: Promise<void> = Promise.resolve();
 let lastPushedJson = "";
+let pushFailures = 0;
 const listeners = new Set<() => void>();
 
 function snapshot(): FamilyState {
@@ -65,39 +73,78 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
-function scheduleCloudPush(state: FamilyState) {
-  if (!cloudUserId || !acceptCloudPushes) return;
-  if (pushTimer) clearTimeout(pushTimer);
-  pushTimer = setTimeout(() => {
-    const userId = cloudUserId;
-    if (!userId) return;
-    const mode = cloudMode;
-    const json = JSON.stringify(state);
-    if (json === lastPushedJson) return;
-    lastPushedJson = json;
-    const push =
-      mode === "dancer-linked"
-        ? pushDancerLinkedState(state)
-        : pushFamilyState(userId, state);
-    void push.catch(() => {
-      lastPushedJson = "";
-    });
-  }, 600);
-}
-
-function write(next: FamilyState) {
+function remember(next: FamilyState): FamilyState {
   const scoped = scopeDancerFamily(next, dancerMode);
   memory = scoped;
   hydrated = true;
   saveFamilyState(scoped);
   emit();
-  scheduleCloudPush(scoped);
+  return scoped;
+}
+
+function sessionIsDirty(): boolean {
+  return !familyStatesEqual(baselineState, memory);
+}
+
+function queuePush(_state: FamilyState, delay = 600) {
+  if (!cloudUserId || !acceptCloudPushes) return;
+  if (pushTimer) clearTimeout(pushTimer);
+  const mode = cloudMode;
+  const userId = cloudUserId;
+  pushTimer = setTimeout(() => {
+    pushTimer = null;
+    if (!cloudUserId || !userId) return;
+    const run = async () => {
+      const current = snapshot();
+      const json = JSON.stringify(current);
+      if (json === lastPushedJson) {
+        if (familyStatesEqual(snapshot(), current)) baselineState = snapshot();
+        pushFailures = 0;
+        return;
+      }
+      lastPushedJson = json;
+      const push =
+        mode === "dancer-linked"
+          ? pushDancerLinkedState(current)
+          : pushFamilyState(userId, current);
+      await push;
+      pushFailures = 0;
+      if (familyStatesEqual(snapshot(), current)) {
+        baselineState = snapshot();
+        return;
+      }
+      if (acceptCloudPushes && cloudUserId) queuePush(snapshot(), 0);
+    };
+    pushTail = pushTail.then(run).catch(() => {
+      lastPushedJson = "";
+      pushFailures += 1;
+      if (pushFailures <= 2 && acceptCloudPushes && cloudUserId) {
+        queuePush(snapshot(), 1000);
+      }
+    });
+  }, delay);
+}
+
+function write(next: FamilyState) {
+  const scoped = remember(next);
+  queuePush(scoped);
+}
+
+function adoptCloud(next: FamilyState, upload: boolean) {
+  const scoped = remember(next);
+  if (upload) {
+    queuePush(scoped);
+    return;
+  }
+  baselineState = scoped;
+  pushFailures = 0;
 }
 
 function hydrateFromStorage() {
   if (hydrated) return;
   hydrated = true;
   memory = loadFamilyState();
+  baselineState = memory;
   emit();
 }
 
@@ -108,6 +155,19 @@ function subscribe(listener: () => void) {
 
 function patch(updater: (prev: FamilyState) => FamilyState) {
   write(updater(snapshot()));
+}
+
+function targetFor(
+  family: FamilyState,
+  requested: string | null | undefined,
+): string | null {
+  return enrollmentChildId({
+    role: dancerMode?.role ?? "parent",
+    linkedChildId: dancerMode?.linkedChildId ?? null,
+    selectedChildId: family.selectedChildId,
+    requested,
+    childIds: family.children.map((child) => child.id),
+  });
 }
 
 interface FamilyContextValue {
@@ -170,9 +230,15 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated || dancerMode?.role !== "dancer") return;
     const scoped = scopeDancerFamily(memory, dancerMode);
     if (scoped === memory) return;
+    const wasClean = familyStatesEqual(baselineState, memory);
     acceptCloudPushes = false;
     memory = scoped;
     saveFamilyState(scoped);
+    // Scoping to this dancer is not an edit. Apply the same cut to the
+    // baseline so a sibling placing is not saved back as a deletion.
+    baselineState = wasClean
+      ? scoped
+      : scopeDancerFamily(baselineState, dancerMode);
     emit();
   }, [authReady, userId, accountReady, accountRole, linkedChildId]);
 
@@ -184,15 +250,36 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       dancerMode = null;
       acceptCloudPushes = false;
       lastPushedJson = "";
+      pushFailures = 0;
+      if (pushTimer) {
+        clearTimeout(pushTimer);
+        pushTimer = null;
+      }
       return;
     }
 
     let cancelled = false;
+    if (revisionUserId && revisionUserId !== userId) {
+      lastPushedJson = "";
+      pushFailures = 0;
+      baselineState = snapshot();
+      if (pushTimer) {
+        clearTimeout(pushTimer);
+        pushTimer = null;
+      }
+    }
+    revisionUserId = userId;
     cloudUserId = userId;
     acceptCloudPushes = false;
+    if (pushTimer) {
+      clearTimeout(pushTimer);
+      pushTimer = null;
+    }
     const linked = accountRole === "dancer" && Boolean(linkedChildId);
     cloudMode = linked ? "dancer-linked" : "owner";
     dancerMode = { role: accountRole, linkedChildId };
+    const dirtyAtStart = sessionIsDirty();
+    const baselineAtStart = baselineState;
 
     void (async () => {
       try {
@@ -200,22 +287,34 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
           ? (await pullDancerLinkedState()).state
           : await pullFamilyState(userId);
         if (cancelled) return;
-        const next = linked
-          ? reconcileDancerLinkedState(snapshot(), remote)
-          : reconcileFamilyState(
-              snapshot(),
-              remote,
-              loadLastOwnerId(),
-              userId,
-            );
+        const local = snapshot();
+        const dirty = dirtyAtStart || sessionIsDirty();
+        const remoteMissing = !remote || (!linked && isEmptyFamily(remote));
+        let next = local;
+        let upload = false;
+        if (remoteMissing) {
+          next = local;
+          upload = dirty;
+        } else if (dirty) {
+          next = rebaseHouseholdEdits(baselineAtStart, local, remote);
+          upload = true;
+        } else if (linked) {
+          next = reconcileDancerLinkedState(local, remote);
+          // A clean pull must not be written back. Echoing it races a studio
+          // or enrolment save and puts the old value on the server.
+          upload = false;
+        } else {
+          const lastOwnerId = loadLastOwnerId();
+          next = reconcileFamilyState(local, remote, lastOwnerId, userId);
+          upload = !lastOwnerId && !familyStatesEqual(next, remote);
+        }
         saveLastOwnerId(userId);
         acceptCloudPushes = true;
-        write(next);
+        adoptCloud(next, upload);
       } catch {
         if (cancelled) return;
-        saveLastOwnerId(userId);
         acceptCloudPushes = true;
-        scheduleCloudPush(snapshot());
+        if (sessionIsDirty()) queuePush(snapshot());
       }
     })();
 
@@ -336,7 +435,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   const toggleEnrolled = useCallback(
     (compId: string, childId?: string | null) => {
       patch((prev) => {
-        const target = childId === undefined ? prev.selectedChildId : childId;
+        const target = targetFor(prev, childId);
+        if (dancerMode?.role === "dancer" && !target) return prev;
         const next = toggleEnrollment(
           prev.enrolled,
           prev.enrolledByChild,
@@ -351,7 +451,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
   const isEnrolled = useCallback(
     (compId: string, childId?: string | null) => {
-      const target = childId === undefined ? state.selectedChildId : childId;
+      const target = targetFor(state, childId);
       return isCompEnrolled(
         state.enrolled,
         state.enrolledByChild,
@@ -359,19 +459,19 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         target,
       );
     },
-    [state.enrolled, state.enrolledByChild, state.selectedChildId],
+    [state],
   );
 
   const enrolledIdsFor = useCallback(
     (childId?: string | null) => {
-      const target = childId === undefined ? state.selectedChildId : childId;
+      const target = targetFor(state, childId);
       return enrolledIdsForChild(
         state.enrolled,
         state.enrolledByChild,
         target,
       );
     },
-    [state.enrolled, state.enrolledByChild, state.selectedChildId],
+    [state],
   );
 
   const setReminderPrefs = useCallback((prefs: ReminderPrefs) => {

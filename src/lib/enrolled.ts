@@ -97,6 +97,36 @@ export function enrolledDancerFirstNames(
   return names;
 }
 
+/**
+ * Dancer logins always enrol their own profile. Parents may pass null for
+ * All dancers, or omit the id to use whoever is selected.
+ */
+export function enrollmentChildId(input: {
+  role: "parent" | "dancer" | "studio" | null;
+  linkedChildId: string | null;
+  selectedChildId: string | null;
+  requested: string | null | undefined;
+  childIds: readonly string[];
+}): string | null {
+  if (input.role === "dancer") {
+    if (
+      input.linkedChildId &&
+      input.childIds.includes(input.linkedChildId)
+    ) {
+      return input.linkedChildId;
+    }
+    if (
+      input.selectedChildId &&
+      input.childIds.includes(input.selectedChildId)
+    ) {
+      return input.selectedChildId;
+    }
+    return input.childIds[0] ?? null;
+  }
+  if (input.requested === undefined) return input.selectedChildId;
+  return input.requested;
+}
+
 export function isCompEnrolled(
   enrolled: string[],
   enrolledByChild: EnrolledByChild | undefined,

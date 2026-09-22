@@ -1,4 +1,5 @@
 import type { AccountRole } from "./account";
+import { enrolledIdsForChild } from "./enrolled";
 import { parseStudioId } from "./studios";
 import { getSupabase } from "./supabase";
 import {
@@ -158,7 +159,176 @@ export function reconcileFamilyState(
   const rem = normalizeFamilyState(remote);
   if (isEmptyFamily(loc)) return rem;
   if (isEmptyFamily(rem)) return loc;
+  // This device already synced this account. The cache must not union old
+  // enrolments back in or overwrite a studio saved on another login.
+  if (lastOwnerId === userId) return rebaseHouseholdEdits(loc, loc, rem);
   return mergeFamilyState(loc, rem);
+}
+
+export function familyStatesEqual(a: FamilyState, b: FamilyState): boolean {
+  return (
+    JSON.stringify(normalizeFamilyState(a)) ===
+    JSON.stringify(normalizeFamilyState(b))
+  );
+}
+
+function sameJson(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
+function rebaseIdList(base: string[], edited: string[], cloud: string[]): string[] {
+  const baseSet = new Set(base);
+  const editSet = new Set(edited);
+  const cloudSet = new Set(cloud);
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const id of [...cloud, ...edited, ...base]) {
+    if (typeof id !== "string" || seen.has(id)) continue;
+    seen.add(id);
+    const changed = editSet.has(id) !== baseSet.has(id);
+    const keep = changed ? editSet.has(id) : cloudSet.has(id);
+    if (keep) out.push(id);
+  }
+  return out;
+}
+
+function rebaseChildFields(
+  base: ChildProfile | undefined,
+  edited: ChildProfile,
+  cloud: ChildProfile,
+): ChildProfile {
+  if (!base) return edited;
+  const next: ChildProfile = { ...cloud };
+  if (!sameJson(base.name, edited.name)) next.name = edited.name;
+  if (!sameJson(base.dob, edited.dob)) next.dob = edited.dob;
+  if (!sameJson(base.styles, edited.styles)) next.styles = edited.styles;
+  if (!sameJson(base.studio, edited.studio)) next.studio = edited.studio;
+  if (!sameJson(base.studioId ?? null, edited.studioId ?? null)) {
+    next.studioId = edited.studioId ?? null;
+  }
+  if (!sameJson(base.homeState, edited.homeState)) next.homeState = edited.homeState;
+  if (!sameJson(base.linkedUserId ?? null, edited.linkedUserId ?? null)) {
+    if (edited.linkedUserId) next.linkedUserId = edited.linkedUserId;
+    else delete next.linkedUserId;
+  }
+  return next;
+}
+
+function rebaseResults(
+  base: FamilyState,
+  edited: FamilyState,
+  cloud: FamilyState,
+): CompResult[] {
+  const baseMap = new Map(base.results.map((result) => [result.id, result]));
+  const editMap = new Map(edited.results.map((result) => [result.id, result]));
+  const cloudMap = new Map(cloud.results.map((result) => [result.id, result]));
+  const ids = new Set([...cloudMap.keys(), ...editMap.keys(), ...baseMap.keys()]);
+  const out: CompResult[] = [];
+  for (const id of ids) {
+    const before = baseMap.get(id);
+    const local = editMap.get(id);
+    const remote = cloudMap.get(id);
+    if (before && !local) continue;
+    if (local && !before) {
+      out.push(local);
+      continue;
+    }
+    if (local && before && !sameJson(before, local)) {
+      out.push(local);
+      continue;
+    }
+    if (remote) out.push(remote);
+  }
+  return out;
+}
+
+/**
+ * Cloud household wins for anything this session did not change.
+ * A studio or enrolment edit made after `baseline` is kept; a stale device
+ * cache is not written back over the server.
+ */
+export function rebaseHouseholdEdits(
+  baseline: FamilyState,
+  edited: FamilyState,
+  remote: FamilyState,
+): FamilyState {
+  const base = normalizeFamilyState(baseline);
+  const edit = normalizeFamilyState(edited);
+  const cloud = normalizeFamilyState(remote);
+  const baseById = new Map(base.children.map((child) => [child.id, child]));
+  const editById = new Map(edit.children.map((child) => [child.id, child]));
+  const removed = new Set(
+    base.children
+      .filter((child) => !editById.has(child.id))
+      .map((child) => child.id),
+  );
+  const children: ChildProfile[] = [];
+  for (const cloudChild of cloud.children) {
+    if (removed.has(cloudChild.id)) continue;
+    const local = editById.get(cloudChild.id);
+    if (!local) {
+      children.push(cloudChild);
+      continue;
+    }
+    children.push(rebaseChildFields(baseById.get(cloudChild.id), local, cloudChild));
+  }
+  for (const local of edit.children) {
+    if (cloud.children.some((child) => child.id === local.id)) continue;
+    const before = baseById.get(local.id);
+    if (!before || !sameJson(before, local)) children.push(local);
+  }
+
+  const childIds = children.map((child) => child.id);
+  const enrolledByChild: Record<string, string[]> = {};
+  for (const id of childIds) {
+    const had =
+      Object.prototype.hasOwnProperty.call(base.enrolledByChild, id) ||
+      Object.prototype.hasOwnProperty.call(edit.enrolledByChild, id) ||
+      Object.prototype.hasOwnProperty.call(cloud.enrolledByChild, id);
+    if (!had) continue;
+    enrolledByChild[id] = rebaseIdList(
+      enrolledIdsForChild(base.enrolled, base.enrolledByChild, id),
+      enrolledIdsForChild(edit.enrolled, edit.enrolledByChild, id),
+      enrolledIdsForChild(cloud.enrolled, cloud.enrolledByChild, id),
+    );
+  }
+
+  const selectedChanged = edit.selectedChildId !== base.selectedChildId;
+  const selectedCandidate = selectedChanged
+    ? edit.selectedChildId
+    : cloud.selectedChildId;
+  const selectedChildId =
+    (selectedCandidate && childIds.includes(selectedCandidate)
+      ? selectedCandidate
+      : null) ??
+    (cloud.selectedChildId && childIds.includes(cloud.selectedChildId)
+      ? cloud.selectedChildId
+      : null) ??
+    childIds[0] ??
+    null;
+
+  return normalizeFamilyState({
+    version: 1,
+    children,
+    selectedChildId,
+    enrolled: rebaseIdList(base.enrolled, edit.enrolled, cloud.enrolled),
+    enrolledByChild,
+    includeInterstate: sameJson(base.includeInterstate, edit.includeInterstate)
+      ? cloud.includeInterstate
+      : edit.includeInterstate,
+    preferredState: sameJson(base.preferredState, edit.preferredState)
+      ? cloud.preferredState
+      : edit.preferredState,
+    reminderPrefs: sameJson(base.reminderPrefs, edit.reminderPrefs)
+      ? cloud.reminderPrefs
+      : edit.reminderPrefs,
+    notifiedReminderIds: rebaseIdList(
+      base.notifiedReminderIds,
+      edit.notifiedReminderIds,
+      cloud.notifiedReminderIds,
+    ),
+    results: rebaseResults(base, edit, cloud),
+  });
 }
 
 export interface DancerFamilyMode {
@@ -166,7 +336,12 @@ export interface DancerFamilyMode {
   linkedChildId: string | null;
 }
 
-/** Linked dancers only see their own profile. Parents keep the household. */
+function resultsForChild(state: FamilyState, childId: string): FamilyState["results"] {
+  const results = Array.isArray(state.results) ? state.results : [];
+  return results.filter((result) => result.childId === childId);
+}
+
+/** Linked dancers only see their own profile and that profile's placings. */
 export function scopeDancerFamily(
   state: FamilyState,
   mode: DancerFamilyMode | null,
@@ -176,10 +351,20 @@ export function scopeDancerFamily(
   if (mode.linkedChildId) {
     const linked = children.find((child) => child.id === mode.linkedChildId);
     if (!linked) return state;
+    const results = resultsForChild(state, linked.id);
+    if (
+      children.length === 1 &&
+      children[0]?.id === linked.id &&
+      state.selectedChildId === linked.id &&
+      results.length === (state.results?.length ?? 0)
+    ) {
+      return state;
+    }
     return {
       ...state,
       children: [linked],
       selectedChildId: linked.id,
+      results,
       preferredState: state.preferredState ?? linked.homeState,
     };
   }
@@ -187,9 +372,17 @@ export function scopeDancerFamily(
   const selected =
     children.find((child) => child.id === state.selectedChildId) ?? children[0];
   if (!selected) return state;
+  const results = resultsForChild(state, selected.id);
+  if (
+    state.selectedChildId === selected.id &&
+    results.length === (state.results?.length ?? 0)
+  ) {
+    return state;
+  }
   return {
     ...state,
     selectedChildId: selected.id,
+    results,
     preferredState: state.preferredState ?? selected.homeState,
   };
 }
@@ -231,6 +424,23 @@ function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === "string");
 }
 
+function asResultRows(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function asResultId(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return "";
+}
+
 export function familyStateFromDancerSnapshot(raw: unknown): {
   linked: boolean;
   state: FamilyState | null;
@@ -245,14 +455,16 @@ export function familyStateFromDancerSnapshot(raw: unknown): {
     typeof childRaw?.linked_user_id === "string" ? childRaw.linked_user_id : "";
   const owned = row.enrolled_owned === true;
   const ids = asStringArray(row.enrolled_ids);
-  const resultRows = Array.isArray(row.results) ? row.results : [];
+  const resultRows = asResultRows(row.results);
   const results: CompResult[] = [];
   for (const item of resultRows) {
     const result = asRecord(item);
-    if (!result || typeof result.id !== "string") continue;
+    const resultId = asResultId(result?.id);
+    if (!result || !resultId) continue;
+    const rowChildId = asResultId(result.child_id ?? result.childId);
     results.push({
-      id: result.id,
-      childId: id,
+      id: resultId,
+      childId: rowChildId || id,
       compId: typeof result.comp_id === "string" && result.comp_id ? result.comp_id : null,
       compName:
         typeof result.comp_name === "string" && result.comp_name
@@ -295,7 +507,9 @@ export function familyStateFromDancerSnapshot(raw: unknown): {
 export function dancerPushPayload(
   state: FamilyState,
 ): Record<string, unknown> | null {
-  const child = state.children[0];
+  const child =
+    state.children.find((item) => item.id === state.selectedChildId) ??
+    state.children[0];
   if (!child) return null;
   const owned = Object.prototype.hasOwnProperty.call(
     state.enrolledByChild,
