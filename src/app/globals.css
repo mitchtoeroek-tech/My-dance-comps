@@ -23,6 +23,8 @@
   --status-closed-ink: #7a3a3a;
   --status-unknown: #e4e6e5;
   --status-unknown-ink: #5c6562;
+  --enrolled: #f5e6a8;
+  --enrolled-ink: #1f3a34;
   --radius-card: 18px;
   --radius-control: 13px;
   --shadow-card: 0 10px 28px -16px rgb(31 58 52 / 16%);
@@ -53,6 +55,8 @@
   --color-status-closed-ink: var(--status-closed-ink);
   --color-status-unknown: var(--status-unknown);
   --color-status-unknown-ink: var(--status-unknown-ink);
+  --color-enrolled: var(--enrolled);
+  --color-enrolled-ink: var(--enrolled-ink);
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
   --font-brand-sans: var(--font-nunito), var(--font-dm-sans), system-ui, sans-serif;
   --font-brand-script: var(--font-pacifico), "Segoe Script", cursive;

@@ -82,10 +82,10 @@ export function remindersForComp(
 export function buildReminders(
   comps: Competition[],
   prefs: ReminderPrefs,
-  favouriteIds: string[],
+  enrolledIds: string[],
 ): ReminderItem[] {
-  const saved = comps.filter((c) => favouriteIds.includes(c.id));
-  return saved
+  const tracked = comps.filter((c) => enrolledIds.includes(c.id));
+  return tracked
     .flatMap((comp) => remindersForComp(comp, prefs))
     .sort((a, b) => a.fireAt.localeCompare(b.fireAt));
 }

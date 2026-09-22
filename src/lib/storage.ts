@@ -33,7 +33,6 @@ export const defaultFamilyState: FamilyState = {
   version: 1,
   children: [],
   selectedChildId: null,
-  favourites: [],
   enrolled: [],
   enrolledByChild: {},
   includeInterstate: false,
@@ -146,7 +145,6 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     version: 1,
     children,
     selectedChildId,
-    favourites: asStringArray(raw.favourites),
     enrolled: asStringArray(raw.enrolled),
     enrolledByChild: normalizeEnrolledByChild(
       raw.enrolledByChild,

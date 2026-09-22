@@ -152,7 +152,6 @@ test("dancer cloud snapshot keeps the linked studio id", () => {
     },
     enrolled_owned: false,
     enrolled_ids: [],
-    favourites: [],
     results: [],
   });
   assert.equal(parsed.state?.children[0]?.studioId, STUDIO_ID);

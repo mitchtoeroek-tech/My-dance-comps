@@ -84,6 +84,7 @@ test("familyStateFromDancerSnapshot keeps family-wide enrolments until owned", (
   assert.equal(parsed.state?.children.length, 1);
   assert.equal(parsed.state?.children[0]?.linkedUserId, "dancer-1");
   assert.deepEqual(parsed.state?.enrolled, ["family-comp"]);
+  assert.equal(parsed.state && "favourites" in parsed.state, false);
   assert.equal(parsed.state?.enrolledByChild.mia, undefined);
   assert.equal(parsed.state?.selectedChildId, "mia");
 });
@@ -94,9 +95,9 @@ test("dancerPushPayload marks a per-dancer enrolled set only after one exists", 
       children: [mia],
       selectedChildId: "mia",
       enrolled: ["family-comp"],
-      favourites: ["star"],
     }),
   );
+  assert.equal(shared && "favourites" in shared, false);
   assert.equal(shared?.enrolled_owned, false);
 
   const owned = dancerPushPayload(
@@ -128,12 +129,10 @@ test("dancerPushPayload marks a per-dancer enrolled set only after one exists", 
 test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () => {
   const local = family({
     children: [{ ...mia, id: "draft", name: "Draft" }],
-    favourites: ["local-star"],
     enrolled: ["draft-comp"],
   });
   const remote = family({
     children: [mia],
-    favourites: ["cloud-star"],
     enrolledByChild: { mia: ["mia-comp"] },
     results: [],
   });
@@ -143,8 +142,7 @@ test("reconcileDancerLinkedState uses the linked profile, not sibling rows", () 
     ["mia"],
   );
   assert.equal(next.selectedChildId, "mia");
-  assert.ok(next.favourites.includes("local-star"));
-  assert.ok(next.favourites.includes("cloud-star"));
+  assert.equal("favourites" in next, false);
   assert.deepEqual(next.enrolledByChild.mia, ["mia-comp"]);
   assert.equal(next.enrolled.includes("draft-comp"), false);
 });

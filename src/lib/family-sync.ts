@@ -100,7 +100,6 @@ function mergeEnrolledByChild(
 export function isEmptyFamily(state: FamilyState): boolean {
   return (
     state.children.length === 0 &&
-    state.favourites.length === 0 &&
     state.enrolled.length === 0 &&
     Object.keys(state.enrolledByChild ?? {}).length === 0 &&
     state.results.length === 0
@@ -131,7 +130,6 @@ export function mergeFamilyState(
     version: 1,
     children,
     selectedChildId,
-    favourites: uniqueStrings(loc.favourites, rem.favourites),
     enrolled: uniqueStrings(loc.enrolled, rem.enrolled),
     enrolledByChild: mergeEnrolledByChild(loc, rem, children.map((c) => c.id)),
     includeInterstate: loc.includeInterstate || rem.includeInterstate,
@@ -211,7 +209,6 @@ export function reconcileDancerLinkedState(
   const selected = rem.children[0];
   return normalizeFamilyState({
     ...rem,
-    favourites: uniqueStrings(loc.favourites, rem.favourites),
     includeInterstate: loc.includeInterstate || rem.includeInterstate,
     preferredState:
       rem.preferredState ?? loc.preferredState ?? selected?.homeState ?? null,
@@ -284,7 +281,6 @@ export function familyStateFromDancerSnapshot(raw: unknown): {
       version: 1,
       children: [child],
       selectedChildId: id,
-      favourites: asStringArray(row.favourites),
       enrolled: owned ? [] : ids,
       enrolledByChild: owned ? { [id]: ids } : {},
       includeInterstate: row.include_interstate === true,
@@ -316,7 +312,6 @@ export function dancerPushPayload(
     },
     enrolled_owned: owned,
     enrolled_ids: owned ? (state.enrolledByChild[child.id] ?? []) : [],
-    favourites: state.favourites,
     include_interstate: state.includeInterstate,
     preferred_state: state.preferredState,
     reminder_prefs: state.reminderPrefs,
@@ -380,7 +375,6 @@ export async function pullFamilyState(
   const [
     profileRes,
     childrenRes,
-    favouritesRes,
     enrolledRes,
     enrolledByChildRes,
     enrolledSetsRes,
@@ -388,7 +382,6 @@ export async function pullFamilyState(
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("children").select("*").eq("user_id", userId),
-    supabase.from("favourites").select("comp_id").eq("user_id", userId),
     supabase.from("enrolled_comps").select("comp_id").eq("user_id", userId),
     supabase
       .from("enrolled_by_child")
@@ -400,7 +393,6 @@ export async function pullFamilyState(
 
   if (profileRes.error) throw profileRes.error;
   if (childrenRes.error) throw childrenRes.error;
-  if (favouritesRes.error) throw favouritesRes.error;
   if (enrolledRes.error) throw enrolledRes.error;
   if (resultsRes.error) throw resultsRes.error;
   // enrolled_by_child is new; treat a missing table as empty per-child sets.
@@ -462,7 +454,6 @@ export async function pullFamilyState(
     version: 1,
     children,
     selectedChildId: profile?.selected_child_id ?? null,
-    favourites: (favouritesRes.data ?? []).map((row) => row.comp_id as string),
     enrolled: (enrolledRes.data ?? []).map((row) => row.comp_id as string),
     enrolledByChild,
     includeInterstate: Boolean(profile?.include_interstate),
@@ -566,15 +557,6 @@ export async function pushFamilyState(
       })),
     );
     if (upsert.error) throw upsert.error;
-  }
-
-  const favDelete = await supabase.from("favourites").delete().eq("user_id", userId);
-  if (favDelete.error) throw favDelete.error;
-  if (next.favourites.length > 0) {
-    const insert = await supabase.from("favourites").insert(
-      next.favourites.map((compId) => ({ user_id: userId, comp_id: compId })),
-    );
-    if (insert.error) throw insert.error;
   }
 
   const enrolledDelete = await supabase

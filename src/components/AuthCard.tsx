@@ -173,7 +173,7 @@ export function AuthUnavailable() {
   return (
     <AuthCard
       title="Keep going as a guest"
-      subtitle="Accounts are not connected in this environment yet. Dancers, saved comps and results still stay on this device."
+      subtitle="Accounts are not connected in this environment yet. Dancers, enrolled comps and results still stay on this device."
     >
       <Link
         href="/"

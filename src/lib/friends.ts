@@ -7,7 +7,7 @@ export const FRIEND_CODE_LENGTH = 8;
 
 export const GUEST_FRIENDS_TITLE = "Friends unlock when you sign in";
 export const GUEST_FRIENDS_BODY =
-  "Sign in so your dancer can add friends. You will see the comps a friend has marked Enrolled — not their favourites, and not their date of birth.";
+  "Sign in so your dancer can add friends. You will see the comps a friend has marked Enrolled — not their date of birth.";
 
 export type FriendshipStatus = "pending" | "accepted" | "declined" | "removed";
 

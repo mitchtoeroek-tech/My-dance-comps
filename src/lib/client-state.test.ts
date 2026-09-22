@@ -107,7 +107,7 @@ test("normalizeFamilyState drops corrupt children and unknown fields", () => {
   assert.equal(normalized.children.length, 2);
   assert.deepEqual(normalized.children[1]?.styles, []);
   assert.equal(normalized.selectedChildId, null);
-  assert.deepEqual(normalized.favourites, ["a", "b"]);
+  assert.equal("favourites" in normalized, false);
   assert.deepEqual(normalized.enrolled, ["entered", "also"]);
   assert.deepEqual(normalized.enrolledByChild, { ok: ["entered"] });
   assert.equal(normalized.reminderPrefs.onOpen, false);
@@ -137,7 +137,6 @@ test("saveFamilyState round-trips a valid family without throwing in private mod
       },
     ],
     selectedChildId: "c1",
-    favourites: ["test-comp"],
     enrolled: ["test-comp"],
     enrolledByChild: { c1: ["test-comp", "other"] },
   });
@@ -171,6 +170,7 @@ test("legacy family JSON without enrolledByChild still loads enrolled ids", () =
   const loaded = loadFamilyState();
   assert.deepEqual(loaded.enrolled, ["old-comp"]);
   assert.deepEqual(loaded.enrolledByChild, {});
+  assert.equal("favourites" in loaded, false);
 });
 
 test("null and invalid registration dates never throw", () => {

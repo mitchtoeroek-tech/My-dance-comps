@@ -21,8 +21,6 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
   const {
     ready,
     state,
-    toggleFavourite,
-    isFavourite,
     toggleEnrolled,
     isEnrolled,
     enrolledIdsFor,
@@ -107,8 +105,6 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
                     <ErrorBoundary>
                       <CompCard
                         comp={comp}
-                        saved={isFavourite(comp.id)}
-                        onToggleSave={() => toggleFavourite(comp.id)}
                         enrolled={isEnrolled(comp.id, activeFilterId)}
                         onToggleEnrolled={() =>
                           toggleEnrolled(comp.id, activeFilterId)
@@ -129,14 +125,14 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
           <div>
             <h2 className="text-lg font-bold">Calendar</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Same month layout as the Calendar tab, showing only enrolled
-              comps
+              Enrolled comps only
               {filterChild
                 ? ` for ${filterChild.name}`
                 : children.length > 0
                   ? " for every dancer on this device"
                   : ""}
-              . Interstate entries stay visible, matching this list.
+              . A star on a date means that day has an enrolled comp.
+              Interstate entries stay visible, matching this list.
             </p>
           </div>
           <MonthCalendar
@@ -144,7 +140,6 @@ export function MyCompsView({ initialComps }: { initialComps: Competition[] }) {
             enrolledIds={enrolledIds}
             isEnrolled={isEnrolledForFilter}
             toggleEnrolled={toggleEnrolledForFilter}
-            isFavourite={isFavourite}
             emptyMonth={({ monthTitle, hasAnyComps }) =>
               hasAnyComps ? (
                 <EmptyState

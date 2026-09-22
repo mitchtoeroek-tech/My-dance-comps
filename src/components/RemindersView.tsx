@@ -4,6 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useFamily } from "@/context/FamilyContext";
 import { getComps } from "@/lib/comps";
+import { enrolledIdsForChild } from "@/lib/enrolled";
 import { formatDateTime } from "@/lib/datetime";
 import {
   downloadIcs,
@@ -40,12 +41,16 @@ export function RemindersView() {
   const permission = requested ?? browserPermission;
 
   const { comps } = useLiveComps(getComps());
+  const enrolledIds = useMemo(
+    () => enrolledIdsForChild(state.enrolled, state.enrolledByChild, null),
+    [state.enrolled, state.enrolledByChild],
+  );
   const items = useMemo(
     () =>
       upcomingReminders(
-        buildReminders(comps, state.reminderPrefs, state.favourites),
+        buildReminders(comps, state.reminderPrefs, enrolledIds),
       ),
-    [comps, state.favourites, state.reminderPrefs],
+    [comps, enrolledIds, state.reminderPrefs],
   );
 
   const prefs = state.reminderPrefs;
@@ -54,7 +59,7 @@ export function RemindersView() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Reminders</h1>
       <p className="text-sm leading-6 text-muted-foreground">
-        Nudges for saved comps, using Australia/Adelaide time. No paid
+        Nudges for enrolled comps, using Australia/Adelaide time. No paid
         notification service — browser alerts only work while this site is open
         (or installed) after you allow them.
       </p>
@@ -134,10 +139,10 @@ export function RemindersView() {
           </button>
         )}
       </div>
-      {state.favourites.length === 0 ? (
+      {enrolledIds.length === 0 ? (
         <EmptyState
-          title="Save a comp first"
-          body="Star a competition on the Comps tab. Reminders are built from those favourites."
+          title="Enrol in a comp first"
+          body="Tap Enrolled on a competition. Reminders are built from those enrolments."
           action={
             <Link
               href="/"
@@ -150,7 +155,7 @@ export function RemindersView() {
       ) : items.length === 0 ? (
         <EmptyState
           title="No upcoming reminders"
-          body="Turn on a reminder type above, or save comps that still have entry dates ahead."
+          body="Turn on a reminder type above, or mark comps Enrolled that still have entry dates ahead."
         />
       ) : (
         <ul className="space-y-2">

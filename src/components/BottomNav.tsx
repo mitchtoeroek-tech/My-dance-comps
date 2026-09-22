@@ -16,7 +16,6 @@ export function BottomNav() {
   const items = [
     { href: "/", label: "Comps", icon: CompIcon },
     { href: "/my-comps", label: "My Comps", icon: MyCompsIcon },
-    { href: "/calendar", label: "Calendar", icon: CalendarIcon },
     { href: "/kids", label: dancersLabel, icon: KidsIcon },
     { href: "/community", label: "Community", icon: CommunityIcon },
     { href: "/reminders", label: "Reminders", icon: BellIcon },
@@ -28,7 +27,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Main"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-6">
+      <ul className="mx-auto grid max-w-lg grid-cols-5">
         {items.map((item) => {
           const active =
             item.href === "/"
@@ -72,13 +71,6 @@ function MyCompsIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2.2 : 1.8}
         strokeLinecap="round"
       />
-      <path
-        d="M12 4.6 13 6.7l2.3.3-1.7 1.6.4 2.3L12 9.8l-2 1.1.4-2.3-1.7-1.6 2.3-.3L12 4.6Z"
-        stroke="currentColor"
-        strokeWidth={active ? 1.8 : 1.5}
-        strokeLinejoin="round"
-        fill={active ? "currentColor" : "none"}
-      />
     </svg>
   );
 }
@@ -98,30 +90,6 @@ function CompIcon({ active }: { active: boolean }) {
         strokeWidth={active ? 2.2 : 1.8}
         strokeLinecap="round"
       />
-    </svg>
-  );
-}
-
-function CalendarIcon({ active }: { active: boolean }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect
-        x="4"
-        y="6"
-        width="16"
-        height="14"
-        rx="2"
-        stroke="currentColor"
-        strokeWidth={active ? 2.2 : 1.8}
-      />
-      <path
-        d="M8 4v4M16 4v4M4 10h16"
-        stroke="currentColor"
-        strokeWidth={active ? 2.2 : 1.8}
-        strokeLinecap="round"
-      />
-      <circle cx="9" cy="14" r="1.1" fill="currentColor" />
-      <circle cx="12.5" cy="14" r="1.1" fill="currentColor" />
     </svg>
   );
 }

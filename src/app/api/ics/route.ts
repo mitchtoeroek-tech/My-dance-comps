@@ -25,9 +25,15 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const saved = (searchParams.get("saved") ?? "").split(",").filter(Boolean);
+  const enrolled = (searchParams.get("enrolled") ?? "")
+    .split(",")
+    .filter(Boolean);
   const items = upcomingReminders(
-    buildReminders(comps.length ? comps : getComps(), defaultReminderPrefs, saved),
+    buildReminders(
+      comps.length ? comps : getComps(),
+      defaultReminderPrefs,
+      enrolled,
+    ),
   );
   return new Response(remindersToIcs(items), {
     headers: {

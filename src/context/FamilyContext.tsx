@@ -126,8 +126,6 @@ interface FamilyContextValue {
   setPreferredState: (value: AuStateCode) => void;
   upsertChild: (child: Omit<ChildProfile, "id"> & { id?: string }) => string;
   removeChild: (id: string) => void;
-  toggleFavourite: (compId: string) => void;
-  isFavourite: (compId: string) => boolean;
   /**
    * Toggle Enrolled. Omit `childId` to use the selected dancer.
    * Pass `null` for Everyone / All dancers (family-wide).
@@ -341,23 +339,6 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const toggleFavourite = useCallback((compId: string) => {
-    patch((prev) => {
-      const has = prev.favourites.includes(compId);
-      return {
-        ...prev,
-        favourites: has
-          ? prev.favourites.filter((id) => id !== compId)
-          : [...prev.favourites, compId],
-      };
-    });
-  }, []);
-
-  const isFavourite = useCallback(
-    (compId: string) => state.favourites.includes(compId),
-    [state.favourites],
-  );
-
   const toggleEnrolled = useCallback(
     (compId: string, childId?: string | null) => {
       patch((prev) => {
@@ -435,8 +416,13 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     const tick = () => {
       try {
         const comps = getComps();
+        const enrolledIds = enrolledIdsForChild(
+          state.enrolled,
+          state.enrolledByChild,
+          null,
+        );
         const items = upcomingReminders(
-          buildReminders(comps, state.reminderPrefs, state.favourites),
+          buildReminders(comps, state.reminderPrefs, enrolledIds),
         );
         const due = dueReminders(items, state.notifiedReminderIds);
         if (due.length === 0) return;
@@ -461,7 +447,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearInterval(id);
   }, [
     ready,
-    state.favourites,
+    state.enrolled,
+    state.enrolledByChild,
     state.reminderPrefs,
     state.notifiedReminderIds,
     markNotified,
@@ -485,8 +472,6 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     setPreferredState,
     upsertChild,
     removeChild,
-    toggleFavourite,
-    isFavourite,
     toggleEnrolled,
     isEnrolled,
     enrolledIdsFor,

@@ -20,8 +20,6 @@ export interface CompFilters {
    * Ignored for the state check when a child is selected (child.homeState wins).
    */
   homeState?: AuStateCode | null;
-  onlyFavourites?: boolean;
-  favouriteIds?: string[];
   sortDir?: DateSortDir;
   /** Empty / omitted = all statuses. */
   statuses?: RegistrationStatus[];
@@ -183,9 +181,6 @@ export function filterComps(
   return list
     .filter((comp) => {
       if (!comp?.id || !comp.startDate) return false;
-      if (filters.onlyFavourites) {
-        if (!filters.favouriteIds?.includes(comp.id)) return false;
-      }
       if (!searchMatches(comp, filters.query)) return false;
       if (filters.statuses && filters.statuses.length > 0) {
         const status = registrationStatus(comp, filters.now);
