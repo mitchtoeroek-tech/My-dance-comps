@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-09-27T20:39:06.776Z",
-  "lastFetchedAt": "2026-09-27T20:39:06.776Z",
+  "lastRunAt": "2026-09-28T20:41:45.157Z",
+  "lastFetchedAt": "2026-09-28T20:41:45.157Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
-  "updated": 0,
+  "updated": 3,
   "kept": 60,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -16,6 +16,6 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✗ Full Out: Blocked by bot challenge (202) for https://fullout.com.au/enter/ (11 seed event(s) retained)"
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-09-28T20:41:44.048Z)"
   ]
 }
