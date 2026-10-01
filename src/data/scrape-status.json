@@ -1,6 +1,6 @@
 {
-  "lastRunAt": "2026-09-30T20:41:15.073Z",
-  "lastFetchedAt": "2026-09-30T20:41:15.073Z",
+  "lastRunAt": "2026-10-01T20:42:45.497Z",
+  "lastFetchedAt": "2026-10-01T20:42:45.497Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
   "updated": 3,
@@ -16,6 +16,6 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-09-30T20:41:13.820Z)"
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-01T20:42:44.974Z)"
   ]
 }
