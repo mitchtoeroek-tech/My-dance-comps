@@ -186,7 +186,7 @@ function guessState(text: string): AuStateCode {
   return "SA";
 }
 
-function baseComp(partial: Partial<Competition> & Pick<Competition, "id" | "name" | "sourceId" | "startDate" | "endDate">): Competition {
+export function baseComp(partial: Partial<Competition> & Pick<Competition, "id" | "name" | "sourceId" | "startDate" | "endDate">): Competition {
   const today = new Date().toISOString().slice(0, 10);
   return {
     kind: "competition",
@@ -537,6 +537,13 @@ async function parseDanceHubTable(source: CompSource): Promise<Competition[]> {
     if (cells.length < 3) return;
     if (/^competition$/i.test(cells[0])) return;
     const [name, location, dates] = cells;
+    if (
+      /get the beat|time to shine|dancelife|dance life unite|raise the barre|supreme dance|candance|pendulum dance|talent tribe|jump dance challenge/i.test(
+        name,
+      )
+    ) {
+      return;
+    }
     const range = parseAussieDateRange(dates, 2026);
     if (!name || !range) return;
     found.push(
@@ -659,6 +666,14 @@ export function mergeComps(
       next.registrationUrl = row.registrationUrl;
       changed = true;
     }
+    if (row.registrationOpens && row.registrationOpens !== existing.registrationOpens) {
+      next.registrationOpens = row.registrationOpens;
+      changed = true;
+    }
+    if (row.registrationCloses && row.registrationCloses !== existing.registrationCloses) {
+      next.registrationCloses = row.registrationCloses;
+      changed = true;
+    }
     if (row.lastFetchedAt && row.lastFetchedAt !== existing.lastFetchedAt) {
       next.lastFetchedAt = row.lastFetchedAt;
       changed = true;
@@ -704,6 +719,104 @@ export function reconcileLiveWithSeeds(
   };
 }
 
+async function loadOrganiserParsers() {
+  return import("./scrape-organisers.ts");
+}
+
+function stampFetched(rows: Competition[], fetchedAt = new Date().toISOString()): Competition[] {
+  return rows.map((row) => ({ ...row, lastFetchedAt: fetchedAt }));
+}
+
+async function parseGtb(source: CompSource): Promise<Competition[]> {
+  const { parseGtbPages } = await loadOrganiserParsers();
+  const tour = await fetchHtml(source.scrapeUrl);
+  let finals = "";
+  try {
+    finals = await fetchHtml("https://www.gtbdance.com/entries");
+  } catch {
+    finals = "";
+  }
+  return stampFetched(parseGtbPages(tour, finals, source));
+}
+
+async function parseRaiseTheBarre(source: CompSource): Promise<Competition[]> {
+  const { parseRaiseTheBarreHtml } = await loadOrganiserParsers();
+  const html = await fetchHtml(source.scrapeUrl);
+  return stampFetched(parseRaiseTheBarreHtml(html, source));
+}
+
+async function parseSupreme(source: CompSource): Promise<Competition[]> {
+  const { parseSupremeHtml } = await loadOrganiserParsers();
+  const html = await fetchHtml(source.scrapeUrl);
+  return stampFetched(parseSupremeHtml(html, source));
+}
+
+async function parseCanDance(source: CompSource): Promise<Competition[]> {
+  const { parseCanDancePages } = await loadOrganiserParsers();
+  const october = await fetchHtml(source.scrapeUrl);
+  let july = "";
+  try {
+    july = await fetchHtml("https://www.candanceaustralia.com.au/july");
+  } catch {
+    july = "";
+  }
+  return stampFetched(parseCanDancePages(july, october, source));
+}
+
+async function parsePendulum(source: CompSource): Promise<Competition[]> {
+  const { parsePendulumHtml } = await loadOrganiserParsers();
+  const html = await fetchHtml(source.scrapeUrl);
+  return stampFetched(parsePendulumHtml(html, source));
+}
+
+async function parseShowcase(source: CompSource): Promise<Competition[]> {
+  const { parseShowcasePages } = await loadOrganiserParsers();
+  const schedule = await fetchHtml(source.scrapeUrl);
+  let finals = "";
+  try {
+    finals = await fetchHtml("https://www.showcasedance.com/finals-januarygoldcoast");
+  } catch {
+    finals = "";
+  }
+  return stampFetched(parseShowcasePages(schedule, finals, source));
+}
+
+async function parseDanceLife(source: CompSource): Promise<Competition[]> {
+  const { parseDanceLifePages } = await loadOrganiserParsers();
+  const events = await fetchHtml(source.scrapeUrl);
+  let home = "";
+  try {
+    home = await fetchHtml("https://www.dancelifeunite.com.au/");
+  } catch {
+    home = "";
+  }
+  return stampFetched(parseDanceLifePages(events, home, source));
+}
+
+async function parseTalentTribe(source: CompSource): Promise<Competition[]> {
+  const { parseTalentTribeHtml } = await loadOrganiserParsers();
+  const html = await fetchHtml(source.scrapeUrl);
+  return stampFetched(parseTalentTribeHtml(html, source));
+}
+
+async function parseJump(source: CompSource): Promise<Competition[]> {
+  const { parseJumpPages } = await loadOrganiserParsers();
+  const nationals = await fetchHtml(source.scrapeUrl);
+  let heats = "";
+  try {
+    heats = await fetchHtml("https://www.jumpdancechallenge.com.au/heats");
+  } catch {
+    heats = "";
+  }
+  return stampFetched(parseJumpPages(nationals, heats, source));
+}
+
+async function parseTimeToShine(source: CompSource): Promise<Competition[]> {
+  const { parseTimeToShineHtml } = await loadOrganiserParsers();
+  const html = await fetchHtml(source.scrapeUrl);
+  return stampFetched(parseTimeToShineHtml(html, source));
+}
+
 type Parser = (source: CompSource) => Promise<Competition[]>;
 
 const parsers: Record<CompSource["parser"], Parser> = {
@@ -713,6 +826,16 @@ const parsers: Record<CompSource["parser"], Parser> = {
   "full-out": parseFullOut,
   "dance-hub-table": parseDanceHubTable,
   "html-generic": parseGeneric,
+  gtb: parseGtb,
+  "raise-the-barre": parseRaiseTheBarre,
+  supreme: parseSupreme,
+  candance: parseCanDance,
+  pendulum: parsePendulum,
+  showcase: parseShowcase,
+  dancelife: parseDanceLife,
+  "talent-tribe": parseTalentTribe,
+  jump: parseJump,
+  "time-to-shine": parseTimeToShine,
   "seed-only": async () => [],
 };
 

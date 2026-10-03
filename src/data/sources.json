@@ -97,5 +97,95 @@
     "parser": "full-out",
     "notes": "Australian Full Out regionals and state finals. Listings and CompHQ entry links come from fullout.com.au/enter/ only (tour dates image at fullout.com.au/tour-dates/). Waitlist: dance@fullout.com.au.",
     "region": "National"
+  },
+  {
+    "id": "gtb",
+    "name": "Get the Beat",
+    "url": "https://www.gtbdance.com",
+    "scrapeUrl": "https://www.gtbdance.com/2027",
+    "parser": "gtb",
+    "notes": "GTB (Get the Beat) Australian solo tour at gtbdance.com/2027, plus finals dates on gtbdance.com/entries. Asia dates on gtbasia.com are not listed.",
+    "region": "National"
+  },
+  {
+    "id": "raise-the-barre",
+    "name": "Raise the Barre",
+    "url": "https://www.raisethebarre.com.au",
+    "scrapeUrl": "https://www.raisethebarre.com.au/events/",
+    "parser": "raise-the-barre",
+    "notes": "Perth and Adelaide dance festival. The 2026 calendar on the events page is an image; seed rows hold those dates until the page publishes them as text. Registration is on MyCompHQ.",
+    "region": "National"
+  },
+  {
+    "id": "supreme",
+    "name": "Supreme Dance Experience",
+    "url": "https://www.supremedancecomp.com",
+    "scrapeUrl": "https://www.supremedancecomp.com/2026tour",
+    "parser": "supreme",
+    "notes": "Commercial dance tour from the Get the Beat team. The 2026 tour page lists Adelaide and Sydney.",
+    "region": "National"
+  },
+  {
+    "id": "candance",
+    "name": "CanDance Australia",
+    "url": "https://www.candanceaustralia.com.au",
+    "scrapeUrl": "https://www.candanceaustralia.com.au/october",
+    "parser": "candance",
+    "notes": "South Australian competition. July page has dates; the October page names Golden Grove and Kent Town but does not publish a day range.",
+    "region": "SA"
+  },
+  {
+    "id": "pendulum",
+    "name": "Pendulum Dance Competitions",
+    "url": "https://www.pendulumdancecomps.com.au",
+    "scrapeUrl": "https://www.pendulumdancecomps.com.au/",
+    "parser": "pendulum",
+    "notes": "Adelaide competition, usually at Shedley Theatre, Elizabeth. The site often answers with a bot check. 2027 dates were not published when this source was added.",
+    "region": "SA"
+  },
+  {
+    "id": "showcase",
+    "name": "Showcase",
+    "url": "https://www.showcasedance.com",
+    "scrapeUrl": "https://showcasedance.dancecompgenie.com/Dance-Competition/schedule.aspx",
+    "parser": "showcase",
+    "notes": "Showcase Australian Dance Championships. Qualifier dates are partner logos, not a text calendar. The schedule table plus the Finals Jan page supply the Gold Coast nationals.",
+    "region": "National"
+  },
+  {
+    "id": "dancelife",
+    "name": "DanceLife Unite",
+    "url": "https://www.dancelifeunite.com.au",
+    "scrapeUrl": "https://dancelifeunite.mycomphq.com.au/",
+    "parser": "dancelife",
+    "notes": "Regional and national dates from the MyCompHQ event index. Performer links are the registration URLs. National cards on that index do not name a city.",
+    "region": "National"
+  },
+  {
+    "id": "talent-tribe",
+    "name": "Talent Tribe",
+    "url": "https://www.talenttribe.com.au",
+    "scrapeUrl": "https://www.talenttribe.com.au/",
+    "parser": "talent-tribe",
+    "notes": "National finals save-the-date on the homepage. The 2026/27 tour page lists entry closing dates without performance dates or venues, so those stops are skipped.",
+    "region": "National"
+  },
+  {
+    "id": "jump",
+    "name": "Jump Dance Challenge",
+    "url": "https://www.jumpdancechallenge.com.au",
+    "scrapeUrl": "https://www.jumpdancechallenge.com.au/natioanls",
+    "parser": "jump",
+    "notes": "Season nationals from the nationals page. 2027 heat dates on /heats are images, so they are not scraped until published as text. Registration portals are on CompAdminPro.",
+    "region": "National"
+  },
+  {
+    "id": "time-to-shine",
+    "name": "Time to Shine",
+    "url": "https://www.ttsdc.com.au",
+    "scrapeUrl": "https://www.comps-online.com.au/Competition_Home.aspx?Organiser=OR000049",
+    "parser": "time-to-shine",
+    "notes": "Live events and entry close dates from the organiser's Comps-Online list. Events with no venue are skipped so they are not filed under the wrong state.",
+    "region": "National"
   }
 ]
