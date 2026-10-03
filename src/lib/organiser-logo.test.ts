@@ -30,6 +30,18 @@ test("known organisers resolve to a stored logo", () => {
     (organiserMark({ sourceId: "carnival", organiser: "Carnival Dance Challenge" }) as { src: string }).src,
     "/organisers/carnival.png",
   );
+  assert.equal(
+    (organiserMark({ sourceId: "jump", organiser: "Jump Dance Challenge" }) as { src: string }).src,
+    "/organisers/jump.png",
+  );
+  assert.equal(
+    (organiserMark({ sourceId: "showcase", organiser: "Showcase" }) as { src: string }).src,
+    "/organisers/showcase.png",
+  );
+  assert.equal(
+    (organiserMark({ sourceId: "supreme", organiser: "Supreme Dance Experience" }) as { src: string }).src,
+    "/organisers/supreme.png",
+  );
 });
 
 test("aggregator rows use the listed organiser, not Dance Hub", () => {

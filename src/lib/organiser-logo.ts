@@ -26,6 +26,9 @@ const LOGOS = {
   dancelife: { src: "/organisers/dancelife.png", label: "DanceLife Unite" },
   "talent-tribe": { src: "/organisers/talent-tribe.png", label: "Talent Tribe" },
   "time-to-shine": { src: "/organisers/time-to-shine.png", label: "Time to Shine" },
+  jump: { src: "/organisers/jump.png", label: "Jump Dance Challenge" },
+  showcase: { src: "/organisers/showcase.png", label: "Showcase" },
+  supreme: { src: "/organisers/supreme.png", label: "Supreme Dance Experience" },
 } as const;
 
 type LogoId = keyof typeof LOGOS;
@@ -64,6 +67,9 @@ const NAME_RULES: { id: LogoId; test: (name: string) => boolean }[] = [
   },
   { id: "talent-tribe", test: (name) => name.includes("talent tribe") },
   { id: "time-to-shine", test: (name) => name.includes("time to shine") },
+  { id: "jump", test: (name) => name.includes("jump dance") },
+  { id: "showcase", test: (name) => name.includes("showcase") },
+  { id: "supreme", test: (name) => name.includes("supreme dance") || name === "supreme" },
 ];
 
 /** Sources that are the organiser. Aggregators stay on the name match or a monogram. */
@@ -80,6 +86,9 @@ const SOURCE_LOGOS: Record<string, LogoId> = {
   dancelife: "dancelife",
   "talent-tribe": "talent-tribe",
   "time-to-shine": "time-to-shine",
+  jump: "jump",
+  showcase: "showcase",
+  supreme: "supreme",
 };
 
 const SKIP_WORDS = new Set(["the", "of", "and", "a", "an", "for"]);
