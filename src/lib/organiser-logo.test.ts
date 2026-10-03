@@ -50,9 +50,19 @@ test("aggregator rows use the listed organiser, not Dance Hub", () => {
     sourceId: "dance-hub-qld",
     organiser: "Time to Shine",
   });
+  assert.equal(shine?.kind, "image");
+  assert.equal((shine as { src: string }).src, "/organisers/time-to-shine.png");
+
+  const hollywood = organiserMark({
+    sourceId: "dance-hub-nsw",
+    organiser: "Hollywood Bound",
+  });
   assert.deepEqual(
-    shine && { kind: shine.kind, initials: shine.kind === "monogram" ? shine.initials : "" },
-    { kind: "monogram", initials: "TTS" },
+    hollywood && {
+      kind: hollywood.kind,
+      initials: hollywood.kind === "monogram" ? hollywood.initials : "",
+    },
+    { kind: "monogram", initials: "HB" },
   );
 });
 

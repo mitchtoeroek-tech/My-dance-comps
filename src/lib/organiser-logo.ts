@@ -19,6 +19,13 @@ const LOGOS = {
     label: "Gold Coast Eisteddfod",
   },
   "light-up": { src: "/organisers/light-up.png", label: "Light Up the Stage" },
+  gtb: { src: "/organisers/gtb.png", label: "Get the Beat" },
+  "raise-the-barre": { src: "/organisers/raise-the-barre.png", label: "Raise the Barre" },
+  candance: { src: "/organisers/candance.png", label: "CanDance Australia" },
+  pendulum: { src: "/organisers/pendulum.png", label: "Pendulum" },
+  dancelife: { src: "/organisers/dancelife.png", label: "DanceLife Unite" },
+  "talent-tribe": { src: "/organisers/talent-tribe.png", label: "Talent Tribe" },
+  "time-to-shine": { src: "/organisers/time-to-shine.png", label: "Time to Shine" },
 } as const;
 
 type LogoId = keyof typeof LOGOS;
@@ -44,6 +51,19 @@ const NAME_RULES: { id: LogoId; test: (name: string) => boolean }[] = [
     test: (name) => name.includes("gold coast eisteddfod"),
   },
   { id: "light-up", test: (name) => name.includes("light up the stage") },
+  { id: "gtb", test: (name) => name.includes("get the beat") },
+  {
+    id: "raise-the-barre",
+    test: (name) => name.includes("raise the barre") || name.includes("raise the bar"),
+  },
+  { id: "candance", test: (name) => name.includes("candance") },
+  { id: "pendulum", test: (name) => name.includes("pendulum") },
+  {
+    id: "dancelife",
+    test: (name) => name.includes("dancelife") || name.includes("dance life unite"),
+  },
+  { id: "talent-tribe", test: (name) => name.includes("talent tribe") },
+  { id: "time-to-shine", test: (name) => name.includes("time to shine") },
 ];
 
 /** Sources that are the organiser. Aggregators stay on the name match or a monogram. */
@@ -53,6 +73,13 @@ const SOURCE_LOGOS: Record<string, LogoId> = {
   cmidc: "cmidc",
   evolution: "evolution",
   carnival: "carnival",
+  gtb: "gtb",
+  "raise-the-barre": "raise-the-barre",
+  candance: "candance",
+  pendulum: "pendulum",
+  dancelife: "dancelife",
+  "talent-tribe": "talent-tribe",
+  "time-to-shine": "time-to-shine",
 };
 
 const SKIP_WORDS = new Set(["the", "of", "and", "a", "an", "for"]);

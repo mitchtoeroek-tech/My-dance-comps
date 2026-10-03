@@ -161,7 +161,7 @@ Query params for `/api/comps`:
 
 ## Seed data and daily scrape
 
-Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), **Full Out** ([fullout.com.au](https://fullout.com.au) only — not the US Full Out Dance Production site), Follow Your Dreams, Carnival, Dance Hub Australia calendars, and other published 2026 dates. The UI always has this file even if a live scrape cannot reach organiser sites.
+Listings live in [`src/data/comps.json`](src/data/comps.json). Seed rows cover SASDS, Dance Competitions SA, Evolution Dance Comp, Count Me In (CMIDC), **Full Out** ([fullout.com.au](https://fullout.com.au) only — not the US Full Out Dance Production site), Follow Your Dreams, Carnival, Get the Beat (GTB), Raise the Barre, Supreme Dance Experience, CanDance Australia, Pendulum, Showcase, DanceLife Unite, Talent Tribe, Jump Dance Challenge, Time to Shine, Dance Hub Australia calendars, and other published dates. The UI always has this file even if a live scrape cannot reach organiser sites.
 
 Sources live in [`src/data/sources.json`](src/data/sources.json). Last automated run is recorded in [`src/data/scrape-status.json`](src/data/scrape-status.json).
 
@@ -199,6 +199,16 @@ Organiser websites change layout without notice. Treat scrape output as a hint a
    - `evolution` — Evolution regionals table
    - `cmidc` — Count Me In dates
    - `full-out` — Full Out Australia enter cards ([fullout.com.au](https://fullout.com.au) only)
+   - `gtb` — Get the Beat 2027 tour plus finals
+   - `raise-the-barre` — Raise the Barre text dates (the events page calendar is often an image)
+   - `supreme` — Supreme Dance Experience tour cards
+   - `candance` — CanDance Australia July and October pages
+   - `pendulum` — Pendulum Dance Competitions homepage
+   - `showcase` — Showcase nationals schedule
+   - `dancelife` — DanceLife Unite MyCompHQ event index
+   - `talent-tribe` — Talent Tribe national finals save-the-date
+   - `jump` — Jump Dance Challenge nationals page
+   - `time-to-shine` — Time to Shine Comps-Online event list
    - `dance-hub-table` — Dance Hub Australia HTML tables
    - `html-generic` — best-effort date sniffing
    - `seed-only` — skip live fetch

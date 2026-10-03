@@ -70,6 +70,16 @@ export interface CompSource {
     | "dance-hub-table"
     | "html-generic"
     | "full-out"
+    | "gtb"
+    | "raise-the-barre"
+    | "supreme"
+    | "candance"
+    | "pendulum"
+    | "showcase"
+    | "dancelife"
+    | "talent-tribe"
+    | "jump"
+    | "time-to-shine"
     | "seed-only";
   notes: string;
   region: string;
