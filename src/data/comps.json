@@ -1316,7 +1316,7 @@
     "startDate": "2026-09-24",
     "endDate": "2026-10-01",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-04T02:43:07.425Z"
+    "lastFetchedAt": "2026-10-04T21:29:23.609Z"
   },
   {
     "kind": "competition",
@@ -1508,7 +1508,7 @@
     "startDate": "2026-10-01",
     "endDate": "2026-10-02",
     "sourceId": "dancelife",
-    "lastFetchedAt": "2026-10-04T02:43:10.173Z"
+    "lastFetchedAt": "2026-10-04T21:29:28.465Z"
   },
   {
     "id": "full-out-canberra-solos-duos-2026",
@@ -1545,7 +1545,7 @@
     "notes": "Entries listed as sold out on fullout.com.au/enter/. Email dance@fullout.com.au for the waitlist.",
     "sourceId": "full-out",
     "lastUpdated": "2026-10-04",
-    "lastFetchedAt": "2026-10-04T02:43:07.778Z"
+    "lastFetchedAt": "2026-10-04T21:29:25.372Z"
   },
   {
     "kind": "competition",
@@ -1951,7 +1951,7 @@
     "notes": "Entries open via the CompHQ link on fullout.com.au/enter/. Entries close two weeks before the competition unless sold out first.",
     "sourceId": "full-out",
     "lastUpdated": "2026-10-04",
-    "lastFetchedAt": "2026-10-04T02:43:07.778Z"
+    "lastFetchedAt": "2026-10-04T21:29:25.372Z"
   },
   {
     "id": "cmidc-goolwa-nov-2026",
@@ -2047,7 +2047,7 @@
     "startDate": "2026-11-07",
     "endDate": "2026-11-07",
     "sourceId": "time-to-shine",
-    "lastFetchedAt": "2026-10-04T02:43:07.887Z"
+    "lastFetchedAt": "2026-10-04T21:29:26.100Z"
   },
   {
     "kind": "competition",
@@ -2080,7 +2080,7 @@
     "startDate": "2026-11-07",
     "endDate": "2026-11-08",
     "sourceId": "time-to-shine",
-    "lastFetchedAt": "2026-10-04T02:43:07.887Z"
+    "lastFetchedAt": "2026-10-04T21:29:26.100Z"
   },
   {
     "kind": "competition",
@@ -2143,7 +2143,7 @@
     "startDate": "2026-11-14",
     "endDate": "2026-11-15",
     "sourceId": "time-to-shine",
-    "lastFetchedAt": "2026-10-04T02:43:07.887Z"
+    "lastFetchedAt": "2026-10-04T21:29:26.100Z"
   },
   {
     "kind": "competition",
@@ -2176,7 +2176,7 @@
     "startDate": "2026-11-15",
     "endDate": "2026-11-15",
     "sourceId": "time-to-shine",
-    "lastFetchedAt": "2026-10-04T02:43:07.887Z"
+    "lastFetchedAt": "2026-10-04T21:29:26.100Z"
   },
   {
     "kind": "nationals",
@@ -2209,7 +2209,7 @@
     "startDate": "2026-12-09",
     "endDate": "2026-12-13",
     "sourceId": "jump",
-    "lastFetchedAt": "2026-10-04T02:43:07.613Z"
+    "lastFetchedAt": "2026-10-04T21:29:24.627Z"
   },
   {
     "id": "full-out-state-finals-2026",
@@ -2246,7 +2246,7 @@
     "notes": "Full Out State Finals at Futures Events Centre, Reynella. Entries opened 8 August 2026 and close four weeks before the competition unless sold out first. Confirm on fullout.com.au/enter/.",
     "sourceId": "full-out",
     "lastUpdated": "2026-10-04",
-    "lastFetchedAt": "2026-10-04T02:43:07.778Z"
+    "lastFetchedAt": "2026-10-04T21:29:25.372Z"
   },
   {
     "kind": "nationals",
@@ -2279,7 +2279,7 @@
     "startDate": "2027-01-02",
     "endDate": "2027-01-04",
     "sourceId": "dancelife",
-    "lastFetchedAt": "2026-10-04T02:43:10.173Z"
+    "lastFetchedAt": "2026-10-04T21:29:28.465Z"
   },
   {
     "id": "evolution-nationals-2027",
@@ -2344,7 +2344,7 @@
     "startDate": "2027-01-11",
     "endDate": "2027-01-18",
     "sourceId": "showcase",
-    "lastFetchedAt": "2026-10-04T02:43:08.503Z"
+    "lastFetchedAt": "2026-10-04T21:29:24.773Z"
   },
   {
     "kind": "competition",
@@ -2414,7 +2414,7 @@
     "startDate": "2027-02-05",
     "endDate": "2027-02-05",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-04T02:43:07.425Z"
+    "lastFetchedAt": "2026-10-04T21:29:23.609Z"
   },
   {
     "kind": "competition",
@@ -2484,7 +2484,7 @@
     "startDate": "2027-02-19",
     "endDate": "2027-02-19",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-04T02:43:07.425Z"
+    "lastFetchedAt": "2026-10-04T21:29:23.609Z"
   },
   {
     "kind": "competition",
@@ -2519,7 +2519,7 @@
     "startDate": "2027-02-27",
     "endDate": "2027-02-27",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-04T02:43:07.425Z"
+    "lastFetchedAt": "2026-10-04T21:29:23.609Z"
   },
   {
     "kind": "competition",
@@ -2589,7 +2589,7 @@
     "startDate": "2027-03-12",
     "endDate": "2027-03-12",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-04T02:43:07.425Z"
+    "lastFetchedAt": "2026-10-04T21:29:23.609Z"
   },
   {
     "kind": "competition",
@@ -2657,6 +2657,6 @@
     "startDate": "2027-04-13",
     "endDate": "2027-04-18",
     "sourceId": "talent-tribe",
-    "lastFetchedAt": "2026-10-04T02:43:06.669Z"
+    "lastFetchedAt": "2026-10-04T21:29:24.331Z"
   }
 ]

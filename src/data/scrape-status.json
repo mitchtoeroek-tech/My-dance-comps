@@ -1,6 +1,6 @@
 {
-  "lastRunAt": "2026-10-04T02:43:10.181Z",
-  "lastFetchedAt": "2026-10-04T02:43:10.181Z",
+  "lastRunAt": "2026-10-04T21:29:28.473Z",
+  "lastFetchedAt": "2026-10-04T21:29:28.473Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
   "updated": 17,
@@ -16,16 +16,16 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✗ dancetrain magazine — Competitions & Events: fetch failed (4 seed event(s) retained)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-04T02:43:07.778Z)",
-    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-10-04T02:43:07.425Z)",
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-04T21:29:25.372Z)",
+    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-10-04T21:29:23.609Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-04T02:43:06.316Z)",
-    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-04T02:43:07.688Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-04T21:29:25.141Z)",
+    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-04T21:29:24.225Z)",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-04T02:43:08.503Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-04T02:43:10.173Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-04T02:43:06.669Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-04T02:43:07.613Z)",
-    "✓ Time to Shine: 4 event(s) (lastFetchedAt 2026-10-04T02:43:07.887Z)"
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-04T21:29:24.773Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-04T21:29:28.465Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-04T21:29:24.331Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-04T21:29:24.627Z)",
+    "✓ Time to Shine: 4 event(s) (lastFetchedAt 2026-10-04T21:29:26.100Z)"
   ]
 }
