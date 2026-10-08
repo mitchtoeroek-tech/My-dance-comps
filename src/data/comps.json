@@ -1502,13 +1502,13 @@
     "maxAge": 18,
     "isNational": true,
     "notes": "Dates from the DanceLife Unite MyCompHQ event index. The index does not list a city for this national — confirm the venue on dancelifeunite.com.au before you travel.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "dancelife-nationals-troupes-2026-10-01",
     "name": "DanceLife Unite — Nationals Troupes",
     "startDate": "2026-10-01",
     "endDate": "2026-10-02",
     "sourceId": "dancelife",
-    "lastFetchedAt": "2026-10-07T20:42:51.517Z"
+    "lastFetchedAt": "2026-10-08T20:44:51.249Z"
   },
   {
     "id": "full-out-canberra-solos-duos-2026",
@@ -1544,8 +1544,8 @@
     "isNational": false,
     "notes": "Entries listed as sold out on fullout.com.au/enter/. Email dance@fullout.com.au for the waitlist.",
     "sourceId": "full-out",
-    "lastUpdated": "2026-10-07",
-    "lastFetchedAt": "2026-10-07T20:42:50.024Z"
+    "lastUpdated": "2026-10-08",
+    "lastFetchedAt": "2026-10-08T20:44:49.000Z"
   },
   {
     "kind": "competition",
@@ -1950,8 +1950,8 @@
     "isNational": false,
     "notes": "Entries open via the CompHQ link on fullout.com.au/enter/. Entries close two weeks before the competition unless sold out first.",
     "sourceId": "full-out",
-    "lastUpdated": "2026-10-07",
-    "lastFetchedAt": "2026-10-07T20:42:50.024Z"
+    "lastUpdated": "2026-10-08",
+    "lastFetchedAt": "2026-10-08T20:44:49.000Z"
   },
   {
     "id": "cmidc-goolwa-nov-2026",
@@ -2203,13 +2203,13 @@
     "maxAge": 18,
     "isNational": true,
     "notes": "Championship dates from jumpdancechallenge.com.au/natioanls. The same page lists the 2026 lineup at Dream Centre, Carrara. 2027 heat dates are image tiles without text dates, so those heats are not listed until the organiser publishes them as text.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "jump-nationals-2026",
     "name": "Jump Dance Challenge — National Championships",
     "startDate": "2026-12-09",
     "endDate": "2026-12-13",
     "sourceId": "jump",
-    "lastFetchedAt": "2026-10-07T20:42:49.820Z"
+    "lastFetchedAt": "2026-10-08T20:44:48.936Z"
   },
   {
     "id": "full-out-state-finals-2026",
@@ -2245,8 +2245,8 @@
     "isNational": false,
     "notes": "Full Out State Finals at Futures Events Centre, Reynella. Entries opened 8 August 2026 and close four weeks before the competition unless sold out first. Confirm on fullout.com.au/enter/.",
     "sourceId": "full-out",
-    "lastUpdated": "2026-10-07",
-    "lastFetchedAt": "2026-10-07T20:42:50.024Z"
+    "lastUpdated": "2026-10-08",
+    "lastFetchedAt": "2026-10-08T20:44:49.000Z"
   },
   {
     "kind": "nationals",
@@ -2273,13 +2273,13 @@
     "maxAge": 18,
     "isNational": true,
     "notes": "Dates from the DanceLife Unite MyCompHQ event index. The index does not list a city for this national — confirm the venue on dancelifeunite.com.au before you travel.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "dancelife-nationals-solos-2027-01-02",
     "name": "DanceLife Unite — Nationals Solos",
     "startDate": "2027-01-02",
     "endDate": "2027-01-04",
     "sourceId": "dancelife",
-    "lastFetchedAt": "2026-10-07T20:42:51.517Z"
+    "lastFetchedAt": "2026-10-08T20:44:51.249Z"
   },
   {
     "id": "evolution-nationals-2027",
@@ -2338,13 +2338,13 @@
     "maxAge": 18,
     "isNational": true,
     "notes": "January 2027 finals from the Showcase schedule and the Finals Jan 2027 page. Qualifying events are listed by partner logo on showcasedance.com/qualifiing-places.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "showcase-nationals-2027",
     "name": "Showcase — Australian Dance Championships",
     "startDate": "2027-01-11",
     "endDate": "2027-01-18",
     "sourceId": "showcase",
-    "lastFetchedAt": "2026-10-07T20:42:50.941Z"
+    "lastFetchedAt": "2026-10-08T20:44:48.660Z"
   },
   {
     "kind": "competition",
@@ -2373,13 +2373,13 @@
     "maxAge": 18,
     "isNational": false,
     "notes": "Listed as sold out on gtbdance.com/2027.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "gtb-sydney-1-2027",
     "name": "Get the Beat — Sydney 1",
     "startDate": "2027-01-29",
     "endDate": "2027-01-29",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-07T20:42:49.175Z"
+    "lastFetchedAt": "2026-10-08T20:44:47.546Z"
   },
   {
     "kind": "competition",
@@ -2408,13 +2408,13 @@
     "maxAge": 18,
     "isNational": false,
     "notes": "Dates from gtbdance.com/2027. Confirm on the organiser site before you enter.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "gtb-tweed-heads-2027",
     "name": "Get the Beat — Tweed Heads",
     "startDate": "2027-02-05",
     "endDate": "2027-02-05",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-07T20:42:49.175Z"
+    "lastFetchedAt": "2026-10-08T20:44:47.546Z"
   },
   {
     "kind": "competition",
@@ -2478,13 +2478,13 @@
     "maxAge": 18,
     "isNational": false,
     "notes": "Entries listed as open on gtbdance.com/2027. Confirm on the organiser site before you enter.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "gtb-caboolture-2027",
     "name": "Get the Beat — Caboolture",
     "startDate": "2027-02-19",
     "endDate": "2027-02-19",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-07T20:42:49.175Z"
+    "lastFetchedAt": "2026-10-08T20:44:47.546Z"
   },
   {
     "kind": "competition",
@@ -2513,13 +2513,13 @@
     "maxAge": 18,
     "isNational": false,
     "notes": "Dates from gtbdance.com/2027. Confirm on the organiser site before you enter.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "gtb-noosa-2027",
     "name": "Get the Beat — Noosa",
     "startDate": "2027-02-27",
     "endDate": "2027-02-27",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-07T20:42:49.175Z"
+    "lastFetchedAt": "2026-10-08T20:44:47.546Z"
   },
   {
     "kind": "competition",
@@ -2583,13 +2583,13 @@
     "maxAge": 18,
     "isNational": false,
     "notes": "Dates from gtbdance.com/2027. Confirm on the organiser site before you enter.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "gtb-yeppoon-2027",
     "name": "Get the Beat — Yeppoon",
     "startDate": "2027-03-12",
     "endDate": "2027-03-12",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-10-07T20:42:49.175Z"
+    "lastFetchedAt": "2026-10-08T20:44:47.546Z"
   },
   {
     "kind": "competition",
@@ -2651,12 +2651,47 @@
     "maxAge": 18,
     "isNational": true,
     "notes": "National finals save-the-date from talenttribe.com.au. Regional tour cards on the 2026/27 tour page publish entry-close dates without a performance date or venue, so those stops are not listed until the organiser publishes them.",
-    "lastUpdated": "2026-10-07",
+    "lastUpdated": "2026-10-08",
     "id": "talent-tribe-nationals-2027",
     "name": "Talent Tribe — National Finals",
     "startDate": "2027-04-13",
     "endDate": "2027-04-18",
     "sourceId": "talent-tribe",
-    "lastFetchedAt": "2026-10-07T20:42:49.413Z"
+    "lastFetchedAt": "2026-10-08T20:44:48.177Z"
+  },
+  {
+    "kind": "nationals",
+    "organiser": "Get the Beat",
+    "organiserUrl": "https://www.gtbdance.com",
+    "venue": "Flinders Performance Centre",
+    "suburb": "Buderim",
+    "state": "QLD",
+    "registrationOpens": null,
+    "registrationCloses": null,
+    "registrationUrl": "https://www.gtbdance.com/entries",
+    "infoUrl": "https://www.gtbdance.com/entries",
+    "styles": [
+      "Ballet",
+      "Jazz",
+      "Tap",
+      "Contemporary",
+      "Lyrical",
+      "Hip Hop",
+      "Musical Theatre",
+      "Acro",
+      "Broadway Jazz",
+      "Song and Dance"
+    ],
+    "minAge": 5,
+    "maxAge": 18,
+    "isNational": true,
+    "notes": "GTB Finals dates from gtbdance.com/entries. Confirm on the organiser site before you enter.",
+    "lastUpdated": "2026-10-08",
+    "id": "gtb-finals-2027",
+    "name": "Get the Beat — Finals",
+    "startDate": "2027-09-24",
+    "endDate": "2027-10-01",
+    "sourceId": "gtb",
+    "lastFetchedAt": "2026-10-08T20:44:47.546Z"
   }
 ]

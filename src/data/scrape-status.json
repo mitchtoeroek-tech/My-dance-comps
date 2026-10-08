@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-10-07T20:42:51.525Z",
-  "lastFetchedAt": "2026-10-07T20:42:51.525Z",
+  "lastRunAt": "2026-10-08T20:44:54.007Z",
+  "lastFetchedAt": "2026-10-08T20:44:54.007Z",
   "timezone": "Australia/Adelaide",
-  "added": 0,
-  "updated": 15,
+  "added": 1,
+  "updated": 13,
   "kept": 82,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -15,17 +15,17 @@
     "✓ Dance Hub Australia — Victoria: 2 event(s)",
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
-    "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-07T20:42:50.024Z)",
-    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-07T20:42:49.175Z)",
+    "✗ dancetrain magazine — Competitions & Events: fetch failed (4 seed event(s) retained)",
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-08T20:44:49.000Z)",
+    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-08T20:44:47.546Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-07T20:42:50.533Z)",
-    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-07T20:42:49.507Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-08T20:44:47.799Z)",
+    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-08T20:44:47.956Z)",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-07T20:42:50.941Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-07T20:42:51.517Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-07T20:42:49.413Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-07T20:42:49.820Z)",
-    "✓ Time to Shine: 1 event(s) (lastFetchedAt 2026-10-07T20:42:50.537Z)"
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-08T20:44:48.660Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-08T20:44:51.249Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-08T20:44:48.177Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-08T20:44:48.936Z)",
+    "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
   ]
 }
