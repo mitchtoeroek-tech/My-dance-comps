@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-10-13T21:00:08.778Z",
-  "lastFetchedAt": "2026-10-13T21:00:08.778Z",
+  "lastRunAt": "2026-10-14T20:58:24.357Z",
+  "lastFetchedAt": "2026-10-14T20:58:24.357Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
-  "updated": 14,
+  "updated": 6,
   "kept": 83,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -14,18 +14,18 @@
     "✓ Dance Hub Australia — Queensland: 26 event(s)",
     "✓ Dance Hub Australia — Victoria: 2 event(s)",
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
-    "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
+    "✗ Carnival Dance Challenge: fetch failed (3 seed event(s) retained)",
     "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-13T21:00:05.671Z)",
-    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-13T21:00:05.381Z)",
+    "✗ Full Out: fetch failed (11 seed event(s) retained)",
+    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-14T20:58:11.295Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-13T21:00:04.353Z)",
-    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-13T21:00:05.635Z)",
-    "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-13T21:00:05.015Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-13T21:00:08.770Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-13T21:00:04.635Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-13T21:00:06.610Z)",
-    "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-14T20:58:14.344Z)",
+    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-14T20:58:15.097Z)",
+    "✗ Pendulum Dance Competitions: fetch failed",
+    "✓ Showcase: 0 event(s) scraped; 1 seed event(s) retained",
+    "✗ DanceLife Unite: fetch failed (2 seed event(s) retained)",
+    "✗ Talent Tribe: fetch failed (1 seed event(s) retained)",
+    "✗ Jump Dance Challenge: fetch failed (1 seed event(s) retained)",
+    "✗ Time to Shine: fetch failed (4 seed event(s) retained)"
   ]
 }
