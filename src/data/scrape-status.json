@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-10-17T20:52:26.594Z",
-  "lastFetchedAt": "2026-10-17T20:52:26.594Z",
+  "lastRunAt": "2026-10-18T20:51:53.081Z",
+  "lastFetchedAt": "2026-10-18T20:51:53.081Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
-  "updated": 13,
+  "updated": 12,
   "kept": 83,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -16,16 +16,16 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✗ dancetrain magazine — Competitions & Events: fetch failed (4 seed event(s) retained)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-17T20:52:25.730Z)",
-    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-17T20:52:25.005Z)",
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-18T20:51:46.966Z)",
+    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-10-18T20:51:45.333Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-17T20:52:23.071Z)",
-    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-17T20:52:24.378Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-18T20:51:45.576Z)",
+    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-18T20:51:46.877Z)",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-17T20:52:24.412Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-17T20:52:26.586Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-17T20:52:24.658Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-17T20:52:24.570Z)",
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-18T20:51:47.666Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-18T20:51:49.907Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-18T20:51:45.869Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-18T20:51:53.073Z)",
     "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
   ]
 }
