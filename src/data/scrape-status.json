@@ -1,6 +1,6 @@
 {
-  "lastRunAt": "2026-10-20T20:58:45.911Z",
-  "lastFetchedAt": "2026-10-20T20:58:45.911Z",
+  "lastRunAt": "2026-10-21T20:59:11.486Z",
+  "lastFetchedAt": "2026-10-21T20:59:11.486Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
   "updated": 12,
@@ -16,16 +16,16 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✗ dancetrain magazine — Competitions & Events: fetch failed (4 seed event(s) retained)",
-    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-20T20:58:42.484Z)",
-    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-20T20:58:41.370Z)",
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-21T20:59:07.727Z)",
+    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-21T20:59:06.412Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-20T20:58:41.551Z)",
-    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-20T20:58:43.309Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-21T20:59:06.721Z)",
+    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-21T20:59:08.119Z)",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-20T20:58:42.309Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-20T20:58:45.903Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-20T20:58:41.837Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-20T20:58:42.670Z)",
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-21T20:59:07.021Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-21T20:59:11.478Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-21T20:59:06.822Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-21T20:59:10.042Z)",
     "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
   ]
 }
