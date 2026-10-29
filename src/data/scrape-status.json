@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-10-27T23:54:41.378Z",
-  "lastFetchedAt": "2026-10-27T23:54:41.378Z",
+  "lastRunAt": "2026-10-29T00:11:06.487Z",
+  "lastFetchedAt": "2026-10-29T00:11:06.487Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
-  "updated": 10,
+  "updated": 11,
   "kept": 83,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -16,16 +16,16 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✗ dancetrain magazine — Competitions & Events: fetch failed (4 seed event(s) retained)",
-    "✗ Full Out: Blocked by bot challenge (202) for https://fullout.com.au/enter/ (11 seed event(s) retained)",
-    "✓ Get the Beat: 6 event(s) (lastFetchedAt 2026-10-27T23:54:37.305Z)",
+    "✓ Full Out: 11 event(s) (lastFetchedAt 2026-10-29T00:11:04.546Z)",
+    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-10-29T00:11:06.214Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-27T23:54:37.715Z)",
-    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-27T23:54:38.146Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-10-29T00:11:03.343Z)",
+    "✓ CanDance Australia: 1 event(s) (lastFetchedAt 2026-10-29T00:11:03.609Z)",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-27T23:54:38.740Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-27T23:54:41.372Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-27T23:54:37.953Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-27T23:54:38.603Z)",
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-10-29T00:11:05.069Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-10-29T00:11:06.480Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-10-29T00:11:03.830Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-10-29T00:11:04.215Z)",
     "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
   ]
 }
