@@ -1951,7 +1951,7 @@
     "startDate": "2026-10-30",
     "endDate": "2026-10-31",
     "sourceId": "full-out",
-    "lastFetchedAt": "2026-11-07T00:12:35.087Z"
+    "lastFetchedAt": "2026-11-07T23:48:12.444Z"
   },
   {
     "id": "full-out-melbourne-solos-duos-2026",
@@ -2246,7 +2246,7 @@
     "startDate": "2026-12-09",
     "endDate": "2026-12-13",
     "sourceId": "jump",
-    "lastFetchedAt": "2026-11-07T00:12:35.288Z"
+    "lastFetchedAt": "2026-11-07T23:48:12.710Z"
   },
   {
     "id": "full-out-state-finals-2026",
@@ -2283,7 +2283,7 @@
     "notes": "Full Out State Finals at Futures Events Centre, Reynella. Entries opened 8 August 2026 and close four weeks before the competition unless sold out first. Confirm on fullout.com.au/enter/.",
     "sourceId": "full-out",
     "lastUpdated": "2026-11-07",
-    "lastFetchedAt": "2026-11-07T00:12:35.087Z"
+    "lastFetchedAt": "2026-11-07T23:48:12.444Z"
   },
   {
     "kind": "nationals",
@@ -2316,7 +2316,7 @@
     "startDate": "2027-01-02",
     "endDate": "2027-01-04",
     "sourceId": "dancelife",
-    "lastFetchedAt": "2026-11-07T00:12:37.903Z"
+    "lastFetchedAt": "2026-11-07T23:48:14.865Z"
   },
   {
     "id": "evolution-nationals-2027",
@@ -2381,7 +2381,7 @@
     "startDate": "2027-01-11",
     "endDate": "2027-01-18",
     "sourceId": "showcase",
-    "lastFetchedAt": "2026-11-07T00:12:34.131Z"
+    "lastFetchedAt": "2026-11-07T23:48:12.137Z"
   },
   {
     "kind": "competition",
@@ -2451,7 +2451,7 @@
     "startDate": "2027-02-05",
     "endDate": "2027-02-05",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-11-07T00:12:34.507Z"
+    "lastFetchedAt": "2026-11-07T23:48:10.475Z"
   },
   {
     "kind": "competition",
@@ -2521,7 +2521,7 @@
     "startDate": "2027-02-19",
     "endDate": "2027-02-19",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-11-07T00:12:34.507Z"
+    "lastFetchedAt": "2026-11-07T23:48:10.475Z"
   },
   {
     "kind": "competition",
@@ -2556,7 +2556,7 @@
     "startDate": "2027-02-27",
     "endDate": "2027-02-27",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-11-07T00:12:34.507Z"
+    "lastFetchedAt": "2026-11-07T23:48:10.475Z"
   },
   {
     "kind": "competition",
@@ -2626,7 +2626,7 @@
     "startDate": "2027-03-12",
     "endDate": "2027-03-12",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-11-07T00:12:34.507Z"
+    "lastFetchedAt": "2026-11-07T23:48:10.475Z"
   },
   {
     "kind": "competition",
@@ -2694,7 +2694,7 @@
     "startDate": "2027-04-13",
     "endDate": "2027-04-18",
     "sourceId": "talent-tribe",
-    "lastFetchedAt": "2026-11-07T00:12:33.567Z"
+    "lastFetchedAt": "2026-11-07T23:48:11.118Z"
   },
   {
     "kind": "nationals",
@@ -2729,6 +2729,6 @@
     "startDate": "2027-09-24",
     "endDate": "2027-10-01",
     "sourceId": "gtb",
-    "lastFetchedAt": "2026-11-07T00:12:34.507Z"
+    "lastFetchedAt": "2026-11-07T23:48:10.475Z"
   }
 ]
