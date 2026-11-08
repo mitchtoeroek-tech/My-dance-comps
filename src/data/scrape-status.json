@@ -1,9 +1,9 @@
 {
-  "lastRunAt": "2026-11-07T23:48:16.228Z",
-  "lastFetchedAt": "2026-11-07T23:48:16.228Z",
+  "lastRunAt": "2026-11-08T23:53:37.903Z",
+  "lastFetchedAt": "2026-11-08T23:53:37.903Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
-  "updated": 11,
+  "updated": 9,
   "kept": 84,
   "sources": [
     "✓ South Australian State Dance Sport (SASDS): 0 event(s) scraped; 1 seed event(s) retained",
@@ -16,16 +16,16 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✗ dancetrain magazine — Competitions & Events: fetch failed (4 seed event(s) retained)",
-    "✓ Full Out: 9 event(s) (lastFetchedAt 2026-11-07T23:48:12.444Z)",
-    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-11-07T23:48:10.475Z)",
+    "✗ Full Out: 404 Not Found for https://fullout.com.au/enter/ (12 seed event(s) retained)",
+    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-11-08T23:53:34.202Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-11-07T23:48:10.731Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-11-08T23:53:34.523Z)",
     "✓ CanDance Australia: 0 event(s) scraped; 1 seed event(s) retained",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-11-07T23:48:12.137Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-11-07T23:48:14.865Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-11-07T23:48:11.118Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-11-07T23:48:12.710Z)",
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-11-08T23:53:34.724Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-11-08T23:53:37.894Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-11-08T23:53:34.357Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-11-08T23:53:36.066Z)",
     "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
   ]
 }
