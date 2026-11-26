@@ -1,6 +1,6 @@
 {
-  "lastRunAt": "2026-11-25T03:39:57.128Z",
-  "lastFetchedAt": "2026-11-25T03:39:57.128Z",
+  "lastRunAt": "2026-11-26T02:59:07.515Z",
+  "lastFetchedAt": "2026-11-26T02:59:07.515Z",
   "timezone": "Australia/Adelaide",
   "added": 0,
   "updated": 9,
@@ -16,16 +16,16 @@
     "✓ Follow Your Dreams: 0 event(s) scraped; 1 seed event(s) retained",
     "✓ Carnival Dance Challenge: 0 event(s) scraped; 3 seed event(s) retained",
     "✓ dancetrain magazine — Competitions & Events: 25 event(s)",
-    "✗ Full Out: Blocked by bot challenge (202) for https://fullout.com.au/enter/ (12 seed event(s) retained)",
-    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-11-25T03:39:55.881Z)",
+    "✗ Full Out: 404 Not Found for https://fullout.com.au/enter/ (12 seed event(s) retained)",
+    "✓ Get the Beat: 5 event(s) (lastFetchedAt 2026-11-26T02:59:04.482Z)",
     "✓ Raise the Barre: 0 event(s) scraped; 4 seed event(s) retained",
-    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-11-25T03:39:53.443Z)",
+    "✓ Supreme Dance Experience: 2 event(s) (lastFetchedAt 2026-11-26T02:59:03.340Z)",
     "✓ CanDance Australia: 0 event(s) scraped; 1 seed event(s) retained",
     "✗ Pendulum Dance Competitions: 403 Forbidden for https://www.pendulumdancecomps.com.au/",
-    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-11-25T03:39:53.911Z)",
-    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-11-25T03:39:57.123Z)",
-    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-11-25T03:39:53.768Z)",
-    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-11-25T03:39:56.347Z)",
+    "✓ Showcase: 1 event(s) (lastFetchedAt 2026-11-26T02:59:04.647Z)",
+    "✓ DanceLife Unite: 10 event(s) (lastFetchedAt 2026-11-26T02:59:06.812Z)",
+    "✓ Talent Tribe: 1 event(s) (lastFetchedAt 2026-11-26T02:59:03.808Z)",
+    "✓ Jump Dance Challenge: 1 event(s) (lastFetchedAt 2026-11-26T02:59:04.186Z)",
     "✓ Time to Shine: 0 event(s) scraped; 4 seed event(s) retained"
   ]
 }
